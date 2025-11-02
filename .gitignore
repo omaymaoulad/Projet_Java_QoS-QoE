@@ -37,3 +37,6 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+# Fichier de configuration local (ne pas envoyer sur GitHub)
+config.properties
