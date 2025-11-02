@@ -8,7 +8,6 @@ import java.util.Properties;
 
 public class DBConnection {
     private static Connection connection = null;
-
     public static Connection getConnection() {
         if (connection == null) {
             try {
@@ -21,13 +20,16 @@ public class DBConnection {
                 String url = props.getProperty("db.url");
                 String user = props.getProperty("db.user");
                 String password = props.getProperty("db.password");
-
+                Class.forName("oracle.jdbc.OracleDriver");
                 // Établir la connexion
                 connection = DriverManager.getConnection(url, user, password);
                 System.out.println(" Connexion réussie à la base Oracle !");
             } catch (IOException e) {
                 System.out.println("Erreur de lecture du fichier config.properties : " + e.getMessage());
-            } catch (SQLException e) {
+            } catch (ClassNotFoundException e) {
+                System.out.println("class not found exception : " + e.getMessage());
+            }
+            catch (SQLException e) {
                 System.out.println("Erreur de connexion à Oracle : " + e.getMessage());
             }
         }
