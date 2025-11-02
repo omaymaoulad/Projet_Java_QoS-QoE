@@ -14,7 +14,7 @@ public class DBConnection {
             try {
                 // Charger les propriétés
                 Properties props = new Properties();
-                FileInputStream fis = new FileInputStream("config.properties");
+                FileInputStream fis = new FileInputStream("src/main/resources/config.properties");
                 props.load(fis);
 
                 // Lire les propriétés
@@ -43,5 +43,18 @@ public class DBConnection {
         } catch (SQLException e) {
             System.out.println("Erreur lors de la fermeture de la connexion : " + e.getMessage());
         }
+    }
+    public static void main(String[] args) {
+        // Tente d'obtenir la connexion à la base Oracle
+        java.sql.Connection conn = DBConnection.getConnection();
+
+        if (conn != null) {
+            System.out.println("✅ Connexion Oracle établie avec succès !");
+        } else {
+            System.out.println("❌ Échec de la connexion à la base Oracle.");
+        }
+
+        // Fermer la connexion proprement
+        DBConnection.closeConnection();
     }
 }
