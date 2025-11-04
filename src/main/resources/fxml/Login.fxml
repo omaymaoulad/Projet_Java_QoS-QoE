@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
+
+<AnchorPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.ensah.qoe.Controller.LoginController"
+            prefHeight="600.0" prefWidth="900.0"
+            stylesheets="@../css/style.css"
+            style="-fx-background-color: linear-gradient(to bottom right, #667eea 0%, #764ba2 100%);">
+
+<!-- Container Principal -->
+<HBox alignment="CENTER" AnchorPane.topAnchor="0.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+
+    <!-- Panneau Gauche - Image/Info -->
+    <VBox alignment="CENTER" prefWidth="400.0" spacing="30"
+          style="-fx-background-color: rgba(255, 255, 255, 0.1); -fx-background-radius: 0;">
+        <padding>
+            <Insets top="50" right="40" bottom="50" left="40"/>
+        </padding>
+
+        <!-- Logo ou Icône -->
+        <VBox alignment="CENTER" spacing="15">
+            <ImageView fitWidth="200" fitHeight="200" style="-fx-border-color: #4A90E2; -fx-border-width: 3; -fx-border-radius: 10;">
+                <image>
+                    <Image url="@../images/logclient.jpg" />
+                </image>
+            </ImageView>
+            <Label text="QOS/QOE System" style="-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: white;">
+                <font>
+                    <Font name="System Bold" size="32.0"/>
+                </font>
+            </Label>
+            <Label text="Une vision claire de la performance et de la satisfaction"
+                   style="-fx-font-size: 16px; -fx-text-fill: rgba(255, 255, 255, 0.9); -fx-text-alignment: center;"
+                   wrapText="true" maxWidth="300"/>
+        </VBox>
+
+        <!-- Informations supplémentaires -->
+        <VBox spacing="20" alignment="CENTER_LEFT" maxWidth="300">
+            <HBox spacing="15" alignment="CENTER_LEFT">
+                <Label text="✓" style="-fx-font-size: 24px; -fx-text-fill: #4ade80;"/>
+                <Label text="Analyse rapide et précise"
+                       style="-fx-font-size: 14px; -fx-text-fill: white;" wrapText="true"/>
+            </HBox>
+            <HBox spacing="15" alignment="CENTER_LEFT">
+                <Label text="✓" style="-fx-font-size: 24px; -fx-text-fill: #4ade80;"/>
+                <Label text="Gestion efficace du système"
+                       style="-fx-font-size: 14px; -fx-text-fill: white;" wrapText="true"/>
+            </HBox>
+            <HBox spacing="15" alignment="CENTER_LEFT">
+                <Label text="✓" style="-fx-font-size: 24px; -fx-text-fill: #4ade80;"/>
+                <Label text="Accès multi-utilisateurs"
+                       style="-fx-font-size: 14px; -fx-text-fill: white;" wrapText="true"/>
+            </HBox>
+        </VBox>
+    </VBox>
+
+    <!-- Panneau Droit - Formulaire de Connexion -->
+    <VBox alignment="CENTER" prefWidth="500.0" spacing="25"
+          style="-fx-background-color: white; -fx-background-radius: 0;">
+        <padding>
+            <Insets top="60" right="60" bottom="60" left="60"/>
+        </padding>
+
+        <!-- En-tête du formulaire -->
+        <VBox spacing="10" alignment="CENTER">
+            <Label text="Connexion" style="-fx-font-size: 36px; -fx-font-weight: bold; -fx-text-fill: #1f2937;">
+                <font>
+                    <Font name="System Bold" size="36.0"/>
+                </font>
+            </Label>
+            <Label text="Veuillez vous connecter à votre compte"
+                   style="-fx-font-size: 14px; -fx-text-fill: #6b7280;"/>
+        </VBox>
+
+        <!-- Formulaire -->
+        <VBox spacing="20" prefWidth="350" maxWidth="350">
+
+            <!-- Champ Username -->
+            <VBox spacing="8">
+                <Label text="Nom d'utilisateur"
+                       style="-fx-font-size: 14px; -fx-font-weight: 600; -fx-text-fill: #374151;"/>
+                <TextField fx:id="usernameField" promptText="Entrez votre nom d'utilisateur"
+                           style="-fx-background-color: #f9fafb;
+                                      -fx-border-color: #e5e7eb;
+                                      -fx-border-radius: 8;
+                                      -fx-background-radius: 8;
+                                      -fx-padding: 12;
+                                      -fx-font-size: 14px;
+                                      -fx-border-width: 1.5;">
+                    <font>
+                        <Font size="14.0"/>
+                    </font>
+                </TextField>
+            </VBox>
+
+            <!-- Champ Password -->
+            <VBox spacing="8">
+                <Label text="Mot de passe"
+                       style="-fx-font-size: 14px; -fx-font-weight: 600; -fx-text-fill: #374151;"/>
+                <PasswordField fx:id="passwordField" promptText="Entrez votre mot de passe"
+                               style="-fx-background-color: #f9fafb;
+                                          -fx-border-color: #e5e7eb;
+                                          -fx-border-radius: 8;
+                                          -fx-background-radius: 8;
+                                          -fx-padding: 12;
+                                          -fx-font-size: 14px;
+                                          -fx-border-width: 1.5;">
+                    <font>
+                        <Font size="14.0"/>
+                    </font>
+                </PasswordField>
+            </VBox>
+
+            <!-- Message d'erreur -->
+            <Label fx:id="errorLabel" text=""
+                   style="-fx-text-fill: #ef4444; -fx-font-size: 13px; -fx-font-weight: 500;"
+                   wrapText="true"/>
+
+            <!-- Options supplémentaires -->
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <CheckBox text="Se souvenir de moi"
+                          style="-fx-font-size: 13px; -fx-text-fill: #6b7280;"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Hyperlink text="Mot de passe oublié?"
+                           style="-fx-font-size: 13px; -fx-text-fill: #667eea; -fx-border-width: 0;"/>
+            </HBox>
+
+            <!-- Bouton de connexion -->
+            <Button text="Se connecter" onAction="#handleLogin" maxWidth="Infinity"
+                    style="-fx-background-color: linear-gradient(to right, #667eea, #764ba2);
+                               -fx-text-fill: white;
+                               -fx-font-size: 16px;
+                               -fx-font-weight: bold;
+                               -fx-padding: 14;
+                               -fx-background-radius: 8;
+                               -fx-cursor: hand;
+                               -fx-effect: dropshadow(gaussian, rgba(102, 126, 234, 0.4), 10, 0, 0, 4);">
+                <font>
+                    <Font name="System Bold" size="16.0"/>
+                </font>
+            </Button>
+
+        </VBox>
+
+        <!-- Footer -->
+        <VBox alignment="CENTER" spacing="5" VBox.vgrow="ALWAYS">
+            <Region VBox.vgrow="ALWAYS"/>
+            <Label text="© 2025 QOE System. Tous droits réservés."
+                   style="-fx-text-fill: #9ca3af; -fx-font-size: 12px;"/>
+        </VBox>
+    </VBox>
+</HBox>
+</AnchorPane>

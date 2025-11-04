@@ -1,51 +1,57 @@
+package com.ensah.qoe;
+
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.image.Image;
 import javafx.stage.Stage;
-import Models.DBConnection;
 
+import java.io.InputStream;
+import java.util.Objects;
 
 public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/login.fxml"));
+            // Charger le FXML de la page de login (doit être dans resources/fxml/login.fxml)
+            FXMLLoader loader = new FXMLLoader();
+            loader.setLocation(Objects.requireNonNull(getClass().getResource("/fxml/login.fxml")));
             Parent root = loader.load();
 
+            // Créer la scène
             Scene scene = new Scene(root);
 
-            String css = getClass().getResource("/css/style.css").toExternalForm();
-            scene.getStylesheets().add(css);
-
-            primaryStage.setTitle("Connexion - Mon Application");
-            primaryStage.setScene(scene);
-            primaryStage.setResizable(false);
-
-            try {
-                Image icon = new Image(getClass().getResourceAsStream("/images/logo.png"));
-                primaryStage.getIcons().add(icon);
-            } catch (Exception e) {
-                System.out.println("⚠️ Logo non trouvé");
+            InputStream cssStream = getClass().getResourceAsStream("/css/style.css");
+            if (cssStream != null) {
+                scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/css/style.css")).toExternalForm());
             }
 
-            primaryStage.show();
+            // Configuration de la fenêtre
+            primaryStage.setTitle("Login - QoS/QoE Project");
+            primaryStage.setScene(scene);
+            primaryStage.setMinWidth(360);
+            primaryStage.setMinHeight(260);
+            primaryStage.setResizable(false); // ou true si tu veux permettre le redimensionnement
             primaryStage.centerOnScreen();
 
-            System.out.println("✅ Application démarrée avec succès !");
+            primaryStage.show();
 
         } catch (Exception e) {
-            System.err.println("❌ Erreur lors du chargement de l'application");
             e.printStackTrace();
         }
     }
 
     @Override
-    public void stop() {
-        DBConnection.closeConnection();
-        System.out.println("👋 Application fermée");
+    public void init() throws Exception {
+        super.init();
+
+    }
+
+    @Override
+    public void stop() throws Exception {
+        super.stop();
+
     }
 
     public static void main(String[] args) {
