@@ -1,17 +1,54 @@
-package com.ensah.qoe;
+import javafx.application.Application;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.image.Image;
+import javafx.stage.Stage;
+import Models.DBConnection;
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
-public class Main {
-    static void main() {
-        //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-        // to see how IntelliJ IDEA suggests fixing it.
-        IO.println(String.format("Hello and welcome!"));
 
-        for (int i = 1; i <= 5; i++) {
-            //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-            // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-            IO.println("i = " + i);
+public class Main extends Application {
+
+    @Override
+    public void start(Stage primaryStage) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/login.fxml"));
+            Parent root = loader.load();
+
+            Scene scene = new Scene(root);
+
+            String css = getClass().getResource("/css/style.css").toExternalForm();
+            scene.getStylesheets().add(css);
+
+            primaryStage.setTitle("Connexion - Mon Application");
+            primaryStage.setScene(scene);
+            primaryStage.setResizable(false);
+
+            try {
+                Image icon = new Image(getClass().getResourceAsStream("/images/logo.png"));
+                primaryStage.getIcons().add(icon);
+            } catch (Exception e) {
+                System.out.println("⚠️ Logo non trouvé");
+            }
+
+            primaryStage.show();
+            primaryStage.centerOnScreen();
+
+            System.out.println("✅ Application démarrée avec succès !");
+
+        } catch (Exception e) {
+            System.err.println("❌ Erreur lors du chargement de l'application");
+            e.printStackTrace();
         }
+    }
+
+    @Override
+    public void stop() {
+        DBConnection.closeConnection();
+        System.out.println("👋 Application fermée");
+    }
+
+    public static void main(String[] args) {
+        launch(args);
     }
 }
