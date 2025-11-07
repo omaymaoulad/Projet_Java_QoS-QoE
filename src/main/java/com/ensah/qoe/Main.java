@@ -5,8 +5,8 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import javafx.scene.image.Image;
 
-import java.io.InputStream;
 import java.util.Objects;
 
 public class Main extends Application {
@@ -14,44 +14,28 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) {
         try {
-            // Charger le FXML de la page de login (doit être dans resources/fxml/login.fxml)
-            FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(Objects.requireNonNull(getClass().getResource("/fxml/login.fxml")));
-            Parent root = loader.load();
+            Parent root = FXMLLoader.load(getClass().getResource("/fxml/login.fxml"));
 
-            // Créer la scène
-            Scene scene = new Scene(root);
+            Scene scene = new Scene(root, 1200, 750);
+            scene.getStylesheets().add(getClass().getResource("/css/style.css").toExternalForm());
+            primaryStage.getIcons().add(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/logo_red.jpg"))));
 
-            InputStream cssStream = getClass().getResourceAsStream("/css/style.css");
-            if (cssStream != null) {
-                scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/css/style.css")).toExternalForm());
-            }
-
-            // Configuration de la fenêtre
-            primaryStage.setTitle("Login - QoS/QoE Project");
+            // Configuration pour avoir les boutons système par défaut
+            primaryStage.setTitle("QOS/QOE System - Login");
             primaryStage.setScene(scene);
-            primaryStage.setMinWidth(360);
-            primaryStage.setMinHeight(260);
-            primaryStage.setResizable(false); // ou true si tu veux permettre le redimensionnement
-            primaryStage.centerOnScreen();
+            primaryStage.setMinWidth(600);
+            primaryStage.setMinHeight(500);
 
+            // IMPORTANT: Ne pas utiliser StageStyle.UNDECORATED pour avoir les boutons système
+            primaryStage.setResizable(true);
+
+            primaryStage.centerOnScreen();
             primaryStage.show();
 
         } catch (Exception e) {
             e.printStackTrace();
+            System.err.println("Application startup error: " + e.getMessage());
         }
-    }
-
-    @Override
-    public void init() throws Exception {
-        super.init();
-
-    }
-
-    @Override
-    public void stop() throws Exception {
-        super.stop();
-
     }
 
     public static void main(String[] args) {

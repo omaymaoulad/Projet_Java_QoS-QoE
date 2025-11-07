@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<AnchorPane xmlns="http://javafx.com/javafx/17"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.ensah.qoe.Controller.ClientDashboardController"
+            prefHeight="800.0" prefWidth="1200.0"
+            style="-fx-background-color: #f5f5f5;">
+
+    <VBox spacing="20" AnchorPane.topAnchor="20.0" AnchorPane.bottomAnchor="20.0"
+          AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0">
+
+        <Label text="Client Dashboard - QOS/QOE System"
+               style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
+
+        <!-- Label pour afficher le nom de l'utilisateur connecté -->
+        <Label fx:id="usernameLabel"
+               text="Welcome, Client!"
+               style="-fx-font-size: 18px;"/>
+
+        <!-- Add client-specific components here -->
+        <Button text="View QoS Metrics"
+                style="-fx-background-color: #FF6B35; -fx-text-fill: white; -fx-font-weight: bold;"
+                prefWidth="200" prefHeight="40"/>
+
+        <Button text="My Reports"
+                style="-fx-background-color: #FF8C42; -fx-text-fill: white; -fx-font-weight: bold;"
+                prefWidth="200" prefHeight="40"/>
+
+        <Button text="Give Feedback"
+                style="-fx-background-color: #FFA552; -fx-text-fill: white; -fx-font-weight: bold;"
+                prefWidth="200" prefHeight="40"/>
+    </VBox>
+</AnchorPane>

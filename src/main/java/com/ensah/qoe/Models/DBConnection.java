@@ -46,7 +46,7 @@ public class DBConnection {
             System.out.println("Erreur lors de la fermeture de la connexion : " + e.getMessage());
         }
     }
-   /* public static void main(String[] args) {
+    public static void main(String[] args) {
         // Tente d'obtenir la connexion à la base Oracle
         java.sql.Connection conn = DBConnection.getConnection();
 
@@ -58,5 +58,5 @@ public class DBConnection {
 
         // Fermer la connexion proprement
         DBConnection.closeConnection();
-    }*/
+    }
 }
