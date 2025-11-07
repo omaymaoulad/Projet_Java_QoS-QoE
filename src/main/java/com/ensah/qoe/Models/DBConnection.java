@@ -1,6 +1,7 @@
 package com.ensah.qoe.Models;
-import java.io.FileInputStream;
+
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -8,32 +9,65 @@ import java.util.Properties;
 
 public class DBConnection {
     private static Connection connection = null;
-    public static Connection getConnection() {
-        if (connection == null) {
-            try {
-                // Charger les propriétés
-                Properties props = new Properties();
-                FileInputStream fis = new FileInputStream("src/main/resources/config.properties");
-                props.load(fis);
+    private static Properties props = new Properties();
 
-                // Lire les propriétés
-                String url = props.getProperty("db.url");
-                String user = props.getProperty("db.user");
-                String password = props.getProperty("db.password");
-                Class.forName("oracle.jdbc.OracleDriver");
-                // Établir la connexion
-                connection = DriverManager.getConnection(url, user, password);
-                System.out.println(" Connexion réussie à la base Oracle !");
-            } catch (IOException e) {
-                System.out.println("Erreur de lecture du fichier config.properties : " + e.getMessage());
-            } catch (ClassNotFoundException e) {
-                System.out.println("class not found exception : " + e.getMessage());
+    static {
+        // Charger la configuration une seule fois au démarrage
+        loadConfig();
+    }
+
+    private static void loadConfig() {
+        try (InputStream input = DBConnection.class.getClassLoader().getResourceAsStream("config.properties")) {
+            if (input == null) {
+                System.err.println("❌ Fichier config.properties non trouvé dans les ressources!");
+                return;
             }
-            catch (SQLException e) {
-                System.out.println("Erreur de connexion à Oracle : " + e.getMessage());
+            props.load(input);
+            System.out.println("✅ Configuration chargée: " + props.getProperty("db.url"));
+        } catch (IOException e) {
+            System.err.println("❌ Erreur lecture config.properties: " + e.getMessage());
+        }
+    }
+
+    public static Connection getConnection() {
+        try {
+            // Vérifier si la connexion existe et est valide
+            if (connection == null || connection.isClosed() || !connection.isValid(2)) {
+                System.out.println("🔄 Création d'une nouvelle connexion...");
+                createNewConnection();
             }
+        } catch (SQLException e) {
+            System.err.println("❌ Erreur validation connexion: " + e.getMessage());
+            createNewConnection(); // Tenter une reconnexion
         }
         return connection;
+    }
+
+    private static void createNewConnection() {
+        try {
+            String url = props.getProperty("db.url");
+            String user = props.getProperty("db.user");
+            String password = props.getProperty("db.password");
+
+            if (url == null || user == null || password == null) {
+                System.err.println("❌ Paramètres de connexion manquants dans config.properties");
+                return;
+            }
+
+            // Charger le driver
+            Class.forName("oracle.jdbc.OracleDriver");
+
+            // Établir la connexion
+            connection = DriverManager.getConnection(url, user, password);
+            System.out.println("✅ Connexion réussie à la base Oracle !");
+
+        } catch (ClassNotFoundException e) {
+            System.err.println("❌ Driver Oracle non trouvé: " + e.getMessage());
+        } catch (SQLException e) {
+            System.err.println("❌ Erreur connexion Oracle: " + e.getMessage());
+            System.err.println("Code erreur: " + e.getErrorCode());
+            connection = null;
+        }
     }
 
     public static void closeConnection() {
@@ -42,21 +76,24 @@ public class DBConnection {
                 connection.close();
                 System.out.println("🔒 Connexion fermée.");
             }
+            connection = null; // Important: réinitialiser à null
         } catch (SQLException e) {
-            System.out.println("Erreur lors de la fermeture de la connexion : " + e.getMessage());
+            System.err.println("❌ Erreur fermeture connexion: " + e.getMessage());
         }
     }
-    public static void main(String[] args) {
-        // Tente d'obtenir la connexion à la base Oracle
-        java.sql.Connection conn = DBConnection.getConnection();
 
+    // Méthode pour forcer une reconnexion (utile après erreur)
+    public static void reconnect() {
+        closeConnection();
+        getConnection();
+    }
+
+    public static void main(String[] args) {
+        Connection conn = DBConnection.getConnection();
         if (conn != null) {
             System.out.println("✅ Connexion Oracle établie avec succès !");
         } else {
             System.out.println("❌ Échec de la connexion à la base Oracle.");
         }
-
-        // Fermer la connexion proprement
-        DBConnection.closeConnection();
     }
 }
