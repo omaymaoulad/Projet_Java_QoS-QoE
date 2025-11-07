@@ -1,13 +1,11 @@
 package com.ensah.qoe.Services;
+
 import com.ensah.qoe.Models.Qos;
-import org.apache.spark.sql.Dataset;
-import org.apache.spark.sql.Row;
-import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.*;
 import org.apache.spark.sql.expressions.Window;
 import org.apache.spark.sql.expressions.WindowSpec;
 
 import static org.apache.spark.sql.functions.*;
-
 
 /**
  * Classe QosAnalyzer
@@ -31,7 +29,7 @@ public class QosAnalyzer {
         // -------------------------------
         SparkSession spark = SparkSession.builder()
                 .appName("QoS Analyzer")
-                .master("local[*]") // local[*] = exécution sur tous les cœurs disponibles
+                .master("local[]") // local[] = exécution sur tous les cœurs disponibles
                 .getOrCreate();
 
         // Lecture du fichier CSV
@@ -114,4 +112,3 @@ public class QosAnalyzer {
         return qos;
     }
 }
-

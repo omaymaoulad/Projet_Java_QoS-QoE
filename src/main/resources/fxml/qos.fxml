@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.scene.shape.*?>
+
+<AnchorPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.ensah.qoe.Controller.QoSController">
+    <Label text="Latence :" layoutX="50" layoutY="50"/>
+    <Label fx:id="latenceLabel" layoutX="200" layoutY="50"/>
+
+    <Label text="Jitter :" layoutX="50" layoutY="80"/>
+    <Label fx:id="jitterLabel" layoutX="200" layoutY="80"/>
+
+    <Label text="Perte de paquets :" layoutX="50" layoutY="110"/>
+    <Label fx:id="perteLabel" layoutX="200" layoutY="110"/>
+
+    <Label text="Bande passante :" layoutX="50" layoutY="140"/>
+    <Label fx:id="bandePassanteLabel" layoutX="200" layoutY="140"/>
+
+    <Label text="Signal Score :" layoutX="50" layoutY="170"/>
+    <Label fx:id="signalLabel" layoutX="200" layoutY="170"/>
+
+    <Label text="MOS :" layoutX="50" layoutY="200"/>
+    <Label fx:id="mosLabel" layoutX="200" layoutY="200"/>
+
+    <Button fx:id="analyserButton" text="Analyser CSV" layoutX="50" layoutY="250" onAction="#analyserQoS"/>
+</AnchorPane>
