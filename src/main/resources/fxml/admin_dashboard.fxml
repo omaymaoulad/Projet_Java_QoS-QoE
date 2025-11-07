@@ -12,7 +12,7 @@
 <AnchorPane xmlns="http://javafx.com/javafx/17"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.ensah.qoe.Controller.AdminDashboardController"
-            prefHeight="800.0" prefWidth="1200.0"
+            prefHeight="800.0" prefWidth="1000.0"
             style="-fx-background-color: #f8f9fa;">
 
     <!-- Layout principal -->
