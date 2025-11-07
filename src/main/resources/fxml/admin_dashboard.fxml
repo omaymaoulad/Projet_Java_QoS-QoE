@@ -21,16 +21,37 @@
                style="-fx-font-size: 18px;"/>
 
         <!-- Add admin-specific components here -->
-        <Button text="Manage Users"
+        <Button text="Home"
                 style="-fx-background-color: #FF6B35; -fx-text-fill: white; -fx-font-weight: bold;"
                 prefWidth="200" prefHeight="40"/>
 
-        <Button text="View Reports"
+        <Button text="QoS Module"
                 style="-fx-background-color: #FF8C42; -fx-text-fill: white; -fx-font-weight: bold;"
                 prefWidth="200" prefHeight="40"/>
 
-        <Button text="System Settings"
+        <Button text="QoE Module"
                 style="-fx-background-color: #FFA552; -fx-text-fill: white; -fx-font-weight: bold;"
                 prefWidth="200" prefHeight="40"/>
+        <Button text="Statistics"
+                style="-fx-background-color: #FFA552; -fx-text-fill: white; -fx-font-weight: bold;"
+                prefWidth="200" prefHeight="40"/>
+        <Button text="Prediction"
+                style="-fx-background-color: #FFA552; -fx-text-fill: white; -fx-font-weight: bold;"
+                prefWidth="200" prefHeight="40"/>
+        <Button text="Report"
+                style="-fx-background-color: #FFA552; -fx-text-fill: white; -fx-font-weight: bold;"
+                prefWidth="200" prefHeight="40"/>
+        <Button text="Alerts"
+                style="-fx-background-color: #FFA552; -fx-text-fill: white; -fx-font-weight: bold;"
+                prefWidth="200" prefHeight="40"/>
+        <Button text="Manage client"
+                style="-fx-background-color: #FFA552; -fx-text-fill: white; -fx-font-weight: bold;"
+                prefWidth="200" prefHeight="40"/>
+        <Button text="Logout"
+                style="-fx-background-color: #FFA552; -fx-text-fill: white; -fx-font-weight: bold;"
+                prefWidth="200" prefHeight="40"/>
+
+
+
     </VBox>
 </AnchorPane>

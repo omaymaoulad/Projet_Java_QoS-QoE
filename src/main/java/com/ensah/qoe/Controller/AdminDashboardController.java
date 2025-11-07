@@ -10,17 +10,15 @@ import java.util.ResourceBundle;
 
 public class AdminDashboardController implements Initializable {
 
-    private LoginController.User currentUser;
+    private User currentUser;
     @FXML
     private Label usernameLabel;
 
-    public void setUserData(User user) {
-        usernameLabel.setText("Welcome, " + user.getUsername() + "!");
-    }
 
-    public void setUserData(LoginController.User user) {
+    public void setUserData(User user) {
         this.currentUser = user;
         // Initialize admin dashboard with user data
+        usernameLabel.setText("Welcome, " + user.getUsername() + "!");
         System.out.println("Admin logged in: " + user.getUsername());
     }
 

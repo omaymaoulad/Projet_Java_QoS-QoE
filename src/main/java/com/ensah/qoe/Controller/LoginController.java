@@ -1,6 +1,7 @@
 package com.ensah.qoe.Controller;
 
 import com.ensah.qoe.Models.DBConnection;
+import com.ensah.qoe.Models.User;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -166,10 +167,11 @@ public class LoginController implements Initializable {
 
         try {
             conn = DBConnection.getConnection();
-            String sql = "SELECT id_user, username, email, role FROM utilisateurs WHERE username = ? AND password = ?";
+            System.out.println("🔍 Connected schema: " + conn.getMetaData().getUserName());
+            String sql = "SELECT id_user, username, email, role FROM utilisateurs WHERE LOWER(TRIM(username)) = LOWER(TRIM(?)) AND LOWER(TRIM(password)) = LOWER(TRIM(?))";
             pstmt = conn.prepareStatement(sql);
-            pstmt.setString(1, username);
-            pstmt.setString(2, password);
+            pstmt.setString(1, username.trim());
+            pstmt.setString(2, password.trim());
 
             System.out.println("Executing query: username=" + username + ", password=" + password);
 
@@ -328,28 +330,5 @@ public class LoginController implements Initializable {
     }
 
     // User class to hold user data
-    public static class User {
-        private int id;
-        private String username;
-        private String email;
-        private String role;
 
-        // Getters and Setters
-        public int getId() { return id; }
-        public void setId(int id) { this.id = id; }
-
-        public String getUsername() { return username; }
-        public void setUsername(String username) { this.username = username; }
-
-        public String getEmail() { return email; }
-        public void setEmail(String email) { this.email = email; }
-
-        public String getRole() { return role; }
-        public void setRole(String role) { this.role = role; }
-
-        @Override
-        public String toString() {
-            return "User{id=" + id + ", username='" + username + "', email='" + email + "', role='" + role + "'}";
-        }
-    }
 }
