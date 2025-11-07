@@ -1,7 +1,6 @@
 package com.ensah.qoe.Controller;
-
-import com.ensah.qoe.Models.DBConnection;
 import com.ensah.qoe.Models.User;
+import com.ensah.qoe.Models.DBConnection;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -9,6 +8,8 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
+
+import java.io.IOException;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -167,11 +168,10 @@ public class LoginController implements Initializable {
 
         try {
             conn = DBConnection.getConnection();
-            System.out.println("🔍 Connected schema: " + conn.getMetaData().getUserName());
-            String sql = "SELECT id_user, username, email, role FROM utilisateurs WHERE LOWER(TRIM(username)) = LOWER(TRIM(?)) AND LOWER(TRIM(password)) = LOWER(TRIM(?))";
+            String sql = "SELECT id_user, username, email, role FROM utilisateurs WHERE username = ? AND password = ?";
             pstmt = conn.prepareStatement(sql);
-            pstmt.setString(1, username.trim());
-            pstmt.setString(2, password.trim());
+            pstmt.setString(1, username);
+            pstmt.setString(2, password);
 
             System.out.println("Executing query: username=" + username + ", password=" + password);
 
@@ -200,41 +200,62 @@ public class LoginController implements Initializable {
         }
     }
 
-
     private void redirectToDashboard(User user) {
         try {
             String fxmlFile;
             String title;
 
             if ("admin".equals(user.getRole())) {
-                fxmlFile = "/fxml/admin_dashboard.fxml";
+                fxmlFile = "/fxml/admin_dashboard.fxml"; // Chemin corrigé
                 title = "QOS/QOE Admin Dashboard - Welcome " + user.getUsername();
             } else {
-                fxmlFile = "/fxml/client_dashboard.fxml";
+                fxmlFile = "/fxml/client_dashboard.fxml"; // Chemin corrigé
                 title = "QOS/QOE Client Dashboard - Welcome " + user.getUsername();
             }
 
-            // Load the appropriate dashboard
-            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlFile));
+            System.out.println("🔄 Chargement du FXML: " + fxmlFile);
 
+            // Vérifier si le fichier existe
+            URL fxmlUrl = getClass().getResource(fxmlFile);
+            if (fxmlUrl == null) {
+                throw new IOException("Fichier FXML non trouvé: " + fxmlFile);
+            }
+
+            // Load the appropriate dashboard
+            FXMLLoader loader = new FXMLLoader(fxmlUrl);
             Parent dashboard = loader.load();
+
+            System.out.println("✅ FXML chargé avec succès");
 
             // Pass user data to the dashboard controller
             Object controller = loader.getController();
             if (controller instanceof AdminDashboardController) {
                 ((AdminDashboardController) controller).setUserData(user);
+                System.out.println("✅ Données passées à AdminDashboardController");
             } else if (controller instanceof ClientDashboardController) {
                 ((ClientDashboardController) controller).setUserData(user);
+                System.out.println("✅ Données passées à ClientDashboardController");
             }
 
             // Switch scene
             Stage stage = (Stage) loginButton.getScene().getWindow();
             Scene scene = new Scene(dashboard, 1200, 800);
-            scene.getStylesheets().add(getClass().getResource("/css/style.css").toExternalForm());
+
+            // Optionnel: ajouter CSS si disponible
+            try {
+                URL cssUrl = getClass().getResource("/css/style.css");
+                if (cssUrl != null) {
+                    scene.getStylesheets().add(cssUrl.toExternalForm());
+                }
+            } catch (Exception e) {
+                System.out.println("ℹ️ CSS non trouvé, continuation sans style");
+            }
 
             stage.setScene(scene);
             stage.setTitle(title);
             stage.centerOnScreen();
+
+            System.out.println("✅ Dashboard affiché avec succès");
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -330,5 +351,28 @@ public class LoginController implements Initializable {
     }
 
     // User class to hold user data
-
+//    public static class User {
+//        private int id;
+//        private String username;
+//        private String email;
+//        private String role;
+//
+//        // Getters and Setters
+//        public int getId() { return id; }
+//        public void setId(int id) { this.id = id; }
+//
+//        public String getUsername() { return username; }
+//        public void setUsername(String username) { this.username = username; }
+//
+//        public String getEmail() { return email; }
+//        public void setEmail(String email) { this.email = email; }
+//
+//        public String getRole() { return role; }
+//        public void setRole(String role) { this.role = role; }
+//
+//        @Override
+//        public String toString() {
+//            return "User{id=" + id + ", username='" + username + "', email='" + email + "', role='" + role + "'}";
+//        }
+//    }
 }

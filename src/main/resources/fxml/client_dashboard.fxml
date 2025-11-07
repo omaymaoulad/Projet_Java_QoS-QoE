@@ -1,36 +1,193 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
 <?import javafx.scene.text.*?>
+<?import javafx.scene.paint.*?>
+<?import javafx.scene.effect.*?>
+<?import javafx.scene.Cursor?>
+<?import java.lang.Double?>
+
 <AnchorPane xmlns="http://javafx.com/javafx/17"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.ensah.qoe.Controller.ClientDashboardController"
             prefHeight="800.0" prefWidth="1200.0"
-            style="-fx-background-color: #f5f5f5;">
+            style="-fx-background-color: #f8f9fa;">
 
-    <VBox spacing="20" AnchorPane.topAnchor="20.0" AnchorPane.bottomAnchor="20.0"
-          AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0">
+    <!-- Layout principal -->
+    <HBox spacing="0" AnchorPane.topAnchor="0.0" AnchorPane.bottomAnchor="0.0"
+          AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
 
-        <Label text="Client Dashboard - QOS/QOE System"
-               style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
+        <!-- Sidebar Menu - Orange foncé -->
+        <VBox spacing="0" prefWidth="250" style="-fx-background-color: #d35400; -fx-padding: 20 0 20 0;">
 
-        <!-- Label pour afficher le nom de l'utilisateur connecté -->
-        <Label fx:id="usernameLabel"
-               text="Welcome, Client!"
-               style="-fx-font-size: 18px;"/>
+            <!-- Logo et titre -->
+            <VBox alignment="CENTER" spacing="10" style="-fx-padding: 0 0 30 0;">
+                <Rectangle width="40" height="40" arcWidth="10" arcHeight="10"
+                           fill="linear-gradient(to bottom right, #e67e22, #d35400)"/>
+                <Label text="QoE System" style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 16;"/>
+            </VBox>
 
-        <!-- Add client-specific components here -->
-        <Button text="View QoS Metrics"
-                style="-fx-background-color: #FF6B35; -fx-text-fill: white; -fx-font-weight: bold;"
-                prefWidth="200" prefHeight="40"/>
+            <!-- Menu navigation -->
+            <VBox spacing="5" style="-fx-padding: 0 15 0 15;">
+                <!-- Dashboard -->
+                <Button text="📊 Tableau de Bord"
+                        style="-fx-background-color: transparent; -fx-text-fill: #fef5e7; -fx-font-size: 14; -fx-alignment: center-left; -fx-padding: 12 15; -fx-border-radius: 5;"
+                        onAction="#showDashboard">
+                    <cursor><Cursor fx:constant="HAND"/></cursor>
+                </Button>
 
-        <Button text="My Reports"
-                style="-fx-background-color: #FF8C42; -fx-text-fill: white; -fx-font-weight: bold;"
-                prefWidth="200" prefHeight="40"/>
+                <!-- Saisir Feedback -->
+                <Button text="📝 Saisir un Feedback"
+                        style="-fx-background-color: transparent; -fx-text-fill: #fef5e7; -fx-font-size: 14; -fx-alignment: center-left; -fx-padding: 12 15; -fx-border-radius: 5;"
+                        onAction="#showFeedbackForm">
+                    <cursor><Cursor fx:constant="HAND"/></cursor>
+                </Button>
 
-        <Button text="Give Feedback"
-                style="-fx-background-color: #FFA552; -fx-text-fill: white; -fx-font-weight: bold;"
-                prefWidth="200" prefHeight="40"/>
-    </VBox>
+                <!-- Type de Service -->
+                <Button text="🎯 Type de Service"
+                        style="-fx-background-color: transparent; -fx-text-fill: #fef5e7; -fx-font-size: 14; -fx-alignment: center-left; -fx-padding: 12 15; -fx-border-radius: 5;"
+                        onAction="#showServiceTypes">
+                    <cursor><Cursor fx:constant="HAND"/></cursor>
+                </Button>
+
+                <!-- Historique -->
+                <Button text="📋 Historique des Feedbacks"
+                        style="-fx-background-color: transparent; -fx-text-fill: #fef5e7; -fx-font-size: 14; -fx-alignment: center-left; -fx-padding: 12 15; -fx-border-radius: 5;"
+                        onAction="#showFeedbackHistory">
+                    <cursor><Cursor fx:constant="HAND"/></cursor>
+                </Button>
+
+                <!-- Métriques QoS -->
+                <Button text="📊 Métriques QoS"
+                        style="-fx-background-color: transparent; -fx-text-fill: #fef5e7; -fx-font-size: 14; -fx-alignment: center-left; -fx-padding: 12 15; -fx-border-radius: 5;"
+                        onAction="#showQoSMetrics">
+                    <cursor><Cursor fx:constant="HAND"/></cursor>
+                </Button>
+
+                <!-- Authentification -->
+                <Button text="🔐 Authentification"
+                        style="-fx-background-color: transparent; -fx-text-fill: #fef5e7; -fx-font-size: 14; -fx-alignment: center-left; -fx-padding: 12 15; -fx-border-radius: 5;"
+                        onAction="#showAuthentication">
+                    <cursor><Cursor fx:constant="HAND"/></cursor>
+                </Button>
+            </VBox>
+
+            <!-- Espace flexible -->
+            <VBox VBox.vgrow="ALWAYS"/>
+
+            <!-- User section -->
+            <VBox spacing="10" style="-fx-padding: 20 15 0 15; -fx-border-color: #e67e22; -fx-border-width: 1 0 0 0;">
+                <Label fx:id="usernameLabel" text="Client"
+                       style="-fx-text-fill: white; -fx-font-weight: bold;"/>
+                <Button text="🚪 Déconnexion"
+                        style="-fx-background-color: #c0392b; -fx-text-fill: white; -fx-background-radius: 5; -fx-font-weight: bold;"
+                        onAction="#handleLogout">
+                    <cursor><Cursor fx:constant="HAND"/></cursor>
+                </Button>
+            </VBox>
+        </VBox>
+
+        <!-- Content Area -->
+        <VBox spacing="20" style="-fx-padding: 20; -fx-background-color: #f8f9fa;" HBox.hgrow="ALWAYS">
+
+            <!-- Header -->
+            <HBox spacing="15" alignment="CENTER_LEFT">
+                <Label text="Tableau de Bord Client - QoE System"
+                       style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
+                <HBox HBox.hgrow="ALWAYS"/>
+                <Label text="Bienvenue sur votre espace client"
+                       style="-fx-text-fill: #7f8c8d; -fx-font-size: 14;"/>
+            </HBox>
+
+            <!-- Cartes de Fonctionnalités -->
+            <HBox spacing="15" VBox.vgrow="ALWAYS">
+                <!-- Colonne Gauche -->
+                <VBox spacing="15" prefWidth="400">
+                    <!-- Saisir Feedback -->
+                    <VBox style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 25; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);"
+                          alignment="CENTER">
+                        <Label text="📝" style="-fx-font-size: 32px; -fx-padding: 0 0 10 0;"/>
+                        <Label text="Saisir un Feedback" style="-fx-font-weight: bold; -fx-text-fill: #2c3e50; -fx-font-size: 16;"/>
+                        <Label text="Évaluez le service reçu" style="-fx-text-fill: #7f8c8d; -fx-font-size: 12; -fx-padding: 5 0 15 0;"/>
+                        <Button text="Commencer"
+                                style="-fx-background-color: #e67e22; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;"
+                                onAction="#showFeedbackForm">
+                            <cursor><Cursor fx:constant="HAND"/></cursor>
+                        </Button>
+                    </VBox>
+
+                    <!-- Type de Service -->
+                    <VBox style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 25; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);"
+                          alignment="CENTER">
+                        <Label text="🎯" style="-fx-font-size: 32px; -fx-padding: 0 0 10 0;"/>
+                        <Label text="Type de Service" style="-fx-font-weight: bold; -fx-text-fill: #2c3e50; -fx-font-size: 16;"/>
+                        <Label text="Choisir le service évalué" style="-fx-text-fill: #7f8c8d; -fx-font-size: 12; -fx-padding: 5 0 15 0;"/>
+                        <Button text="Sélectionner"
+                                style="-fx-background-color: #e67e22; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;"
+                                onAction="#showServiceTypes">
+                            <cursor><Cursor fx:constant="HAND"/></cursor>
+                        </Button>
+                    </VBox>
+                </VBox>
+
+                <!-- Colonne Droite -->
+                <VBox spacing="15" prefWidth="400">
+                    <!-- Historique -->
+                    <VBox style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 25; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);"
+                          alignment="CENTER">
+                        <Label text="📋" style="-fx-font-size: 32px; -fx-padding: 0 0 10 0;"/>
+                        <Label text="Historique des Feedbacks" style="-fx-font-weight: bold; -fx-text-fill: #2c3e50; -fx-font-size: 16;"/>
+                        <Label text="Consulter vos évaluations" style="-fx-text-fill: #7f8c8d; -fx-font-size: 12; -fx-padding: 5 0 15 0;"/>
+                        <Button text="Voir l'historique"
+                                style="-fx-background-color: #e67e22; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;"
+                                onAction="#showFeedbackHistory">
+                            <cursor><Cursor fx:constant="HAND"/></cursor>
+                        </Button>
+                    </VBox>
+
+                    <!-- Authentification -->
+                    <VBox style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 25; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);"
+                          alignment="CENTER">
+                        <Label text="🔐" style="-fx-font-size: 32px; -fx-padding: 0 0 10 0;"/>
+                        <Label text="Authentification" style="-fx-font-weight: bold; -fx-text-fill: #2c3e50; -fx-font-size: 16;"/>
+                        <Label text="Gérer votre compte" style="-fx-text-fill: #7f8c8d; -fx-font-size: 12; -fx-padding: 5 0 15 0;"/>
+                        <Button text="Authentifier"
+                                style="-fx-background-color: #e67e22; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;"
+                                onAction="#showAuthentication">
+                            <cursor><Cursor fx:constant="HAND"/></cursor>
+                        </Button>
+                    </VBox>
+                </VBox>
+            </HBox>
+
+            <!-- Section Statistiques -->
+            <VBox spacing="15">
+                <Label text="Vos Statistiques Récentes" style="-fx-font-weight: bold; -fx-text-fill: #2c3e50; -fx-font-size: 18;"/>
+                <HBox spacing="15">
+                    <!-- Feedback Count -->
+                    <VBox style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);"
+                          prefWidth="200" alignment="CENTER">
+                        <Label text="12" style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #e67e22;"/>
+                        <Label text="Feedbacks Envoyés" style="-fx-text-fill: #7f8c8d; -fx-font-size: 12;"/>
+                    </VBox>
+
+                    <!-- Average Rating -->
+                    <VBox style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);"
+                          prefWidth="200" alignment="CENTER">
+                        <Label text="4.2" style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #e67e22;"/>
+                        <Label text="Note Moyenne" style="-fx-text-fill: #7f8c8d; -fx-font-size: 12;"/>
+                    </VBox>
+
+                    <!-- Services Used -->
+                    <VBox style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);"
+                          prefWidth="200" alignment="CENTER">
+                        <Label text="5" style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #e67e22;"/>
+                        <Label text="Services Utilisés" style="-fx-text-fill: #7f8c8d; -fx-font-size: 12;"/>
+                    </VBox>
+                </HBox>
+            </VBox>
+        </VBox>
+    </HBox>
 </AnchorPane>
