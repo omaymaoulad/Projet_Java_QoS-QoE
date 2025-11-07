@@ -40,3 +40,5 @@ build/
 
 # Fichier de configuration local (ne pas envoyer sur GitHub)
 config.properties
+
+docker-compose.*.yml
