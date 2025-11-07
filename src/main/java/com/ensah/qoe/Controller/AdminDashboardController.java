@@ -52,12 +52,6 @@ public class AdminDashboardController implements Initializable {
     }
 
     @FXML
-    private void showQoSMetrics() {
-        System.out.println("⚡ Navigation vers QoS Metrics");
-        showAlert("Info", "QoS Metrics", "Ouverture des métriques Quality of Service.");
-    }
-
-    @FXML
     private void showNetworkMonitor() {
         System.out.println("🌐 Navigation vers Network Monitor");
         showAlert("Info", "Network Monitor", "Ouverture du moniteur réseau.");
@@ -143,6 +137,42 @@ public class AdminDashboardController implements Initializable {
             System.out.println("Utilisateur actuel: " + currentUser.getUsername());
         }
     }
+    @FXML
+    private void openQosWindow() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/qos.fxml"));
+            Parent root = loader.load();
+            Stage stage = new Stage();
+            stage.setTitle("Analyse QoS");
+            stage.setScene(new Scene(root));
+            stage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    @FXML
+    private void showQoSMetrics() {
+        try {
+            // Charger le fichier FXML
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/qos.fxml"));
+            Parent root = loader.load();
+
+            // Récupérer le contrôleur associé
+            QoSController qosController = loader.getController();
+
+            // Créer la scène et la fenêtre
+            Stage stage = new Stage();
+            stage.setTitle("Analyse QoS");
+            stage.setScene(new Scene(root, 600, 400));
+            stage.show();
+
+            System.out.println("✅ Fenêtre QoS ouverte avec succès !");
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("❌ Erreur lors de l'ouverture de QoS.fxml : " + e.getMessage());
+        }
+    }
+
 
     public void onWindowClosing() {
         System.out.println("🔒 Fermeture du dashboard admin");
