@@ -1,0 +1,9 @@
+services:
+  spark:
+    image: apache/spark:3.5.0
+    container_name: spark-local
+    ports:
+      - "4040:4040"   # interface web Spark
+      - "7077:7077"   # port maître Spark
+
+    command: /bin/bash

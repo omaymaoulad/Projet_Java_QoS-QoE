@@ -20,16 +20,26 @@ import jakarta.mail.internet.*;
 import java.util.Properties;
 public class LoginController implements Initializable {
 
-    @FXML private TextField usernameField;
-    @FXML private PasswordField passwordField;
-    @FXML private TextField passwordVisibleField;
-    @FXML private Button togglePasswordButton;
-    @FXML private Button loginButton;
-    @FXML private CheckBox rememberMeCheckbox;
-    @FXML private Label errorLabel;
-    @FXML private Label successLabel;
-    @FXML private Label connectionStatusLabel;
-    @FXML private ProgressIndicator progressIndicator;
+    @FXML
+    private TextField usernameField;
+    @FXML
+    private PasswordField passwordField;
+    @FXML
+    private TextField passwordVisibleField;
+    @FXML
+    private Button togglePasswordButton;
+    @FXML
+    private Button loginButton;
+    @FXML
+    private CheckBox rememberMeCheckbox;
+    @FXML
+    private Label errorLabel;
+    @FXML
+    private Label successLabel;
+    @FXML
+    private Label connectionStatusLabel;
+    @FXML
+    private ProgressIndicator progressIndicator;
 
     private boolean isPasswordVisible = false;
 
@@ -195,8 +205,16 @@ public class LoginController implements Initializable {
             e.printStackTrace();
             return null;
         } finally {
-            try { if (rs != null) rs.close(); } catch (Exception e) { e.printStackTrace(); }
-            try { if (pstmt != null) pstmt.close(); } catch (Exception e) { e.printStackTrace(); }
+            try {
+                if (rs != null) rs.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            try {
+                if (pstmt != null) pstmt.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -264,6 +282,7 @@ public class LoginController implements Initializable {
             progressIndicator.setVisible(false);
         }
     }
+
     private void validateFields() {
         String username = usernameField.getText().trim();
         String password = isPasswordVisible ? passwordVisibleField.getText() : passwordField.getText();
@@ -283,6 +302,7 @@ public class LoginController implements Initializable {
         successLabel.setVisible(false);
         successLabel.setManaged(false);
     }
+
     @FXML
     private void handleForgotPassword() {
         // Demander l'email à l'utilisateur
@@ -292,7 +312,7 @@ public class LoginController implements Initializable {
         dialog.setContentText("Email : ");
         String email = dialog.showAndWait().orElse(null);
 
-        if(email == null || email.isEmpty()) return;
+        if (email == null || email.isEmpty()) return;
 
         // Vérifier si l'email existe dans la DB et générer le token
         try (Connection conn = DBConnection.getConnection()) {
@@ -300,7 +320,7 @@ public class LoginController implements Initializable {
             pst.setString(1, email);
             ResultSet rs = pst.executeQuery();
 
-            if(rs.next()) {
+            if (rs.next()) {
                 // Générer un token unique
                 String token = java.util.UUID.randomUUID().toString();
 
@@ -350,29 +370,4 @@ public class LoginController implements Initializable {
         successLabel.setManaged(false);
     }
 
-    // User class to hold user data
-//    public static class User {
-//        private int id;
-//        private String username;
-//        private String email;
-//        private String role;
-//
-//        // Getters and Setters
-//        public int getId() { return id; }
-//        public void setId(int id) { this.id = id; }
-//
-//        public String getUsername() { return username; }
-//        public void setUsername(String username) { this.username = username; }
-//
-//        public String getEmail() { return email; }
-//        public void setEmail(String email) { this.email = email; }
-//
-//        public String getRole() { return role; }
-//        public void setRole(String role) { this.role = role; }
-//
-//        @Override
-//        public String toString() {
-//            return "User{id=" + id + ", username='" + username + "', email='" + email + "', role='" + role + "'}";
-//        }
-//    }
 }
