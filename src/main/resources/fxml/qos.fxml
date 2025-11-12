@@ -3,27 +3,160 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
-<?import javafx.scene.shape.*?>
+<?import javafx.scene.Cursor?>
 
-<AnchorPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.ensah.qoe.Controller.QoSController">
-    <Label text="Latence :" layoutX="50" layoutY="50"/>
-    <Label fx:id="latenceLabel" layoutX="200" layoutY="50"/>
+<!-- Le ScrollPane rend la page défilable si elle dépasse la hauteur -->
+<ScrollPane xmlns="http://javafx.com/javafx/17"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.ensah.qoe.Controller.QoSController"
+            fitToWidth="true"
+            style="-fx-background-color: transparent;">
 
-    <Label text="Jitter :" layoutX="50" layoutY="80"/>
-    <Label fx:id="jitterLabel" layoutX="200" layoutY="80"/>
+    <!-- Contenu principal -->
+    <VBox alignment="TOP_CENTER" spacing="30"
+          style="-fx-background-color: linear-gradient(to bottom, #fff5eb 0%, #ffffff 100%);
+                 -fx-padding: 40;">
+        <!-- Marges principales -->
+        <padding>
+            <Insets top="40" right="40" bottom="40" left="40"/>
+        </padding>
 
-    <Label text="Perte de paquets :" layoutX="50" layoutY="110"/>
-    <Label fx:id="perteLabel" layoutX="200" layoutY="110"/>
+        <!-- En-tête -->
+        <HBox alignment="CENTER" spacing="15">
 
-    <Label text="Bande passante :" layoutX="50" layoutY="140"/>
-    <Label fx:id="bandePassanteLabel" layoutX="200" layoutY="140"/>
+            <VBox alignment="CENTER_LEFT" spacing="5">
+                <Label text="QoS Metrics Analysis"
+                       style="-fx-font-size: 28px; -fx-font-weight: bold;
+                              -fx-text-fill: linear-gradient(to right,  #d35400, #ff6933);"/>
+                <Label text="Network performance dashboard"
+                       style="-fx-font-size: 13px; -fx-text-fill: #888;"/>
+            </VBox>
+        </HBox>
 
-    <Label text="Signal Score :" layoutX="50" layoutY="170"/>
-    <Label fx:id="signalLabel" layoutX="200" layoutY="170"/>
+        <!-- Carte principale -->
+        <VBox spacing="0" maxWidth="900"
+              style="-fx-background-color: #ffffff;
+                     -fx-background-radius: 20;
+                     -fx-effect: dropshadow(gaussian, rgba(255,123,0,0.15), 20, 0, 0, 5);
+                     -fx-border-color: #ffe6cc; -fx-border-width: 1; -fx-border-radius: 20;">
+            <!-- En-tête de la carte -->
+            <HBox style="-fx-background-color: linear-gradient(to right, #d35400, #ff9933);
+                         -fx-background-radius: 20 20 0 0; -fx-padding: 20;">
+                <Label text="Performance Metrics"
+                       style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: white;"/>
+            </HBox>
 
-    <Label text="MOS :" layoutX="50" layoutY="200"/>
-    <Label fx:id="mosLabel" layoutX="200" layoutY="200"/>
+            <!-- Contenu du tableau -->
+            <GridPane hgap="30" vgap="20">
+                <padding>
+                    <Insets top="30" right="30" bottom="30" left="30"/>
+                </padding>
 
-    <Button fx:id="analyserButton" text="Analyser CSV" layoutX="50" layoutY="250" onAction="#analyserQoS"/>
-</AnchorPane>
+                <columnConstraints>
+                    <ColumnConstraints halignment="LEFT" hgrow="ALWAYS" minWidth="150"/>
+                    <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="120"/>
+                    <ColumnConstraints halignment="LEFT" hgrow="ALWAYS" minWidth="200"/>
+                </columnConstraints>
+
+                <!-- Latence -->
+                <HBox spacing="10" alignment="CENTER_LEFT" GridPane.rowIndex="0" GridPane.columnIndex="0">
+                    <Label text="Latency" style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #333;"/>
+                    <Label text="(Average transmission delay)" GridPane.rowIndex="0" GridPane.columnIndex="2"
+                           style="-fx-font-size: 13px; -fx-text-fill: #666;"/>
+                </HBox>
+                <VBox alignment="CENTER" GridPane.rowIndex="0" GridPane.columnIndex="1"
+                      style="-fx-background-color: #fff5eb; -fx-padding: 8 15; -fx-background-radius: 10;">
+                    <Label fx:id="latenceLabel" text="     ms"
+                           style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #ff7b00;"/>
+                </VBox>
+
+
+                <!-- Jitter -->
+                <HBox spacing="10" alignment="CENTER_LEFT" GridPane.rowIndex="1" GridPane.columnIndex="0">
+                    <Label text="Jitter" style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #333;"/>
+                    <Label text="(Latency variation)" GridPane.rowIndex="1" GridPane.columnIndex="2"
+                           style="-fx-font-size: 13px; -fx-text-fill: #666;"/>
+                </HBox>
+                <VBox alignment="CENTER" GridPane.rowIndex="1" GridPane.columnIndex="1"
+                      style="-fx-background-color: #fff5eb; -fx-padding: 8 15; -fx-background-radius: 10;">
+                    <Label fx:id="jitterLabel" text="      ms"
+                           style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #ff7b00;"/>
+                </VBox>
+
+
+                <!-- Taux de perte -->
+                <HBox spacing="10" alignment="CENTER_LEFT" GridPane.rowIndex="2" GridPane.columnIndex="0">
+                    <Label text="Packet Loss" style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #333;"/>
+                    <Label text="(Percentage of lost packets)" GridPane.rowIndex="2" GridPane.columnIndex="2"
+                           style="-fx-font-size: 13px; -fx-text-fill: #666;"/>
+                </HBox>
+                <VBox alignment="CENTER" GridPane.rowIndex="2" GridPane.columnIndex="1"
+                      style="-fx-background-color: #fff5eb; -fx-padding: 8 15; -fx-background-radius: 10;">
+                    <Label fx:id="perteLabel" text="      %"
+                           style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #ff7b00;"/>
+                </VBox>
+
+
+                <!-- Bande passante -->
+                <HBox spacing="10" alignment="CENTER_LEFT" GridPane.rowIndex="3" GridPane.columnIndex="0">
+                    <Label text="Bandwidth" style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #333;"/>
+                    <Label text="(Average transfer rate)" GridPane.rowIndex="3" GridPane.columnIndex="2"
+                           style="-fx-font-size: 13px; -fx-text-fill: #666;"/>
+                </HBox>
+                <VBox alignment="CENTER" GridPane.rowIndex="3" GridPane.columnIndex="1"
+                      style="-fx-background-color: #fff5eb; -fx-padding: 8 15; -fx-background-radius: 10;">
+                    <Label fx:id="bandePassanteLabel" text="     Mbps"
+                           style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #ff7b00;"/>
+                </VBox>
+
+
+                <!-- Signal -->
+                <HBox spacing="10" alignment="CENTER_LEFT" GridPane.rowIndex="4" GridPane.columnIndex="0">
+                    <Label text="Signal Quality" style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #333;"/>
+                    <Label text="(Radio signal strength)" GridPane.rowIndex="4" GridPane.columnIndex="2"
+                           style="-fx-font-size: 13px; -fx-text-fill: #666;"/>
+                </HBox>
+                <VBox alignment="CENTER" GridPane.rowIndex="4" GridPane.columnIndex="1"
+                      style="-fx-background-color: #fff5eb; -fx-padding: 8 15; -fx-background-radius: 10;">
+                    <Label fx:id="signalLabel" text="    "
+                           style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #ff7b00;"/>
+                </VBox>
+
+
+                <!-- Séparateur -->
+                <Separator GridPane.rowIndex="5" GridPane.columnSpan="3"
+                           style="-fx-background-color: #ffe6cc;" prefHeight="2"/>
+
+                <!-- MOS -->
+                <HBox spacing="10" alignment="CENTER_LEFT" GridPane.rowIndex="6" GridPane.columnIndex="0">
+
+                    <Label text="Score MOS" style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #333;"/>
+                    <Label text="(Mean Opinion Score - Overall evaluation)" GridPane.rowIndex="6" GridPane.columnIndex="2"
+                           style="-fx-font-size: 13px; -fx-text-fill: #666;"/>
+                </HBox>
+                <VBox alignment="CENTER" GridPane.rowIndex="6" GridPane.columnIndex="1"
+                      style="-fx-background-color: linear-gradient(to bottom, #d35400, #ff9933);
+                             -fx-padding: 10 15; -fx-background-radius: 12;">
+                    <Label fx:id="mosLabel" text="    "
+                           style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: white;"/>
+                </VBox>
+
+            </GridPane>
+        </VBox>
+
+        <!-- Bouton d'import CSV -->
+        <VBox alignment="CENTER" spacing="10">
+            <Button fx:id="analyserButton" text="  Importer un fichier CSV"
+                    onAction="#analyserQoS"
+                    style="-fx-background-color: linear-gradient(to right, #ff7b00, #ff9933);
+                           -fx-text-fill: white; -fx-font-weight: bold;
+                           -fx-font-size: 15px; -fx-padding: 15 40; -fx-background-radius: 30;
+                           -fx-effect: dropshadow(gaussian, rgba(255,123,0,0.4), 10, 0, 0, 3);
+                           -fx-cursor: hand;">
+                <cursor><Cursor fx:constant="HAND"/></cursor>
+            </Button>
+            <Label text="Sélectionnez votre fichier de données pour commencer l'analyse"
+                   style="-fx-font-size: 12px; -fx-text-fill: #999;"/>
+        </VBox>
+    </VBox>
+</ScrollPane>

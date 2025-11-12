@@ -223,9 +223,9 @@ public class LoginController implements Initializable {
             String fxmlFile;
             String title;
 
-            if ("admin".equals(user.getRole())) {
-                fxmlFile = "/fxml/admin_dashboard.fxml"; // Chemin corrigé
-                title = "QOS/QOE Admin Dashboard - Welcome " + user.getUsername();
+            if ("admin".equalsIgnoreCase(user.getRole())) {
+                fxmlFile = "/fxml/main_layout_admin.fxml"; // le layout principal admin
+                title = "QOS/QOE - Admin Panel (" + user.getUsername() + ")";
             } else {
                 fxmlFile = "/fxml/client_dashboard.fxml"; // Chemin corrigé
                 title = "QOS/QOE Client Dashboard - Welcome " + user.getUsername();

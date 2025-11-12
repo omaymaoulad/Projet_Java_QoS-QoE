@@ -12,89 +12,13 @@
 <AnchorPane xmlns="http://javafx.com/javafx/17"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.ensah.qoe.Controller.AdminDashboardController"
-            prefHeight="800.0" prefWidth="1000.0"
+            minWidth="600.0" minHeight="500.0"
+            prefHeight="750.0" prefWidth="1000.0"
             style="-fx-background-color: #f8f9fa;">
 
     <!-- Layout principal -->
     <HBox spacing="0" AnchorPane.topAnchor="0.0" AnchorPane.bottomAnchor="0.0"
           AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
-
-        <!-- Sidebar Menu - Orange foncé -->
-        <VBox spacing="0" prefWidth="250" style="-fx-background-color: #d35400; -fx-padding: 20 0 20 0;">
-
-            <!-- Logo et titre -->
-            <VBox alignment="CENTER" spacing="10" style="-fx-padding: 0 0 30 0;">
-                <Rectangle width="40" height="40" arcWidth="10" arcHeight="10"
-                           fill="linear-gradient(to bottom right, #e67e22, #d35400)"/>
-                <Label text="QoE System" style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 16;"/>
-            </VBox>
-
-            <!-- Menu navigation -->
-            <VBox spacing="5" style="-fx-padding: 0 15 0 15;">
-                <!-- Dashboard -->
-                <Button text="📊 Dashboard"
-                        style="-fx-background-color: transparent; -fx-text-fill: #fef5e7; -fx-font-size: 14; -fx-alignment: center-left; -fx-padding: 12 15; -fx-border-radius: 5;"
-                        onAction="#showDashboard">
-                    <cursor><Cursor fx:constant="HAND"/></cursor>
-                </Button>
-
-                <!-- QoE Management -->
-                <Button text="🎯 QoE Analysis"
-                        style="-fx-background-color: transparent; -fx-text-fill: #fef5e7; -fx-font-size: 14; -fx-alignment: center-left; -fx-padding: 12 15; -fx-border-radius: 5;"
-                        onAction="#showQoEAnalysis">
-                    <cursor><Cursor fx:constant="HAND"/></cursor>
-                </Button>
-
-                <!-- QoS Management -->
-                <Button text="⚡ QoS Metrics"
-                        style="-fx-background-color: transparent; -fx-text-fill: #fef5e7; -fx-font-size: 14; -fx-alignment: center-left; -fx-padding: 12 15; -fx-border-radius: 5;"
-                        onAction="#showQoSMetrics">
-                    <cursor><Cursor fx:constant="HAND"/></cursor>
-                </Button>
-
-                <!-- Network Monitoring -->
-                <Button text="🌐 Network Monitor"
-                        style="-fx-background-color: transparent; -fx-text-fill: #fef5e7; -fx-font-size: 14; -fx-alignment: center-left; -fx-padding: 12 15; -fx-border-radius: 5;"
-                        onAction="#showNetworkMonitor">
-                    <cursor><Cursor fx:constant="HAND"/></cursor>
-                </Button>
-
-                <!-- User Management -->
-                <Button text="👥 User Management"
-                        style="-fx-background-color: transparent; -fx-text-fill: #fef5e7; -fx-font-size: 14; -fx-alignment: center-left; -fx-padding: 12 15; -fx-border-radius: 5;"
-                        onAction="#showUserManagement">
-                    <cursor><Cursor fx:constant="HAND"/></cursor>
-                </Button>
-
-                <!-- Reports -->
-                <Button text="📈 Reports et Analytics"
-                        style="-fx-background-color: transparent; -fx-text-fill: #fef5e7; -fx-font-size: 14; -fx-alignment: center-left; -fx-padding: 12 15; -fx-border-radius: 5;"
-                        onAction="#showReports">
-                    <cursor><Cursor fx:constant="HAND"/></cursor>
-                </Button>
-
-                <!-- System Settings -->
-                <Button text="⚙️ System Settings"
-                        style="-fx-background-color: transparent; -fx-text-fill: #fef5e7; -fx-font-size: 14; -fx-alignment: center-left; -fx-padding: 12 15; -fx-border-radius: 5;"
-                        onAction="#showSystemSettings">
-                    <cursor><Cursor fx:constant="HAND"/></cursor>
-                </Button>
-            </VBox>
-
-            <!-- Espace flexible -->
-            <VBox VBox.vgrow="ALWAYS"/>
-
-            <!-- User section -->
-            <VBox spacing="10" style="-fx-padding: 20 15 0 15; -fx-border-color: #e67e22; -fx-border-width: 1 0 0 0;">
-                <Label fx:id="usernameLabel" text="Administrator"
-                       style="-fx-text-fill: white; -fx-font-weight: bold;"/>
-                <Button text="🚪 Logout"
-                        style="-fx-background-color: #c0392b; -fx-text-fill: white; -fx-background-radius: 5; -fx-font-weight: bold;"
-                        onAction="#handleLogout">
-                    <cursor><Cursor fx:constant="HAND"/></cursor>
-                </Button>
-            </VBox>
-        </VBox>
 
         <!-- Content Area -->
         <VBox spacing="20" style="-fx-padding: 20; -fx-background-color: #f8f9fa;" HBox.hgrow="ALWAYS">

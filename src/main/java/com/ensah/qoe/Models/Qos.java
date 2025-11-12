@@ -8,6 +8,9 @@ public class Qos {
     private double signalScore;
     private double mos;
     private String dateMesure;
+    private String zone;
+    private String type_connexion;
+    private double cellid;
 
     public Qos(double latence, double jitter, double perte, double bandePassante, double signalScore,double mos) {
         this.latence = latence;
@@ -24,6 +27,9 @@ public class Qos {
     public double getSignalScore() { return signalScore; }
     public double getMos() { return mos; }
     public String getDateMesure() { return dateMesure; }
+    public double getCellid(){ return cellid; }
+    public String getZone() { return zone; }
+    public String getType_connexion() { return type_connexion; }
 
     public void setLatence(double latence) { this.latence = latence; }
     public void setJitter(double jitter) { this.jitter = jitter; }
@@ -32,6 +38,9 @@ public class Qos {
     public void setSignalScore(double signalScore) { this.signalScore = signalScore; }
     public void setMos(double mos) { this.mos = mos; }
     public void setDateMesure(String dateMesure) { this.dateMesure = dateMesure; }
+    public void setZone(String zone) { this.zone = zone; }
+    public void setType_connexion(String type_connexion) { this.type_connexion = type_connexion; }
+    public void setCellid(double cellid) { this.cellid = cellid; }
 
     @Override
     public String toString() {
