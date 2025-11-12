@@ -1,75 +1,108 @@
 package com.ensah.qoe.Services;
 
 import com.ensah.qoe.Models.Qos;
-import org.apache.spark.sql.Dataset;
-import org.apache.spark.sql.Row;
-import org.apache.spark.sql.SparkSession;
-import org.apache.spark.sql.expressions.Window;
-import org.apache.spark.sql.expressions.WindowSpec;
-
-import static org.apache.spark.sql.functions.*;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class QosAnalyzer {
 
     public static Qos analyserQoS(String csvPath) {
-        // -------------------------------
-        // 1️⃣ SparkSession local
-        // -------------------------------
-        SparkSession spark = SparkSession.builder()
-                .appName("QoSAnalyzer")
-                .master("local[*]")   // mode local, tous les coeurs disponibles
-                .getOrCreate();
+        List<Double> delays = new ArrayList<>();
+        List<Double> rsrqs = new ArrayList<>();
+        List<Double> sinrs = new ArrayList<>();
+        List<Double> thDowns = new ArrayList<>();
+        List<Double> thUps = new ArrayList<>();
+        List<Boolean> statusList = new ArrayList<>();
 
-        // Lecture du CSV
-        Dataset<Row> df = spark.read()
-                .option("header", "true")
-                .option("inferSchema", "true")
-                .csv(csvPath);
+        double cellId = 0;
+        String band = "";
+        String ran = "";
 
-        System.out.println("📋 Colonnes : " + String.join(", ", df.columns()));
+        try (BufferedReader br = new BufferedReader(new FileReader(csvPath))) {
+            String header = br.readLine(); // ignore l'entête
+            if (header == null) {
+                System.err.println("⚠️ Fichier CSV vide : " + csvPath);
+                return null;
+            }
 
-        // -------------------------------
-        // 2️⃣ Calcul des métriques QoS
-        // -------------------------------
-        double latence = df.agg(avg(col("delay").cast("double")).alias("latence_moyenne"))
-                .first().getDouble(0);
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] parts = line.split(",");
 
-        Row bpRow = df.agg(
-                avg(col("throughput_downlink").cast("double")).alias("dl"),
-                avg(col("throughput_uplink").cast("double")).alias("ul")
-        ).first();
-        double bandePassante = (bpRow.getDouble(0) + bpRow.getDouble(1)) / 2;
+                try {
+                    double delay = Double.parseDouble(parts[16].trim());
+                    double rsrq = Double.parseDouble(parts[6].trim());
+                    double sinr = Double.parseDouble(parts[9].trim());
+                    double thDown = Double.parseDouble(parts[21].trim());
+                    double thUp = Double.parseDouble(parts[22].trim());
+                    String service = parts[19].trim();
+                    boolean status = service.equals("1") || service.equalsIgnoreCase("true");
 
-        long total = df.count();
-        long lost = df.filter(col("service_status").equalTo(0)).count();
-        double perte = total > 0 ? ((double) lost / total * 100) : 0;
+                    cellId = Double.parseDouble(parts[12].trim());
+                    band = parts[10].trim(); // TYPE_CONNEXION
+                    ran = parts[11].trim();  // ZONE
 
-        Row sRow = df.agg(
-                avg(col("rsrq").cast("double")).alias("rsrq"),
-                avg(col("sinr").cast("double")).alias("sinr")
-        ).first();
-        double signalScore = (sRow.getDouble(0) + sRow.getDouble(1)) / 2;
+                    delays.add(delay);
+                    rsrqs.add(rsrq);
+                    sinrs.add(sinr);
+                    thDowns.add(thDown);
+                    thUps.add(thUp);
+                    statusList.add(status);
 
-        WindowSpec w = Window.orderBy("timestamp");
-        Row jRow = df.withColumn("prev_delay", lag(col("delay"), 1).over(w))
-                .withColumn("jitter", abs(col("delay").minus(col("prev_delay"))))
-                .na().fill(0, new String[]{"jitter"})
-                .agg(avg("jitter").alias("jitter_moyen"))
-                .first();
-        double jitter = jRow.getDouble(0);
+                } catch (NumberFormatException e) {
+                    // ignore les lignes mal formatées
+                }
+            }
 
-        // -------------------------------
-        // 3️⃣ Calcul du MOS
-        // -------------------------------
-        double mos = 5 - 0.1 * (latence / 100) - 0.2 * jitter - 2 * (perte / 100);
+        } catch (IOException e) {
+            System.err.println("❌ Erreur lecture CSV : " + e.getMessage());
+            return null;
+        }
+
+        if (delays.isEmpty()) {
+            System.err.println("⚠️ Aucune donnée valide trouvée.");
+            return null;
+        }
+
+        // --- Calculs QoS ---
+        double latence = moyenne(delays);
+        double jitter = calculerJitter(delays);
+        double perte = calculerPerte(statusList);
+        double bandePassante = (moyenne(thDowns) + moyenne(thUps)) / 2.0;
+        double signal = (moyenne(rsrqs) + moyenne(sinrs)) / 2.0;
+
+        // MOS réaliste (basé sur ITU-T)
+        double rFactor = 94.2 - (latence / 40.0) - (1.2 * jitter) - (perte * 2);
+        double mos = 1 + (0.035) * rFactor + (rFactor * (rFactor - 60) * (100 - rFactor) * 7e-6);
         mos = Math.max(1, Math.min(5, mos));
 
-        // -------------------------------
-        // 4️⃣ Création de l'objet Qos
-        // -------------------------------
-        Qos qos = new Qos(latence, jitter, perte, bandePassante, signalScore, mos);
-        System.out.println("Résultats QoS : " + qos);
+        Qos qos = new Qos(latence, jitter, perte, bandePassante, signal, mos);
+        qos.setCellid(cellId);
+        qos.setZone(ran);
+        qos.setType_connexion(band);
 
+        System.out.println("✅ Résultats QoS : " + qos);
         return qos;
+    }
+
+    private static double moyenne(List<Double> valeurs) {
+        return valeurs.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+    }
+
+    private static double calculerJitter(List<Double> delays) {
+        double total = 0;
+        for (int i = 1; i < delays.size(); i++) {
+            total += Math.abs(delays.get(i) - delays.get(i - 1));
+        }
+        return delays.size() > 1 ? total / (delays.size() - 1) : 0;
+    }
+
+    private static double calculerPerte(List<Boolean> status) {
+        long total = status.size();
+        long perdus = status.stream().filter(s -> !s).count();
+        return total > 0 ? (double) perdus / total * 100.0 : 0;
     }
 }
