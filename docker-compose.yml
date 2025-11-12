@@ -1,10 +1,22 @@
 services:
-  spark:
-    image: apache/spark:3.5.0
-    container_name: spark-local
-    stdin_open: true
-    tty: true
-    command: tail -f /dev/null
+  spark-master:
+    image: apache/spark:3.5.1
+    container_name: spark-master
+    hostname: spark-master
     ports:
-      - "4040:4040"   # UI Spark
-      - "7077:7077"   # Port Spark master (si besoin)
+      - "8080:8080"  # UI Master
+      - "7077:7077"  # Spark master port
+    command: >
+      bash -c "/opt/spark/bin/spark-class org.apache.spark.deploy.master.Master"
+    volumes:
+      - ./data:/data
+
+  spark-worker:
+    image: apache/spark:3.5.1
+    container_name: spark-worker
+    depends_on:
+      - spark-master
+    ports:
+      - "8081:8081"  # UI Worker
+    command: >
+      bash -c "/opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077"

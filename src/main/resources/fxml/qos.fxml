@@ -1,29 +1,50 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
-<?import javafx.scene.shape.*?>
+<?import javafx.geometry.Insets?>
 
-<AnchorPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.ensah.qoe.Controller.QoSController">
-    <Label text="Latence :" layoutX="50" layoutY="50"/>
-    <Label fx:id="latenceLabel" layoutX="200" layoutY="50"/>
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.ensah.qoe.Controller.QoSController"
+      spacing="15" alignment="CENTER"
+      style="-fx-background-color: #fffaf0; -fx-padding: 20;">
 
-    <Label text="Jitter :" layoutX="50" layoutY="80"/>
-    <Label fx:id="jitterLabel" layoutX="200" layoutY="80"/>
+    <Label text="QUALITÉ DE SERVICE"
+           style="-fx-text-fill: #ff6600; -fx-font-weight: bold; -fx-font-size: 18;"/>
 
-    <Label text="Perte de paquets :" layoutX="50" layoutY="110"/>
-    <Label fx:id="perteLabel" layoutX="200" layoutY="110"/>
+    <VBox spacing="8" style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 15; -fx-border-color: #ffa366; -fx-border-radius: 10; -fx-border-width: 2;">
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Label text="Latence :" style="-fx-text-fill: #333; -fx-font-weight: bold; -fx-min-width: 120;"/>
+            <Label fx:id="latenceLabel" text="-" style="-fx-text-fill: #ff6600; -fx-font-weight: bold;"/>
+        </HBox>
 
-    <Label text="Bande passante :" layoutX="50" layoutY="140"/>
-    <Label fx:id="bandePassanteLabel" layoutX="200" layoutY="140"/>
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Label text="Jitter :" style="-fx-text-fill: #333; -fx-font-weight: bold; -fx-min-width: 120;"/>
+            <Label fx:id="jitterLabel" text="-" style="-fx-text-fill: #ff6600; -fx-font-weight: bold;"/>
+        </HBox>
 
-    <Label text="Signal Score :" layoutX="50" layoutY="170"/>
-    <Label fx:id="signalLabel" layoutX="200" layoutY="170"/>
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Label text="Perte de paquets :" style="-fx-text-fill: #333; -fx-font-weight: bold; -fx-min-width: 120;"/>
+            <Label fx:id="perteLabel" text="-" style="-fx-text-fill: #ff6600; -fx-font-weight: bold;"/>
+        </HBox>
 
-    <Label text="MOS :" layoutX="50" layoutY="200"/>
-    <Label fx:id="mosLabel" layoutX="200" layoutY="200"/>
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Label text="Bande passante :" style="-fx-text-fill: #333; -fx-font-weight: bold; -fx-min-width: 120;"/>
+            <Label fx:id="bandePassanteLabel" text="-" style="-fx-text-fill: #ff6600; -fx-font-weight: bold;"/>
+        </HBox>
 
-    <Button fx:id="analyserButton" text="Analyser CSV" layoutX="50" layoutY="250" onAction="#analyserQoS"/>
-</AnchorPane>
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Label text="Signal Score :" style="-fx-text-fill: #333; -fx-font-weight: bold; -fx-min-width: 120;"/>
+            <Label fx:id="signalLabel" text="-" style="-fx-text-fill: #ff6600; -fx-font-weight: bold;"/>
+        </HBox>
+
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Label text="MOS :" style="-fx-text-fill: #333; -fx-font-weight: bold; -fx-min-width: 120;"/>
+            <Label fx:id="mosLabel" text="-" style="-fx-text-fill: #ff6600; -fx-font-weight: bold;"/>
+        </HBox>
+    </VBox>
+
+    <Button fx:id="analyserButton" text="Analyser CSV" onAction="#analyserQoS"
+            style="-fx-background-color: #ff6600; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5; -fx-padding: 8 15;"/>
+
+</VBox>
