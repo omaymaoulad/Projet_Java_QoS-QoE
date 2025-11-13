@@ -215,15 +215,35 @@
                 </HBox>
 
                 <VBox spacing="6">
-                    <Label text="Colonnes requises:" style="-fx-text-fill: #1f2937; -fx-font-size: 12; -fx-font-weight: bold;"/>
-                    <Label text="• Satisfaction, VideoQuality, AudioQuality, Interactivity, Reliability (scores 1-5)"
-                           style="-fx-text-fill: #6b7280; -fx-font-size: 11; -fx-wrap-text: true;"/>
-                    <Label text="• Buffering, LoadingTime (en secondes), FailureRate (en %)"
-                           style="-fx-text-fill: #6b7280; -fx-font-size: 11; -fx-wrap-text: true;"/>
-                    <Label text="• ServiceType, DeviceType, UserId"
-                           style="-fx-text-fill: #6b7280; -fx-font-size: 11; -fx-wrap-text: true;"/>
+                    <Label text="Colonnes nécessaires (Dataset Telco Customer Churn) :"
+                           style="-fx-text-fill: #1f2937; -fx-font-size: 12; -fx-font-weight: bold;"/>
+
+                    <Label text="• Informations client : gender, SeniorCitizen, Partner, Dependents, tenure"
+                           style="-fx-text-fill: #6b7280; -fx-font-size: 11;"/>
+
+                    <Label text="• Téléphonie : PhoneService, MultipleLines"
+                           style="-fx-text-fill: #6b7280; -fx-font-size: 11;"/>
+
+                    <Label text="• Internet : InternetService (DSL, Fiber optic, None)"
+                           style="-fx-text-fill: #6b7280; -fx-font-size: 11;"/>
+
+                    <Label text="• Sécurité / protection : OnlineSecurity, OnlineBackup, DeviceProtection, TechSupport"
+                           style="-fx-text-fill: #6b7280; -fx-font-size: 11;"/>
+
+                    <Label text="• Streaming : StreamingTV, StreamingMovies"
+                           style="-fx-text-fill: #6b7280; -fx-font-size: 11;"/>
+
+                    <Label text="• Facturation : Contract, PaperlessBilling, PaymentMethod"
+                           style="-fx-text-fill: #6b7280; -fx-font-size: 11;"/>
+
+                    <Label text="• Tarification : MonthlyCharges, TotalCharges"
+                           style="-fx-text-fill: #6b7280; -fx-font-size: 11;"/>
+
+                    <Label text="• Churn (Yes/No) — utilisé comme indicateur d’expérience négative"
+                           style="-fx-text-fill: #6b7280; -fx-font-size: 11;"/>
                 </VBox>
             </VBox>
+
 
             <!-- Pied de page -->
             <HBox alignment="CENTER" styleClass="footer"

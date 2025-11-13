@@ -1,6 +1,7 @@
 package com.ensah.qoe.Controller;
 
 import com.ensah.qoe.Models.QoE;
+import com.ensah.qoe.Models.Qos;
 import com.ensah.qoe.Services.QoeAnalyzer;
 import com.ensah.qoe.Services.QoeInsertService;
 import javafx.fxml.FXML;
@@ -80,24 +81,53 @@ public class QoEController {
             appliquerCouleurQoe(streamingQualityLabel, qoe.getStreamingQuality());
 
             // --- Insertion en base de données ---
+            // --- Insertion en base de données ---
             QoeInsertService insertService = new QoeInsertService();
-            insertService.insert(
-                    qoe.getSatisfactionScore(),
-                    qoe.getVideoQuality(),
-                    qoe.getAudioQuality(),
-                    qoe.getInteractivity(),
-                    qoe.getReliability(),
-                    qoe.getOverallQoe(),
-                    qoe.getBuffering(),
-                    qoe.getLoadingTime(),
-                    qoe.getFailureRate(),
-                    qoe.getStreamingQuality(),
-                    qoe.getServiceType(),
-                    qoe.getDeviceType(),
-                    qoe.getUserId()
-            );
 
-            System.out.println("✅ Données QoE enregistrées avec succès dans la base.");
+            Qos latestQos = QoeAnalyzer.getLastQos();
+            qoe.setQosId(latestQos != null ? latestQos.getId_mesure() : null);
+            if (qoe.getQosId() != null) {
+                System.out.println("👉 QOS_ID utilisé pour l'insertion QoE = " + latestQos.getId_mesure());
+                // ➤ Insertion AVEC lien QoS
+                insertService.insertWithQosLink(
+                        qoe.getSatisfactionScore(),
+                        qoe.getVideoQuality(),
+                        qoe.getAudioQuality(),
+                        qoe.getInteractivity(),
+                        qoe.getReliability(),
+                        qoe.getOverallQoe(),
+                        qoe.getBuffering(),
+                        qoe.getLoadingTime(),
+                        qoe.getFailureRate(),
+                        qoe.getStreamingQuality(),
+                        qoe.getServiceType(),
+                        qoe.getDeviceType(),
+                        qoe.getUserId(),
+                        qoe.getQosId()
+                );
+            } else {
+                // ➤ Insertion SANS QoS (NULL)
+                insertService.insert(
+                        qoe.getSatisfactionScore(),
+                        qoe.getVideoQuality(),
+                        qoe.getAudioQuality(),
+                        qoe.getInteractivity(),
+                        qoe.getReliability(),
+                        qoe.getOverallQoe(),
+                        qoe.getBuffering(),
+                        qoe.getLoadingTime(),
+                        qoe.getFailureRate(),
+                        qoe.getStreamingQuality(),
+                        qoe.getServiceType(),
+                        qoe.getDeviceType(),
+                        qoe.getUserId()
+                );
+            }
+
+            System.out.println(" Données QoE enregistrées avec succès dans la base.");
+
+
+            System.out.println(" Données QoE enregistrées avec succès dans la base.");
 
         } catch (Exception e) {
             e.printStackTrace();

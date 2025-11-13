@@ -20,7 +20,7 @@ public class QoeInsertService {
                 "(satisfaction_score, video_quality, audio_quality, interactivity, " +
                 "reliability, overall_qoe, buffering, loading_time, failure_rate, " +
                 "streaming_quality, service_type, device_type, user_id, created_at) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,  SYSDATE)";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(query)) {
@@ -48,7 +48,7 @@ public class QoeInsertService {
             }
 
         } catch (SQLException e) {
-            System.err.println("❌ Erreur lors de l'insertion QoE: " + e.getMessage());
+            System.err.println(" Erreur lors de l'insertion QoE: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -66,7 +66,7 @@ public class QoeInsertService {
                 "(satisfaction_score, video_quality, audio_quality, interactivity, " +
                 "reliability, overall_qoe, buffering, loading_time, failure_rate, " +
                 "streaming_quality, service_type, device_type, user_id, qos_id, created_at) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,  SYSDATE)";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(query)) {

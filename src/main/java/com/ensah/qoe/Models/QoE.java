@@ -18,7 +18,8 @@ public class QoE {
     // Informations contextuelles
     private String serviceType;            // Type de service (Video, VoIP, Gaming, Web)
     private String deviceType;             // Type d'appareil
-    private int userId;                    // ID utilisateur
+    private int userId;
+    private Integer qosId;
     private String timestamp;              // Horodatage
 
     // Constructeur vide
@@ -30,7 +31,7 @@ public class QoE {
                double interactivity, double reliability, double overallQoe,
                double buffering, double loadingTime, double failureRate,
                double streamingQuality, String serviceType, String deviceType,
-               int userId, String timestamp) {
+               int userId, String timestamp,Integer qosId) {
         this.satisfactionScore = satisfactionScore;
         this.videoQuality = videoQuality;
         this.audioQuality = audioQuality;
@@ -45,6 +46,7 @@ public class QoE {
         this.deviceType = deviceType;
         this.userId = userId;
         this.timestamp = timestamp;
+        this.qosId = qosId;
     }
 
     // Getters et Setters
@@ -159,6 +161,8 @@ public class QoE {
     public void setTimestamp(String timestamp) {
         this.timestamp = timestamp;
     }
+    public Integer getQosId() { return qosId; }
+    public void setQosId(Integer qosId) { this.qosId = qosId; }
 
     @Override
     public String toString() {

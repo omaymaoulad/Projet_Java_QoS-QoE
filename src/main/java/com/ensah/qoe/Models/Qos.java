@@ -1,6 +1,7 @@
 package com.ensah.qoe.Models;
 
 public class Qos {
+    private int id_mesure;
     private double latence;
     private double jitter;
     private double perte;
@@ -11,6 +12,7 @@ public class Qos {
     private String zone;
     private String type_connexion;
     private double cellid;
+
 
     public Qos(double latence, double jitter, double perte, double bandePassante, double signalScore,double mos) {
         this.latence = latence;
@@ -35,6 +37,7 @@ public class Qos {
     public double getCellid(){ return cellid; }
     public String getZone() { return zone; }
     public String getType_connexion() { return type_connexion; }
+    public int getId_mesure() { return id_mesure; }
 
     public void setLatence(double latence) { this.latence = latence; }
     public void setJitter(double jitter) { this.jitter = jitter; }
@@ -46,6 +49,7 @@ public class Qos {
     public void setZone(String zone) { this.zone = zone; }
     public void setType_connexion(String type_connexion) { this.type_connexion = type_connexion; }
     public void setCellid(double cellid) { this.cellid = cellid; }
+    public void setId_mesure(int id_mesure) { this.id_mesure = id_mesure; }
 
     @Override
     public String toString() {
