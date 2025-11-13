@@ -1,0 +1,309 @@
+/* ========================================
+   QoE Dashboard Styles - Responsive Design
+   ======================================== */
+
+/* ScrollPane personnalisé */
+.qoe-scroll-pane {
+    -fx-background-color: transparent;
+}
+
+.qoe-scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+
+.qoe-scroll-pane .scroll-bar:vertical {
+    -fx-background-color: #f3f4f6;
+    -fx-background-radius: 10;
+    -fx-padding: 2;
+}
+
+.qoe-scroll-pane .scroll-bar:vertical .thumb {
+    -fx-background-color: #f59e0b;
+    -fx-background-radius: 8;
+    -fx-background-insets: 0;
+}
+
+.qoe-scroll-pane .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: #d97706;
+}
+
+.qoe-scroll-pane .scroll-bar:vertical .increment-button,
+.qoe-scroll-pane .scroll-bar:vertical .decrement-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+/* Container principal */
+.qoe-main-container {
+    -fx-min-width: 300px;
+    -fx-max-width: 2000px;
+}
+
+/* En-tête */
+.qoe-header {
+    -fx-min-height: 100px;
+}
+
+.header-title {
+    -fx-font-family: 'Segoe UI', 'Arial', sans-serif;
+}
+
+.header-subtitle {
+    -fx-font-family: 'Segoe UI', 'Arial', sans-serif;
+}
+
+/* Content Container */
+.content-container {
+    -fx-min-width: 300px;
+    -fx-max-width: 1400px;
+}
+
+/* QoE Global Card */
+.qoe-global-card {
+    -fx-min-height: 100px;
+    -fx-pref-height: 120px;
+}
+
+.qoe-value-large {
+    -fx-font-size: 32px;
+}
+
+/* Section Titles */
+.section-title {
+    -fx-font-family: 'Segoe UI Semibold', 'Arial', sans-serif;
+}
+
+/* Metrics Grid */
+.metrics-grid {
+    -fx-min-width: 300px;
+}
+
+/* Metric Cards - Animation au survol */
+.metric-card {
+    -fx-cursor: hand;
+    -fx-transition: all 0.3s ease;
+}
+
+.metric-card:hover {
+    -fx-scale-x: 1.02;
+    -fx-scale-y: 1.02;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 12, 0, 0, 4);
+}
+
+.metric-label {
+    -fx-font-family: 'Segoe UI Semibold', 'Arial', sans-serif;
+}
+
+.metric-value {
+    -fx-font-family: 'Segoe UI', 'Arial', sans-serif;
+    -fx-font-weight: bold;
+}
+
+/* Couleurs spécifiques par type de métrique */
+.metric-card-yellow {
+    -fx-border-color: #fbbf24;
+}
+
+.metric-card-red {
+    -fx-border-color: #f87171;
+}
+
+.metric-card-purple {
+    -fx-border-color: #a78bfa;
+}
+
+.metric-card-blue {
+    -fx-border-color: #60a5fa;
+}
+
+.metric-card-green {
+    -fx-border-color: #34d399;
+}
+
+.metric-card-cyan {
+    -fx-border-color: #22d3ee;
+}
+
+/* Objective Metrics */
+.objective-metrics-grid {
+    -fx-min-width: 300px;
+}
+
+.objective-card {
+    -fx-min-width: 120px;
+    -fx-pref-height: 80px;
+}
+
+/* Context Cards */
+.context-cards {
+    -fx-min-width: 300px;
+}
+
+.context-card {
+    -fx-min-width: 150px;
+    -fx-pref-height: 80px;
+}
+
+/* Analysis Section */
+.analysis-section {
+    -fx-min-width: 300px;
+}
+
+.analyze-button {
+    -fx-min-width: 200px;
+    -fx-pref-width: 300px;
+    -fx-cursor: hand;
+}
+
+.analyze-button:hover {
+    -fx-background-color: linear-gradient(to right, #d97706, #b45309);
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+}
+
+.analyze-button:pressed {
+    -fx-scale-x: 0.98;
+    -fx-scale-y: 0.98;
+}
+
+.analysis-hint {
+    -fx-max-width: 400px;
+    -fx-wrap-text: true;
+    -fx-text-alignment: center;
+}
+
+/* Info Section */
+.info-section {
+    -fx-min-width: 300px;
+    -fx-max-width: 800px;
+}
+
+/* Footer */
+.footer {
+    -fx-min-height: 40px;
+}
+
+/* ========================================
+   Responsive Breakpoints
+   ======================================== */
+
+/* Petits écrans (< 600px) */
+@media screen and (max-width: 600px) {
+    .header-title {
+        -fx-font-size: 20px !important;
+    }
+
+    .header-subtitle {
+        -fx-font-size: 12px !important;
+    }
+
+    .qoe-value-large {
+        -fx-font-size: 24px !important;
+    }
+
+    .section-title {
+        -fx-font-size: 14px !important;
+    }
+
+    .metric-value {
+        -fx-font-size: 16px !important;
+    }
+
+    .analyze-button {
+        -fx-font-size: 13px !important;
+        -fx-padding: 12 30 !important;
+    }
+}
+
+/* Écrans moyens (600px - 900px) */
+@media screen and (min-width: 600px) and (max-width: 900px) {
+    .header-title {
+        -fx-font-size: 24px !important;
+    }
+
+    .qoe-value-large {
+        -fx-font-size: 28px !important;
+    }
+}
+
+/* ========================================
+   Utilitaires
+   ======================================== */
+
+/* Animation fade-in pour le chargement */
+@keyframes fadeIn {
+    from {
+        -fx-opacity: 0;
+        -fx-translate-y: 20;
+    }
+    to {
+        -fx-opacity: 1;
+        -fx-translate-y: 0;
+    }
+}
+
+.fade-in {
+    -fx-animation: fadeIn 0.5s ease-in;
+}
+
+/* Effet de pulsation pour les valeurs qui changent */
+@keyframes pulse {
+    0%, 100% {
+        -fx-scale-x: 1;
+        -fx-scale-y: 1;
+    }
+    50% {
+        -fx-scale-x: 1.05;
+        -fx-scale-y: 1.05;
+    }
+}
+
+.pulse {
+    -fx-animation: pulse 0.5s ease-in-out;
+}
+
+/* États de couleur pour les valeurs QoE */
+.qoe-excellent {
+    -fx-text-fill: #059669 !important;
+}
+
+.qoe-good {
+    -fx-text-fill: #2563eb !important;
+}
+
+.qoe-average {
+    -fx-text-fill: #d97706 !important;
+}
+
+.qoe-poor {
+    -fx-text-fill: #dc2626 !important;
+}
+
+/* Loading indicator */
+.loading {
+    -fx-opacity: 0.5;
+    -fx-cursor: wait;
+}
+
+/* Disabled state */
+.disabled-card {
+    -fx-opacity: 0.6;
+    -fx-cursor: not-allowed;
+}
+
+/* ========================================
+   Print Styles (pour export PDF)
+   ======================================== */
+@media print {
+    .qoe-scroll-pane .scroll-bar {
+        -fx-opacity: 0;
+    }
+
+    .analyze-button {
+        -fx-opacity: 0;
+    }
+
+    .qoe-header {
+        -fx-background-color: white !important;
+    }
+}

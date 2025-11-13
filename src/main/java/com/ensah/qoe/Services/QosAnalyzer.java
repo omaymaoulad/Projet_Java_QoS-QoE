@@ -88,11 +88,11 @@ public class QosAnalyzer {
         return qos;
     }
 
-    private static double moyenne(List<Double> valeurs) {
+    public static double moyenne(List<Double> valeurs) {
         return valeurs.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
     }
 
-    private static double calculerJitter(List<Double> delays) {
+    public static double calculerJitter(List<Double> delays) {
         double total = 0;
         for (int i = 1; i < delays.size(); i++) {
             total += Math.abs(delays.get(i) - delays.get(i - 1));
@@ -100,7 +100,7 @@ public class QosAnalyzer {
         return delays.size() > 1 ? total / (delays.size() - 1) : 0;
     }
 
-    private static double calculerPerte(List<Boolean> status) {
+    public static double calculerPerte(List<Boolean> status) {
         long total = status.size();
         long perdus = status.stream().filter(s -> !s).count();
         return total > 0 ? (double) perdus / total * 100.0 : 0;

@@ -20,6 +20,11 @@ public class Qos {
         this.signalScore = signalScore;
         this.mos = mos;
     }
+
+    public Qos() {
+
+    }
+
     public double getLatence() { return latence; }
     public double getJitter() { return jitter; }
     public double getPerte() { return perte; }

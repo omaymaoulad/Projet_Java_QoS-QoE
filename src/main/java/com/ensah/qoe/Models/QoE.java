@@ -1,42 +1,182 @@
 package com.ensah.qoe.Models;
 
 public class QoE {
-    private double MOS_QoS;      // MOS calculé à partir de QoS
-    private double feedbackClient; // Note donnée par le client
-    private double QoE_final;     // Score final combiné
-    private String niveau;
-    private String smiley;
-    private double alpha;         // Poids de QoS
+    // Métriques subjectives
+    private double satisfactionScore;      // Score de satisfaction utilisateur (1-5)
+    private double videoQuality;           // Qualité vidéo perçue (1-5)
+    private double audioQuality;           // Qualité audio perçue (1-5)
+    private double interactivity;          // Réactivité de l'application (1-5)
+    private double reliability;            // Fiabilité du service (1-5)
+    private double overallQoe;             // QoE globale calculée (1-5)
 
-    public QoE(double MOS_QoS, double feedbackClient, double alpha, String satisfaction) {
-        this.MOS_QoS = MOS_QoS;
-        this.feedbackClient = feedbackClient;
-        this.alpha = alpha;
-        calculateFinalQoE();
+    // Métriques objectives basées sur QoS
+    private double buffering;              // Temps de buffering (secondes)
+    private double loadingTime;            // Temps de chargement (secondes)
+    private double failureRate;            // Taux d'échec (%)
+    private double streamingQuality;       // Qualité de streaming calculée
+
+    // Informations contextuelles
+    private String serviceType;            // Type de service (Video, VoIP, Gaming, Web)
+    private String deviceType;             // Type d'appareil
+    private int userId;                    // ID utilisateur
+    private String timestamp;              // Horodatage
+
+    // Constructeur vide
+    public QoE() {
     }
 
-    private void calculateFinalQoE() {
-        QoE_final = alpha * MOS_QoS + (1 - alpha) * feedbackClient;
-        determineLevel();
+    // Constructeur complet
+    public QoE(double satisfactionScore, double videoQuality, double audioQuality,
+               double interactivity, double reliability, double overallQoe,
+               double buffering, double loadingTime, double failureRate,
+               double streamingQuality, String serviceType, String deviceType,
+               int userId, String timestamp) {
+        this.satisfactionScore = satisfactionScore;
+        this.videoQuality = videoQuality;
+        this.audioQuality = audioQuality;
+        this.interactivity = interactivity;
+        this.reliability = reliability;
+        this.overallQoe = overallQoe;
+        this.buffering = buffering;
+        this.loadingTime = loadingTime;
+        this.failureRate = failureRate;
+        this.streamingQuality = streamingQuality;
+        this.serviceType = serviceType;
+        this.deviceType = deviceType;
+        this.userId = userId;
+        this.timestamp = timestamp;
     }
 
-    private void determineLevel() {
-        if (QoE_final >= 4.5) { niveau = "Excellent"; smiley = "😄"; }
-        else if (QoE_final >= 4) { niveau = "Bon"; smiley = "🙂"; }
-        else if (QoE_final >= 3) { niveau = "Moyen"; smiley = "😐"; }
-        else if (QoE_final >= 2) { niveau = "Faible"; smiley = "😟"; }
-        else { niveau = "Mauvais"; smiley = "😡"; }
+    // Getters et Setters
+    public double getSatisfactionScore() {
+        return satisfactionScore;
     }
 
-    // Getters
-    public double getQoE_final() { return QoE_final; }
-    public String getNiveau() { return niveau; }
-    public String getSmiley() { return smiley; }
+    public void setSatisfactionScore(double satisfactionScore) {
+        this.satisfactionScore = satisfactionScore;
+    }
 
-    // Affichage rapide
-    public void displayQoE() {
-        System.out.println("QoE final: " + String.format("%.2f", QoE_final));
-        System.out.println("Niveau: " + niveau);
-        System.out.println("Smiley: " + smiley);
+    public double getVideoQuality() {
+        return videoQuality;
+    }
+
+    public void setVideoQuality(double videoQuality) {
+        this.videoQuality = videoQuality;
+    }
+
+    public double getAudioQuality() {
+        return audioQuality;
+    }
+
+    public void setAudioQuality(double audioQuality) {
+        this.audioQuality = audioQuality;
+    }
+
+    public double getInteractivity() {
+        return interactivity;
+    }
+
+    public void setInteractivity(double interactivity) {
+        this.interactivity = interactivity;
+    }
+
+    public double getReliability() {
+        return reliability;
+    }
+
+    public void setReliability(double reliability) {
+        this.reliability = reliability;
+    }
+
+    public double getOverallQoe() {
+        return overallQoe;
+    }
+
+    public void setOverallQoe(double overallQoe) {
+        this.overallQoe = overallQoe;
+    }
+
+    public double getBuffering() {
+        return buffering;
+    }
+
+    public void setBuffering(double buffering) {
+        this.buffering = buffering;
+    }
+
+    public double getLoadingTime() {
+        return loadingTime;
+    }
+
+    public void setLoadingTime(double loadingTime) {
+        this.loadingTime = loadingTime;
+    }
+
+    public double getFailureRate() {
+        return failureRate;
+    }
+
+    public void setFailureRate(double failureRate) {
+        this.failureRate = failureRate;
+    }
+
+    public double getStreamingQuality() {
+        return streamingQuality;
+    }
+
+    public void setStreamingQuality(double streamingQuality) {
+        this.streamingQuality = streamingQuality;
+    }
+
+    public String getServiceType() {
+        return serviceType;
+    }
+
+    public void setServiceType(String serviceType) {
+        this.serviceType = serviceType;
+    }
+
+    public String getDeviceType() {
+        return deviceType;
+    }
+
+    public void setDeviceType(String deviceType) {
+        this.deviceType = deviceType;
+    }
+
+    public int getUserId() {
+        return userId;
+    }
+
+    public void setUserId(int userId) {
+        this.userId = userId;
+    }
+
+    public String getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(String timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    @Override
+    public String toString() {
+        return "Qoe{" +
+                "satisfactionScore=" + satisfactionScore +
+                ", videoQuality=" + videoQuality +
+                ", audioQuality=" + audioQuality +
+                ", interactivity=" + interactivity +
+                ", reliability=" + reliability +
+                ", overallQoe=" + overallQoe +
+                ", buffering=" + buffering +
+                ", loadingTime=" + loadingTime +
+                ", failureRate=" + failureRate +
+                ", streamingQuality=" + streamingQuality +
+                ", serviceType='" + serviceType + '\'' +
+                ", deviceType='" + deviceType + '\'' +
+                ", userId=" + userId +
+                ", timestamp='" + timestamp + '\'' +
+                '}';
     }
 }
