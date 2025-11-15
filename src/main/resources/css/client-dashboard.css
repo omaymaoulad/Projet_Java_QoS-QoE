@@ -1,0 +1,399 @@
+/* ==================== STYLES GLOBAUX ==================== */
+.root {
+    -fx-font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    -fx-font-size: 14px;
+    -fx-background-color: #f5f7fa;
+}
+
+/* ==================== TABS ==================== */
+.tab-pane {
+    -fx-tab-min-height: 50px;
+    -fx-open-tab-animation: NONE;
+    -fx-close-tab-animation: NONE;
+}
+
+.tab-pane .tab-header-area {
+    -fx-background-color: white;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 0 0 2 0;
+}
+
+.tab {
+    -fx-background-color: transparent;
+    -fx-background-radius: 0;
+    -fx-border-width: 0;
+    -fx-padding: 15 25;
+    -fx-font-size: 15px;
+    -fx-font-weight: 600;
+}
+
+.tab:selected {
+    -fx-background-color: transparent;
+    -fx-border-color: #ff600c;
+    -fx-border-width: 0 0 3 0;
+}
+
+.tab .tab-label {
+    -fx-text-fill: #64748b;
+}
+
+.tab:selected .tab-label {
+    -fx-text-fill: #ff600c;
+}
+
+.tab:hover {
+    -fx-background-color: rgba(102, 126, 234, 0.05);
+}
+
+/* ==================== BUTTONS ==================== */
+.button {
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+    -fx-font-weight: 600;
+}
+
+.button:hover {
+    -fx-opacity: 0.9;
+}
+
+.button:pressed {
+    -fx-scale-x: 0.98;
+    -fx-scale-y: 0.98;
+}
+
+.primary-button:hover {
+    -fx-effect: dropshadow(gaussian, rgb(195, 58, 40), 15, 0, 0, 5);
+}
+
+.secondary-button:hover {
+    -fx-background-color: #cbd5e1;
+}
+
+/* ==================== RADIO BUTTONS ÉTOILES ==================== */
+.star-radio {
+    -fx-cursor: hand;
+}
+
+.star-radio .radio-button {
+    -fx-opacity: 0;
+    -fx-pref-width: 0;
+    -fx-pref-height: 0;
+}
+
+.star-radio:selected .radio-button {
+    -fx-opacity: 0;
+}
+
+.star-radio .graphic {
+    -fx-effect: dropshadow(gaussian, transparent, 0, 0, 0, 0);
+    -fx-transition: all 0.2s ease;
+}
+
+.star-radio:hover .graphic {
+    -fx-scale-x: 1.1;
+    -fx-scale-y: 1.1;
+    -fx-effect: dropshadow(gaussian, rgba(251, 191, 36, 0.3), 10, 0, 0, 2);
+}
+
+.star-radio:selected .graphic {
+    -fx-effect: dropshadow(gaussian, rgba(251, 191, 36, 0.5), 15, 0, 0, 3);
+}
+
+/* ==================== COMBO BOX ==================== */
+.combo-box {
+    -fx-background-color: white;
+    -fx-background-radius: 8;
+    -fx-border-color: #e2e8f0;
+    -fx-border-radius: 8;
+    -fx-border-width: 2;
+}
+
+.combo-box:focused {
+    -fx-border-color: #cd0e0e;
+    -fx-effect: dropshadow(gaussian, rgba(102, 126, 234, 0.2), 8, 0, 0, 0);
+}
+
+.combo-box:hover {
+    -fx-border-color: #cbd5e1;
+}
+
+.combo-box .list-cell {
+    -fx-padding: 12 15;
+    -fx-font-size: 14px;
+}
+
+.combo-box .list-cell:hover {
+    -fx-background-color: rgba(102, 126, 234, 0.1);
+}
+
+.combo-box-popup .list-view {
+    -fx-background-color: white;
+    -fx-border-color: #e2e8f0;
+    -fx-border-radius: 8;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.15), 20, 0, 0, 5);
+}
+
+/* ==================== TEXT AREA ==================== */
+.text-area {
+    -fx-background-color: white;
+    -fx-background-radius: 8;
+    -fx-border-color: #e2e8f0;
+    -fx-border-radius: 8;
+    -fx-border-width: 2;
+    -fx-padding: 12;
+}
+
+.text-area:focused {
+    -fx-border-color: #f1b654;
+    -fx-effect: dropshadow(gaussian, rgba(102, 126, 234, 0.2), 8, 0, 0, 0);
+}
+
+.text-area .content {
+    -fx-background-color: white;
+    -fx-background-radius: 6;
+    -fx-padding: 5;
+}
+
+.text-area .scroll-pane {
+    -fx-background-color: transparent;
+}
+
+.text-area .scroll-pane .viewport {
+    -fx-background-color: white;
+}
+
+/* ==================== PROGRESS BAR ==================== */
+.progress-bar {
+    -fx-background-radius: 10;
+    -fx-pref-height: 8;
+}
+
+.progress-bar .track {
+    -fx-background-color: #e2e8f0;
+    -fx-background-radius: 10;
+}
+
+.progress-bar .bar {
+    -fx-background-radius: 10;
+    -fx-padding: 0;
+}
+
+/* ==================== TABLE VIEW ==================== */
+.table-view {
+    -fx-background-color: white;
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+    -fx-padding: 0;
+}
+
+.table-view .column-header {
+    -fx-background-color: #f8fafc;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-text-fill: #1e293b;
+    -fx-padding: 15 10;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 0 0 2 0;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: #f8fafc;
+}
+
+.table-view .column-header-background .filler {
+    -fx-background-color: #f8fafc;
+}
+
+.table-row-cell {
+    -fx-padding: 12 0;
+    -fx-border-color: transparent;
+    -fx-cell-size: 50px;
+}
+
+.table-row-cell:odd {
+    -fx-background-color: #ffffff;
+}
+
+.table-row-cell:even {
+    -fx-background-color: #f8fafc;
+}
+
+.table-row-cell:hover {
+    -fx-background-color: rgba(102, 126, 234, 0.08);
+    -fx-cursor: hand;
+}
+
+.table-row-cell:selected {
+    -fx-background-color: rgba(102, 126, 234, 0.15);
+    -fx-text-fill: #1e293b;
+}
+
+.table-cell {
+    -fx-padding: 10 15;
+    -fx-font-size: 13px;
+    -fx-alignment: CENTER_LEFT;
+}
+
+.table-view .placeholder .label {
+    -fx-text-fill: #64748b;
+}
+
+/* ==================== CHARTS ==================== */
+.chart {
+    -fx-background-color: transparent;
+    -fx-padding: 10;
+}
+
+.chart-plot-background {
+    -fx-background-color: #fafbfc;
+}
+
+.chart-legend {
+    -fx-background-color: white;
+    -fx-border-color: #e2e8f0;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 10;
+}
+
+.chart-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #64748b;
+    -fx-padding: 0 0 10 0;
+}
+
+.axis {
+    -fx-tick-label-fill: #64748b;
+    -fx-font-size: 11px;
+}
+
+.axis-label {
+    -fx-text-fill: #475569;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+}
+
+/* Line Chart */
+.chart-series-line {
+    -fx-stroke-width: 3px;
+    -fx-effect: dropshadow(gaussian, rgba(231, 90, 23, 0.9), 5, 0, 0, 2);
+}
+
+.chart-line-symbol {
+    -fx-background-color: #cd0e0e, white;
+    -fx-background-insets: 0, 2;
+    -fx-background-radius: 6px;
+    -fx-padding: 6px;
+}
+
+.default-color0.chart-series-line { -fx-stroke: #cd0e0e; }
+.default-color1.chart-series-line { -fx-stroke: #f1b654; }
+.default-color2.chart-series-line { -fx-stroke: #f1e133; }
+
+/* Pie Chart */
+.chart-pie {
+    -fx-border-color: white;
+    -fx-border-width: 2;
+}
+
+.default-color0.chart-pie { -fx-pie-color: #cd0e0e; }
+.default-color1.chart-pie { -fx-pie-color: #f1e133; }
+.default-color2.chart-pie { -fx-pie-color: #f1b654; }
+.default-color3.chart-pie { -fx-pie-color: #4facfe; }
+.default-color4.chart-pie { -fx-pie-color: #43e97b; }
+.default-color5.chart-pie { -fx-pie-color: #5c160c; }
+
+.chart-pie-label {
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+}
+
+/* ==================== SCROLL PANE ==================== */
+.scroll-pane {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane .corner {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: #cbd5e1;
+    -fx-background-radius: 10;
+}
+
+.scroll-bar .thumb:hover {
+    -fx-background-color: #94a3b8;
+}
+
+.scroll-bar .track {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar .increment-button,
+.scroll-bar .decrement-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+/* ==================== TOOLTIP ==================== */
+.tooltip {
+    -fx-background-color: #1e293b;
+    -fx-text-fill: white;
+    -fx-font-size: 12px;
+    -fx-padding: 8 12;
+    -fx-background-radius: 6;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 10, 0, 0, 3);
+}
+
+/* ==================== SEPARATOR ==================== */
+.separator .line {
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 1 0 0 0;
+}
+
+/* ==================== ANIMATIONS ==================== */
+.animated {
+    -fx-transition: all 0.3s ease;
+}
+
+/* ==================== CUSTOM CLASSES ==================== */
+.card {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0, 0, 2);
+}
+
+.card:hover {
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.12), 12, 0, 0, 4);
+}
+
+.metric-card {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-padding: 25;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0, 0, 2);
+}
+
+.gradient-header {
+    -fx-background-color: linear-gradient(to right, #5c160c, rgba(231, 90, 23, 0.9));
+    -fx-padding: 20;
+}
+
+/* ==================== RESPONSIVE ADJUSTMENTS ==================== */
+@media (max-width: 1200px) {
+    .tab {
+        -fx-padding: 12 20;
+        -fx-font-size: 14px;
+    }
+}
