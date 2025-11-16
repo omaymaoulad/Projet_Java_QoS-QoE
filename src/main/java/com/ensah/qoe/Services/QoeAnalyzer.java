@@ -14,9 +14,8 @@ import java.util.List;
 
 public class QoeAnalyzer {
 
-    // ============================================================================
     //                     1) ANALYSE QoE SUBJECTIF depuis CSV
-    // ============================================================================
+
     public static QoE analyserQoE(String csvPath) {
 
         // 1) Récupérer le dernier QoS pour lier QoE → QoS
@@ -136,7 +135,7 @@ public class QoeAnalyzer {
         return new QoE(
                 avgSatisfaction, avgVideo, avgAudio, avgInter, avgReliability,
                 qoeFinal, avgBuffering, avgLoading, avgFailure,
-                streamingQuality, lastServiceType, lastDeviceType,
+                streamingQuality, lastDeviceType,
                 lastUserId,
                 LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
                 lastQosId
@@ -217,14 +216,7 @@ public class QoeAnalyzer {
                         inter        * 0.15 +
                         rel          * 0.10;
 
-        return new QoE(
-                satisfaction, video, audio, inter, rel,
-                qoe, buffer, load, fail, stream,
-                qos.getType_connexion(), "Network Device",
-                1,
-                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
-                qos.getId_mesure()
-        );
+        return new QoE(satisfaction, video, audio, inter, rel, qoe, buffer, load, fail, stream, "Network Device", 1, LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")), qos.getId_mesure());
     }
 
     // --- MAPPINGS QoS → QoE Objectif ---
@@ -277,7 +269,6 @@ public class QoeAnalyzer {
                 q.setBandePassante(rs.getDouble("BANDE_PASSANTE"));
                 q.setMos(rs.getDouble("MOS"));
                 q.setSignalScore(rs.getDouble("SIGNAL_SCORE"));
-                q.setType_connexion(rs.getString("TYPE_CONNEXION"));
                 return q;
             }
 

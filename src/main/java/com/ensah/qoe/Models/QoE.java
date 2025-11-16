@@ -30,7 +30,7 @@ public class QoE {
     public QoE(double satisfactionScore, double videoQuality, double audioQuality,
                double interactivity, double reliability, double overallQoe,
                double buffering, double loadingTime, double failureRate,
-               double streamingQuality, String serviceType, String deviceType,
+               double streamingQuality, String deviceType,
                int userId, String timestamp,Integer qosId) {
         this.satisfactionScore = satisfactionScore;
         this.videoQuality = videoQuality;
@@ -42,7 +42,6 @@ public class QoE {
         this.loadingTime = loadingTime;
         this.failureRate = failureRate;
         this.streamingQuality = streamingQuality;
-        this.serviceType = serviceType;
         this.deviceType = deviceType;
         this.userId = userId;
         this.timestamp = timestamp;
