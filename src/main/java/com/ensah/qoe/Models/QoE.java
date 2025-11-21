@@ -47,6 +47,44 @@ public class QoE {
         this.timestamp = timestamp;
         this.qosId = qosId;
     }
+    // 🔥 Constructeur utilisé par ClientDashboardController
+    public QoE(double satisfactionScore,
+               double videoQuality,
+               double audioQuality,
+               double interactivity,
+               double reliability,
+               double overallQoe,
+               double buffering,
+               double loadingTime,
+               double failureRate,
+               double streamingQuality,
+               String serviceType,
+               String deviceType,
+               int userId,
+               String timestamp,
+               int qosId) {
+
+        this.satisfactionScore = satisfactionScore;
+        this.videoQuality = videoQuality;
+        this.audioQuality = audioQuality;
+        this.interactivity = interactivity;
+        this.reliability = reliability;
+        this.overallQoe = overallQoe;
+
+        this.buffering = buffering;
+        this.loadingTime = loadingTime;
+        this.failureRate = failureRate;
+        this.streamingQuality = streamingQuality;
+
+        this.serviceType = serviceType;
+        this.deviceType = deviceType;
+
+        this.userId = userId;
+        this.timestamp = timestamp;
+
+        this.qosId = qosId;
+    }
+
 
     // Getters et Setters
     public double getSatisfactionScore() {

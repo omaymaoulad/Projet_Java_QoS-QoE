@@ -2,7 +2,6 @@ package com.ensah.qoe.Services;
 
 import com.ensah.qoe.Models.Qos;
 import com.ensah.qoe.Utils.DateUtils;
-import com.ensah.qoe.Utils.GeoCoder;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -16,49 +15,70 @@ public class QosAnalyzer {
      * regroupées par : (ZONE + TRANCHE 12H)
      */
     public static List<Qos> analyserQoSFichier(String csvPath, String nomFichier) {
+
         System.out.println(">>> QosAnalyzer lancé pour : " + nomFichier);
-        // 1) Si le fichier existe déjà → on lit la DB (évite double import)
+
         if (FichierService.fichierExiste(nomFichier)) {
-            System.out.println("⚠ Fichier déjà importé → chargement depuis la base.");
+            System.out.println(">>> Fichier déjà importé → retour DB");
             return QosZoneService.getAllFromDatabase();
         }
 
-        // Groupe :  "ZONE#TRANCHE12H" → liste de mesures brutes
         Map<String, List<Qos>> regroupement = new HashMap<>();
 
         try (BufferedReader br = new BufferedReader(new FileReader(csvPath))) {
 
-            String header = br.readLine(); // ignorer première ligne
+            System.out.println(">>> Lecture header...");
+            String headerLine = br.readLine();
+            if (headerLine == null) {
+                System.out.println(">>> ERREUR : header vide");
+                return new ArrayList<>();
+            }
+
+            String[] headers = headerLine.split(",");
+            System.out.println(">>> Colonnes trouvées: " + Arrays.toString(headers));
+
+            int idxTimestamp   = find(headers, "timestamp");
+            int idxLat         = find(headers, "latitude");
+            int idxLon         = find(headers, "longitude");
+            int idxDelay       = find(headers, "delay");
+            int idxRsrq        = find(headers, "rsrq");
+            int idxSinr        = find(headers, "sinr");
+            int idxDown        = find(headers, "throughput_downlink");
+            int idxUp          = find(headers, "throughput_uplink");
+            int idxStatus      = find(headers, "service_status");
+            int idxCity        = find(headers, "city");
+            int idxCountry     = find(headers, "country");
+
+            System.out.println(">>> Index OK !");
+
             String line;
+            int cpt = 0;
 
             while ((line = br.readLine()) != null) {
 
                 String[] p = line.split(",");
 
                 try {
-                    // ---------- Extraction des colonnes importantes ----------
-                    double timestamp = Double.parseDouble(p[0]);
-                    double lat = Double.parseDouble(p[1]);
-                    double lon = Double.parseDouble(p[2]);
+                    cpt++;
+                    if (cpt % 1000 == 0) System.out.println(">>> Ligne: " + cpt);
 
-                    // ---------- Ville & pays DIRECTEMENT DU CSV ----------
-                    String city = p[23].trim();
-                    String country = p[24].trim();
+                    double timestamp = Double.parseDouble(p[idxTimestamp]);
+                    double lat = Double.parseDouble(p[idxLat]);
+                    double lon = Double.parseDouble(p[idxLon]);
 
-                    // ---------- Conversion date ----------
+                    String city = safe(p, idxCity);
+                    String country = safe(p, idxCountry);
+
                     LocalDateTime dateReelle = DateUtils.convertirTimestamp(timestamp, "UTC");
-
                     String tranche12h = DateUtils.convertirEnTranche12h(dateReelle);
 
-                    // ---------- Indicateurs QoS ----------
-                    double delay = Double.parseDouble(p[16]);
-                    double rsrq = Double.parseDouble(p[6]);
-                    double sinr = Double.parseDouble(p[9]);
-                    double thDown = Double.parseDouble(p[21]);
-                    double thUp = Double.parseDouble(p[22]);
-                    boolean status = p[19].trim().equals("1");
+                    double delay = Double.parseDouble(p[idxDelay]);
+                    double rsrq = Double.parseDouble(p[idxRsrq]);
+                    double sinr = Double.parseDouble(p[idxSinr]);
+                    double thDown = Double.parseDouble(p[idxDown]);
+                    double thUp = Double.parseDouble(p[idxUp]);
+                    boolean status = safe(p, idxStatus).equals("1");
 
-                    // ---------- Création objet QoS ----------
                     Qos q = new Qos();
                     q.setLatence(delay);
                     q.setJitter(0);
@@ -66,38 +86,51 @@ public class QosAnalyzer {
                     q.setSignalScore((rsrq + sinr) / 2);
                     q.setBandePassante((thDown + thUp) / 2);
 
+                    q.setZone(city + ", " + country);
                     q.setDateReelle(dateReelle);
                     q.setTranche12h(tranche12h);
                     q.setNomFichier(nomFichier);
 
-                    // IMPORTANT : utiliser city + country du CSV
-                    q.setZone(city + ", " + country);
-
-                    // ---------- Regroupement ----------
                     String key = q.getZone() + "#" + tranche12h;
-
                     regroupement.computeIfAbsent(key, k -> new ArrayList<>()).add(q);
 
                 } catch (Exception e) {
-                    System.out.println("Erreur ligne: " + e.getMessage());
+                    System.out.println(">>> ERREUR ligne " + cpt + ": " + e.getMessage());
                 }
-
             }
 
+            System.out.println(">>> Analyse lignes terminée : " + cpt + " lignes");
+
         } catch (Exception e) {
+            System.out.println(">>> ERREUR QosAnalyzer principale:");
             e.printStackTrace();
         }
 
-        // ---------- Calcul des moyennes par groupe ----------
         List<Qos> resultat = new ArrayList<>();
-
         for (List<Qos> groupe : regroupement.values()) {
             resultat.add(calculerMoyenne(groupe));
         }
-        QosInsertService.insertListe(resultat);
+
+        System.out.println(">>> Nb groupes générés: " + resultat.size());
+
         return resultat;
     }
 
+
+    // cherche l'index d'une colonne dans le header
+    private static int find(String[] headers, String name) {
+        for (int i = 0; i < headers.length; i++) {
+            if (headers[i].trim().equalsIgnoreCase(name.trim())) {
+                return i;
+            }
+        }
+        throw new RuntimeException("Colonne manquante : " + name);
+    }
+
+    private static String safe(String[] arr, int index) {
+        if (index < 0 || index >= arr.length) return "Unknown";
+        return arr[index].trim();
+    }
 
     /**
      * Calcule les moyennes d’un groupe regroupé par zone + tranche12h
@@ -110,11 +143,10 @@ public class QosAnalyzer {
         double signal = liste.stream().mapToDouble(Qos::getSignalScore).average().orElse(0);
         double bp = liste.stream().mapToDouble(Qos::getBandePassante).average().orElse(0);
 
-        // ---------- MOS (ITU-T) ----------
         double R = 94.2 - (lat / 40.0) - (1.2 * jitter) - (2 * perte);
         double mos = 1 + 0.035 * R + 7e-6 * R * (R - 60) * (100 - R);
         mos = Math.max(1, Math.min(5, mos));
-        // ---------- QoS final ----------
+
         Qos q = new Qos();
         q.setLatence(lat);
         q.setJitter(jitter);
@@ -123,17 +155,13 @@ public class QosAnalyzer {
         q.setSignalScore(signal);
         q.setMos(mos);
 
-        // On copie zone + tranche + fichier
         q.setZone(liste.get(0).getZone());
         q.setDateReelle(liste.get(0).getDateReelle());
         q.setTranche12h(liste.get(0).getTranche12h());
         q.setNomFichier(liste.get(0).getNomFichier());
 
-
-
         return q;
     }
-
 
     /**
      * Calcule le jitter à partir de la variation de latence

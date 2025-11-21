@@ -1,117 +1,78 @@
 package com.ensah.qoe.Utils;
 
 import org.json.JSONObject;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
+
+import java.io.*;
 
 public class GeoCoder {
 
-    // -----------------------------------------------------------
-    // 1) OFFLINE : liste des villes déjà trouvées dans le CSV Python
-    //    (Pays nordiques + Finlande + Norvège)
-    // -----------------------------------------------------------
-    private static final List<CityPoint> OFFLINE_POINTS = Arrays.asList(
-            new CityPoint(67.9566, 23.6821, "Muonio", "Finland"),
-            new CityPoint(68.0050, 24.0700, "Pallas", "Finland"),
-            new CityPoint(67.6500, 24.2500, "Äkäslompolo", "Finland"),
-            new CityPoint(67.5500, 24.2500, "Ylläsjärvi", "Finland"),
-            new CityPoint(67.6500, 24.9000, "Kittilä", "Finland"),
-            new CityPoint(67.3300, 23.7700, "Kolari", "Finland"),
+    // -----------------------------------------------------
+    // Fonction principale avec CSV venant de FileChooser
+    // -----------------------------------------------------
+    public static GeoResult getLocation(double lat, double lon, String csvPath,
+                                        String cityFromCsv, String countryFromCsv) {
 
-            // NORWAY (car reverse_geocoder a renvoyé Olderdalen)
-            new CityPoint(69.6028, 20.5300, "Olderdalen", "Norway"),
-            new CityPoint(69.7269, 20.9011, "Lyngseidet", "Norway")
-    );
+        // 1) SI LE CSV A DÉJÀ LES VALEURS → ON NE GÉOCODE PAS
+        if (cityFromCsv != null && !cityFromCsv.isBlank() && !cityFromCsv.equals("Unknown") &&
+                countryFromCsv != null && !countryFromCsv.isBlank() && !countryFromCsv.equals("Unknown")) {
 
-
-    // -----------------------------------------------------------
-    // 2) Fonction principale (appelée par QosAnalyzer → NE CHANGE PAS)
-    // -----------------------------------------------------------
-    public static GeoResult getLocation(double lat, double lon) {
-
-        // ---------- A) D'abord essayer OFFLINE (rapide, fiable si CSV pré-géocodé)
-        CityPoint nearest = getNearest(OFFLINE_POINTS, lat, lon);
-        if (nearest != null && distance(lat, lon, nearest.lat, nearest.lon) < 50) {
-            return new GeoResult(nearest.city, nearest.country, "UTC");
+            return new GeoResult(cityFromCsv, countryFromCsv, "UTC");
         }
 
-        // ---------- B) Sinon → Geocoder ONLINE Nominatim (ton code original)
+        // 2) SINON → APPEL PYTHON
+        GeoResult py = callPython(lat, lon, csvPath);
+        if (py != null && !py.city.equals("Unknown"))
+            return py;
+
+        // 3) SI PYTHON NE DONNE RIEN → UNKNOWN
+        return new GeoResult("Unknown", "Unknown", "UTC");
+    }
+
+
+    // -----------------------------------------------------
+    // APPEL DU SCRIPT PYTHON (CSV dynamique)
+    // -----------------------------------------------------
+    private static GeoResult callPython(double lat, double lon, String csvPath) {
         try {
-            String url = "https://nominatim.openstreetmap.org/reverse?lat=" + lat +
-                    "&lon=" + lon + "&format=json&addressdetails=1";
+            String script = "src/main/resources/python/geocode_dynamic.py";
 
-            HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
-            conn.setRequestProperty("User-Agent", "JavaFX-QoS-Analyzer");
+            ProcessBuilder pb = new ProcessBuilder(
+                    "python", script,
+                    String.valueOf(lat),
+                    String.valueOf(lon),
+                    csvPath
+            );
 
-            InputStream is = conn.getInputStream();
-            String result = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-            JSONObject json = new JSONObject(result);
+            pb.redirectErrorStream(true);
+            Process p = pb.start();
 
-            JSONObject addr = json.getJSONObject("address");
+            BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(p.getInputStream())
+            );
 
-            String city = addr.optString("city",
-                    addr.optString("town",
-                            addr.optString("village", "Unknown")));
+            String json = reader.readLine();
+            p.waitFor();
 
-            String country = addr.optString("country", "Unknown");
+            if (json == null || json.isBlank())
+                return null;
 
-            return new GeoResult(city, country, "UTC");
+            JSONObject obj = new JSONObject(json);
+
+            return new GeoResult(
+                    obj.getString("city"),
+                    obj.getString("country"),
+                    "UTC"
+            );
 
         } catch (Exception e) {
-            return new GeoResult("Unknown", "Unknown", "UTC");
+            return null;
         }
     }
 
 
-    // -----------------------------------------------------------
-    // 3) Trouver la ville offline la plus proche
-    // -----------------------------------------------------------
-    private static CityPoint getNearest(List<CityPoint> list, double lat, double lon) {
-        CityPoint nearest = null;
-        double minDist = Double.MAX_VALUE;
-
-        for (CityPoint p : list) {
-            double d = distance(lat, lon, p.lat, p.lon);
-            if (d < minDist) {
-                minDist = d;
-                nearest = p;
-            }
-        }
-        return nearest;
-    }
-
-
-    // Distance Haversine
-    private static double distance(double lat1, double lon1, double lat2, double lon2) {
-        double R = 6371;
-        double dLat = Math.toRadians(lat2 - lat1);
-        double dLon = Math.toRadians(lon2 - lon1);
-        double a = Math.sin(dLat/2) * Math.sin(dLat/2)
-                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
-                * Math.sin(dLon/2) * Math.sin(dLon/2);
-
-        return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    }
-
-
-    // Structure des villes offline
-    private static class CityPoint {
-        double lat, lon;
-        String city, country;
-
-        CityPoint(double lat, double lon, String city, String country) {
-            this.lat = lat;
-            this.lon = lon;
-            this.city = city;
-            this.country = country;
-        }
-    }
-
-
-    // Résultat identique à l’ancienne version → QosAnalyzer continue à fonctionner
+    // -----------------------------------------------------
+    // STRUCTURE
+    // -----------------------------------------------------
     public static class GeoResult {
         public String city;
         public String country;
