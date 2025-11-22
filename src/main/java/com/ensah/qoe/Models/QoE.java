@@ -1,185 +1,207 @@
 package com.ensah.qoe.Models;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 public class QoE {
-    // Métriques subjectives
-    private double satisfactionScore;      // Score de satisfaction utilisateur (1-5)
-    private double videoQuality;           // Qualité vidéo perçue (1-5)
-    private double audioQuality;           // Qualité audio perçue (1-5)
-    private double interactivity;          // Réactivité de l'application (1-5)
-    private double reliability;            // Fiabilité du service (1-5)
-    private double overallQoe;             // QoE globale calculée (1-5)
+    private int idQoe;
+    private int idClient;
+    private String genre;
 
-    // Métriques objectives basées sur QoS
-    private double buffering;              // Temps de buffering (secondes)
-    private double loadingTime;            // Temps de chargement (secondes)
-    private double failureRate;            // Taux d'échec (%)
-    private double streamingQuality;       // Qualité de streaming calculée
+    // Métriques QoS agrégées
+    private double latenceMoy;
+    private double jitterMoy;
+    private double perteMoy;
+    private double bandePassanteMoy;
+    private double mosMoy;
+    private double signalMoy;
 
-    // Informations contextuelles
-    private String serviceType;            // Type de service (Video, VoIP, Gaming, Web)
-    private String deviceType;             // Type d'appareil
-    private int userId;
-    private Integer qosId;
-    private String timestamp;              // Horodatage
+    // Métriques QoE subjectives
+    private double satisfactionQoe;
+    private double serviceQoe;
+    private double prixQoe;
+    private double contratQoe;
+    private double lifetimeQoe;
 
-    // Constructeur vide
-    public QoE() {
-    }
+    // Feedback utilisateur
+    private double feedbackScore;
 
-    // Constructeur complet
+    // Score final
+    private double qoeGlobal;
+    private LocalDateTime dateCalcule;
+
+    // Champs supplémentaires pour l'interface
+    private String serviceType;
+    private String deviceType;
+    private String timestamp;
+
+    // Constructeurs
+    public QoE() {}
+
+    // Constructeur pour l'interface (compatible avec le code existant)
     public QoE(double satisfactionScore, double videoQuality, double audioQuality,
                double interactivity, double reliability, double overallQoe,
-               double buffering, double loadingTime, double failureRate,
-               double streamingQuality, String deviceType,
-               int userId, String timestamp,Integer qosId) {
-        this.satisfactionScore = satisfactionScore;
-        this.videoQuality = videoQuality;
-        this.audioQuality = audioQuality;
-        this.interactivity = interactivity;
-        this.reliability = reliability;
-        this.overallQoe = overallQoe;
-        this.buffering = buffering;
-        this.loadingTime = loadingTime;
-        this.failureRate = failureRate;
-        this.streamingQuality = streamingQuality;
+               double loadingTime, double buffering, double failureRate, double streamingQuality,
+               String serviceType, String deviceType, int idClient, String timestamp, int idQoe) {
+        this.satisfactionQoe = satisfactionScore;
+        this.serviceQoe = videoQuality;
+        this.prixQoe = audioQuality;
+        this.contratQoe = interactivity;
+        this.lifetimeQoe = reliability;
+        this.qoeGlobal = overallQoe;
+        this.latenceMoy = loadingTime;
+        this.jitterMoy = buffering;
+        this.perteMoy = failureRate;
+        this.bandePassanteMoy = streamingQuality;
+        this.serviceType = serviceType;
         this.deviceType = deviceType;
-        this.userId = userId;
+        this.idClient = idClient;
         this.timestamp = timestamp;
-        this.qosId = qosId;
+        this.idQoe = idQoe;
+    }
+    // Ajoutez ce constructeur dans votre classe QoE
+    public QoE(int idClient, String genre,
+               double latenceMoy, double jitterMoy, double perteMoy, double bandePassanteMoy,
+               double mosMoy, double signalMoy, double satisfactionQoe, double serviceQoe,
+               double prixQoe, double contratQoe, double lifetimeQoe, double feedbackScore,
+               double qoeGlobal, LocalDateTime dateCalcule) {
+
+        this.idClient = idClient;
+        this.genre = genre;
+        this.latenceMoy = latenceMoy;
+        this.jitterMoy = jitterMoy;
+        this.perteMoy = perteMoy;
+        this.bandePassanteMoy = bandePassanteMoy;
+        this.mosMoy = mosMoy;
+        this.signalMoy = signalMoy;
+        this.satisfactionQoe = satisfactionQoe;
+        this.serviceQoe = serviceQoe;
+        this.prixQoe = prixQoe;
+        this.contratQoe = contratQoe;
+        this.lifetimeQoe = lifetimeQoe;
+        this.feedbackScore = feedbackScore;
+        this.qoeGlobal = qoeGlobal;
+        this.dateCalcule = dateCalcule;
+
+        // Valeurs par défaut pour l'interface
+        this.serviceType = "Service Générique";
+        this.deviceType = "Device Client";
+        this.timestamp = dateCalcule.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+    }
+    // Constructeur pour la base de données
+    public QoE(int idQoe, int idClient, String genre,
+               double latenceMoy, double jitterMoy, double perteMoy, double bandePassanteMoy,
+               double mosMoy, double signalMoy, double satisfactionQoe, double serviceQoe,
+               double prixQoe, double contratQoe, double lifetimeQoe, double feedbackScore,
+               double qoeGlobal, LocalDateTime dateCalcule) {
+        this.idQoe = idQoe;
+        this.idClient = idClient;
+        this.genre = genre;
+        this.latenceMoy = latenceMoy;
+        this.jitterMoy = jitterMoy;
+        this.perteMoy = perteMoy;
+        this.bandePassanteMoy = bandePassanteMoy;
+        this.mosMoy = mosMoy;
+        this.signalMoy = signalMoy;
+        this.satisfactionQoe = satisfactionQoe;
+        this.serviceQoe = serviceQoe;
+        this.prixQoe = prixQoe;
+        this.contratQoe = contratQoe;
+        this.lifetimeQoe = lifetimeQoe;
+        this.feedbackScore = feedbackScore;
+        this.qoeGlobal = qoeGlobal;
+        this.dateCalcule = dateCalcule;
+
+        // Valeurs par défaut pour l'interface
+        this.serviceType = "Service Générique";
+        this.deviceType = "Device Client";
+        this.timestamp = dateCalcule != null ?
+                dateCalcule.format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")) :
+                LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
     }
 
     // Getters et Setters
-    public double getSatisfactionScore() {
-        return satisfactionScore;
-    }
+    public int getIdQoe() { return idQoe; }
+    public void setIdQoe(int idQoe) { this.idQoe = idQoe; }
 
-    public void setSatisfactionScore(double satisfactionScore) {
-        this.satisfactionScore = satisfactionScore;
-    }
+    public int getIdClient() { return idClient; }
+    public void setIdClient(int idClient) { this.idClient = idClient; }
 
-    public double getVideoQuality() {
-        return videoQuality;
-    }
+    public String getGenre() { return genre; }
+    public void setGenre(String genre) { this.genre = genre; }
 
-    public void setVideoQuality(double videoQuality) {
-        this.videoQuality = videoQuality;
-    }
+    public double getLatenceMoy() { return latenceMoy; }
+    public void setLatenceMoy(double latenceMoy) { this.latenceMoy = latenceMoy; }
 
-    public double getAudioQuality() {
-        return audioQuality;
-    }
+    public double getJitterMoy() { return jitterMoy; }
+    public void setJitterMoy(double jitterMoy) { this.jitterMoy = jitterMoy; }
 
-    public void setAudioQuality(double audioQuality) {
-        this.audioQuality = audioQuality;
-    }
+    public double getPerteMoy() { return perteMoy; }
+    public void setPerteMoy(double perteMoy) { this.perteMoy = perteMoy; }
 
-    public double getInteractivity() {
-        return interactivity;
-    }
+    public double getBandePassanteMoy() { return bandePassanteMoy; }
+    public void setBandePassanteMoy(double bandePassanteMoy) { this.bandePassanteMoy = bandePassanteMoy; }
 
-    public void setInteractivity(double interactivity) {
-        this.interactivity = interactivity;
-    }
+    public double getMosMoy() { return mosMoy; }
+    public void setMosMoy(double mosMoy) { this.mosMoy = mosMoy; }
 
-    public double getReliability() {
-        return reliability;
-    }
+    public double getSignalMoy() { return signalMoy; }
+    public void setSignalMoy(double signalMoy) { this.signalMoy = signalMoy; }
 
-    public void setReliability(double reliability) {
-        this.reliability = reliability;
-    }
+    public double getSatisfactionQoe() { return satisfactionQoe; }
+    public void setSatisfactionQoe(double satisfactionQoe) { this.satisfactionQoe = satisfactionQoe; }
 
-    public double getOverallQoe() {
-        return overallQoe;
-    }
+    public double getServiceQoe() { return serviceQoe; }
+    public void setServiceQoe(double serviceQoe) { this.serviceQoe = serviceQoe; }
 
-    public void setOverallQoe(double overallQoe) {
-        this.overallQoe = overallQoe;
-    }
+    public double getPrixQoe() { return prixQoe; }
+    public void setPrixQoe(double prixQoe) { this.prixQoe = prixQoe; }
 
-    public double getBuffering() {
-        return buffering;
-    }
+    public double getContratQoe() { return contratQoe; }
+    public void setContratQoe(double contratQoe) { this.contratQoe = contratQoe; }
 
-    public void setBuffering(double buffering) {
-        this.buffering = buffering;
-    }
+    public double getLifetimeQoe() { return lifetimeQoe; }
+    public void setLifetimeQoe(double lifetimeQoe) { this.lifetimeQoe = lifetimeQoe; }
 
-    public double getLoadingTime() {
-        return loadingTime;
-    }
+    public double getFeedbackScore() { return feedbackScore; }
+    public void setFeedbackScore(double feedbackScore) { this.feedbackScore = feedbackScore; }
 
-    public void setLoadingTime(double loadingTime) {
-        this.loadingTime = loadingTime;
-    }
+    public double getQoeGlobal() { return qoeGlobal; }
+    public void setQoeGlobal(double qoeGlobal) { this.qoeGlobal = qoeGlobal; }
 
-    public double getFailureRate() {
-        return failureRate;
-    }
+    public LocalDateTime getDateCalcule() { return dateCalcule; }
+    public void setDateCalcule(LocalDateTime dateCalcule) { this.dateCalcule = dateCalcule; }
 
-    public void setFailureRate(double failureRate) {
-        this.failureRate = failureRate;
-    }
+    // Getters pour l'interface (compatibilité avec le code existant)
+    public double getSatisfactionScore() { return satisfactionQoe; }
+    public double getVideoQuality() { return serviceQoe; }
+    public double getAudioQuality() { return prixQoe; }
+    public double getInteractivity() { return contratQoe; }
+    public double getReliability() { return lifetimeQoe; }
+    public double getOverallQoe() { return qoeGlobal; }
+    public double getLoadingTime() { return latenceMoy; }
+    public double getBuffering() { return jitterMoy; }
+    public double getFailureRate() { return perteMoy; }
+    public double getStreamingQuality() { return bandePassanteMoy; }
 
-    public double getStreamingQuality() {
-        return streamingQuality;
-    }
+    public String getServiceType() { return serviceType; }
+    public void setServiceType(String serviceType) { this.serviceType = serviceType; }
 
-    public void setStreamingQuality(double streamingQuality) {
-        this.streamingQuality = streamingQuality;
-    }
+    public String getDeviceType() { return deviceType; }
+    public void setDeviceType(String deviceType) { this.deviceType = deviceType; }
 
-    public String getServiceType() {
-        return serviceType;
-    }
-
-    public void setServiceType(String serviceType) {
-        this.serviceType = serviceType;
-    }
-
-    public String getDeviceType() {
-        return deviceType;
-    }
-
-    public void setDeviceType(String deviceType) {
-        this.deviceType = deviceType;
-    }
-
-    public int getUserId() {
-        return userId;
-    }
-
-    public void setUserId(int userId) {
-        this.userId = userId;
-    }
-
-    public String getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(String timestamp) {
-        this.timestamp = timestamp;
-    }
-    public Integer getQosId() { return qosId; }
-    public void setQosId(Integer qosId) { this.qosId = qosId; }
+    public String getTimestamp() { return timestamp; }
+    public void setTimestamp(String timestamp) { this.timestamp = timestamp; }
 
     @Override
     public String toString() {
-        return "Qoe{" +
-                "satisfactionScore=" + satisfactionScore +
-                ", videoQuality=" + videoQuality +
-                ", audioQuality=" + audioQuality +
-                ", interactivity=" + interactivity +
-                ", reliability=" + reliability +
-                ", overallQoe=" + overallQoe +
-                ", buffering=" + buffering +
-                ", loadingTime=" + loadingTime +
-                ", failureRate=" + failureRate +
-                ", streamingQuality=" + streamingQuality +
+        return "QoE{" +
+                "idQoe=" + idQoe +
+                ", idClient=" + idClient +
+                ", qoeGlobal=" + qoeGlobal +
+                ", satisfaction=" + satisfactionQoe +
                 ", serviceType='" + serviceType + '\'' +
-                ", deviceType='" + deviceType + '\'' +
-                ", userId=" + userId +
-                ", timestamp='" + timestamp + '\'' +
+                ", dateCalcule=" + timestamp +
                 '}';
     }
 }

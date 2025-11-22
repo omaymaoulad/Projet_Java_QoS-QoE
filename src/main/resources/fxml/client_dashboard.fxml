@@ -4,6 +4,7 @@
 <?import javafx.scene.chart.*?>
 <?import javafx.geometry.Insets?>
 
+<?import javafx.scene.control.cell.PropertyValueFactory?>
 <BorderPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.ensah.qoe.Controller.ClientDashboardController"
             stylesheets="@../css/client-dashboard.css"
@@ -28,7 +29,7 @@
         <TabPane tabClosingPolicy="UNAVAILABLE" styleClass="main-tab-pane">
 
             <!-- ==================== ONGLET TABLEAU DE BORD ==================== -->
-            <Tab text="Tableau de Bord" styleClass="dashboard-tab">
+            <Tab text="📊 Tableau de Bord" styleClass="dashboard-tab">
                 <ScrollPane fitToWidth="true" styleClass="main-scroll">
                     <VBox spacing="25" style="-fx-padding: 30;">
 
@@ -46,6 +47,13 @@
 
                         <!-- Métriques Principales -->
                         <GridPane hgap="20" vgap="20" styleClass="metrics-grid">
+                            <columnConstraints>
+                                <ColumnConstraints percentWidth="25"/>
+                                <ColumnConstraints percentWidth="25"/>
+                                <ColumnConstraints percentWidth="25"/>
+                                <ColumnConstraints percentWidth="25"/>
+                            </columnConstraints>
+
                             <!-- Satisfaction -->
                             <VBox spacing="12" styleClass="metric-card metric-satisfaction"
                                   GridPane.columnIndex="0" GridPane.rowIndex="0">
@@ -65,7 +73,7 @@
                             <!-- Qualité Audio -->
                             <VBox spacing="12" styleClass="metric-card metric-audio"
                                   GridPane.columnIndex="2" GridPane.rowIndex="0">
-                                <Label text=" Qualité Audio" styleClass="metric-label"/>
+                                <Label text="Qualité Audio" styleClass="metric-label"/>
                                 <Label fx:id="audioQualityLabel" text="4.7/5" styleClass="metric-value"/>
                                 <ProgressBar progress="0.94" prefWidth="150" prefHeight="8" styleClass="progress-audio"/>
                             </VBox>
@@ -82,41 +90,55 @@
                         <!-- Graphiques -->
                         <HBox spacing="20" prefHeight="400">
                             <VBox styleClass="chart-card" HBox.hgrow="ALWAYS">
-                                <Label text=" Évolution du Score QoE" styleClass="chart-title"/>
+                                <Label text="Évolution du Score QoE" styleClass="chart-title"/>
                                 <LineChart fx:id="qoeTrendChart" VBox.vgrow="ALWAYS" legendVisible="false">
-                                    <xAxis><CategoryAxis label="Période" /></xAxis>
-                                    <yAxis><NumberAxis label="Score" lowerBound="0" upperBound="5" /></yAxis>
+                                    <xAxis>
+                                        <CategoryAxis label="Période" />
+                                    </xAxis>
+                                    <yAxis>
+                                        <NumberAxis label="Score" lowerBound="0" upperBound="5" />
+                                    </yAxis>
                                 </LineChart>
                             </VBox>
 
                             <VBox styleClass="chart-card" HBox.hgrow="ALWAYS">
-                                <Label text=" Répartition par Service" styleClass="chart-title"/>
+                                <Label text="Répartition par Service" styleClass="chart-title"/>
                                 <PieChart fx:id="serviceDistributionChart" VBox.vgrow="ALWAYS" legendSide="BOTTOM"/>
                             </VBox>
                         </HBox>
 
                         <!-- Métriques Techniques -->
                         <VBox spacing="15" styleClass="technical-metrics-card">
-                            <Label text=" Métriques Techniques Détaillées" styleClass="section-title"/>
+                            <Label text="Métriques Techniques Détaillées" styleClass="section-title"/>
                             <GridPane hgap="30" vgap="20">
+                                <columnConstraints>
+                                    <ColumnConstraints percentWidth="33"/>
+                                    <ColumnConstraints percentWidth="33"/>
+                                    <ColumnConstraints percentWidth="33"/>
+                                </columnConstraints>
+                                <rowConstraints>
+                                    <RowConstraints percentHeight="50"/>
+                                    <RowConstraints percentHeight="50"/>
+                                </rowConstraints>
+
                                 <VBox spacing="8" styleClass="tech-metric" GridPane.columnIndex="0" GridPane.rowIndex="0">
-                                    <Label text=" Temps de Chargement" styleClass="tech-label"/>
+                                    <Label text="Temps de Chargement" styleClass="tech-label"/>
                                     <Label fx:id="loadingTimeLabel" text="1.2s" styleClass="tech-value tech-loading"/>
                                 </VBox>
                                 <VBox spacing="8" styleClass="tech-metric" GridPane.columnIndex="1" GridPane.rowIndex="0">
-                                    <Label text=" Buffering" styleClass="tech-label"/>
+                                    <Label text="Buffering" styleClass="tech-label"/>
                                     <Label fx:id="bufferingLabel" text="0.5%" styleClass="tech-value tech-buffering"/>
                                 </VBox>
                                 <VBox spacing="8" styleClass="tech-metric" GridPane.columnIndex="2" GridPane.rowIndex="0">
-                                    <Label text=" Taux d'Échec" styleClass="tech-label"/>
+                                    <Label text="Taux d'Échec" styleClass="tech-label"/>
                                     <Label fx:id="failureRateLabel" text="0.2%" styleClass="tech-value tech-failure"/>
                                 </VBox>
                                 <VBox spacing="8" styleClass="tech-metric" GridPane.columnIndex="0" GridPane.rowIndex="1">
-                                    <Label text=" Interactivité" styleClass="tech-label"/>
+                                    <Label text="Interactivité" styleClass="tech-label"/>
                                     <Label fx:id="interactivityLabel" text="4.5/5" styleClass="tech-value tech-interactivity"/>
                                 </VBox>
                                 <VBox spacing="8" styleClass="tech-metric" GridPane.columnIndex="1" GridPane.rowIndex="1">
-                                    <Label text=" Qualité Streaming" styleClass="tech-label"/>
+                                    <Label text="Qualité Streaming" styleClass="tech-label"/>
                                     <Label fx:id="streamingQualityLabel" text="4.0/5" styleClass="tech-value tech-streaming"/>
                                 </VBox>
                             </GridPane>
@@ -126,13 +148,13 @@
             </Tab>
 
             <!-- ==================== ONGLET FEEDBACK ==================== -->
-            <Tab text=" Saisir Feedback" styleClass="feedback-tab">
+            <Tab text="📝 Saisir Feedback" styleClass="feedback-tab">
                 <ScrollPane fitToWidth="true" styleClass="main-scroll">
                     <VBox spacing="30" style="-fx-padding: 40;" alignment="TOP_CENTER">
 
                         <!-- Titre -->
                         <VBox spacing="10" alignment="CENTER">
-                            <Label text=" Nouvelle Évaluation QoE" styleClass="form-title"/>
+                            <Label text="✨ Nouvelle Évaluation QoE" styleClass="form-title"/>
                             <Label text="Votre avis nous aide à améliorer nos services" styleClass="form-subtitle"/>
                         </VBox>
 
@@ -146,7 +168,7 @@
                                     <Label text="*" styleClass="required-asterisk"/>
                                 </HBox>
                                 <ComboBox fx:id="serviceTypeCombo" prefWidth="620"
-                                          promptText=" Sélectionnez un service..."
+                                          promptText="🔍 Sélectionnez un service..."
                                           styleClass="modern-combo"/>
                                 <Label text="Choisissez le type de service que vous avez utilisé"
                                        styleClass="form-helper"/>
@@ -160,70 +182,72 @@
                                 </HBox>
                                 <Label text="Évaluez votre expérience de 1 à 5 étoiles" styleClass="form-helper"/>
 
-                                <!-- Étoiles cliquables -->
+                                <!-- Étoiles cliquables avec gestion manuelle -->
                                 <HBox spacing="15" alignment="CENTER" styleClass="star-container">
-<!--                                    <ToggleGroup fx:id="ratingGroup"/>-->
-
                                     <VBox spacing="8" alignment="CENTER" styleClass="star-wrapper">
-                                        <RadioButton toggleGroup="$ratingGroup" userData="1" styleClass="star-radio">
+                                        <Button fx:id="star1" userData="1" styleClass="star-button" onAction="#handleStarSelection">
                                             <graphic>
                                                 <VBox alignment="CENTER" spacing="5">
                                                     <Label text="⭐" styleClass="star-icon"/>
                                                     <Label text="1" styleClass="star-number"/>
                                                 </VBox>
                                             </graphic>
-                                        </RadioButton>
+                                        </Button>
                                         <Label text="Mauvais" styleClass="star-label"/>
                                     </VBox>
 
                                     <VBox spacing="8" alignment="CENTER" styleClass="star-wrapper">
-                                        <RadioButton toggleGroup="$ratingGroup" userData="2" styleClass="star-radio">
+                                        <Button fx:id="star2" userData="2" styleClass="star-button" onAction="#handleStarSelection">
                                             <graphic>
                                                 <VBox alignment="CENTER" spacing="5">
                                                     <Label text="⭐⭐" styleClass="star-icon"/>
                                                     <Label text="2" styleClass="star-number"/>
                                                 </VBox>
                                             </graphic>
-                                        </RadioButton>
+                                        </Button>
                                         <Label text="Passable" styleClass="star-label"/>
                                     </VBox>
 
                                     <VBox spacing="8" alignment="CENTER" styleClass="star-wrapper">
-                                        <RadioButton toggleGroup="$ratingGroup" userData="3" styleClass="star-radio">
+                                        <Button fx:id="star3" userData="3" styleClass="star-button" onAction="#handleStarSelection">
                                             <graphic>
                                                 <VBox alignment="CENTER" spacing="5">
                                                     <Label text="⭐⭐⭐" styleClass="star-icon"/>
                                                     <Label text="3" styleClass="star-number"/>
                                                 </VBox>
                                             </graphic>
-                                        </RadioButton>
+                                        </Button>
                                         <Label text="Bien" styleClass="star-label"/>
                                     </VBox>
 
                                     <VBox spacing="8" alignment="CENTER" styleClass="star-wrapper">
-                                        <RadioButton toggleGroup="$ratingGroup" userData="4" styleClass="star-radio">
+                                        <Button fx:id="star4" userData="4" styleClass="star-button" onAction="#handleStarSelection">
                                             <graphic>
                                                 <VBox alignment="CENTER" spacing="5">
                                                     <Label text="⭐⭐⭐⭐" styleClass="star-icon"/>
                                                     <Label text="4" styleClass="star-number"/>
                                                 </VBox>
                                             </graphic>
-                                        </RadioButton>
+                                        </Button>
                                         <Label text="Très bien" styleClass="star-label"/>
                                     </VBox>
 
                                     <VBox spacing="8" alignment="CENTER" styleClass="star-wrapper">
-                                        <RadioButton toggleGroup="$ratingGroup" userData="5" styleClass="star-radio">
+                                        <Button fx:id="star5" userData="5" styleClass="star-button" onAction="#handleStarSelection">
                                             <graphic>
                                                 <VBox alignment="CENTER" spacing="5">
                                                     <Label text="⭐⭐⭐⭐⭐" styleClass="star-icon"/>
                                                     <Label text="5" styleClass="star-number"/>
                                                 </VBox>
                                             </graphic>
-                                        </RadioButton>
+                                        </Button>
                                         <Label text="Excellent" styleClass="star-label"/>
                                     </VBox>
                                 </HBox>
+
+                                <!-- Label pour afficher la sélection -->
+                                <Label fx:id="selectedRatingLabel" text="Aucune note sélectionnée" styleClass="rating-feedback"
+                                       alignment="CENTER" style="-fx-padding: 10;"/>
                             </VBox>
 
                             <!-- Commentaires -->
@@ -231,11 +255,11 @@
                                 <Label text="Commentaires" styleClass="form-label"/>
                                 <Label text="Partagez les détails de votre expérience (optionnel)" styleClass="form-helper"/>
                                 <TextArea fx:id="commentField"
-                                          promptText=" Exemple: La qualité vidéo était excellente, mais j'ai remarqué quelques coupures..."
+                                          promptText="💭 Exemple: La qualité vidéo était excellente, mais j'ai remarqué quelques coupures..."
                                           prefRowCount="5" wrapText="true"
                                           styleClass="modern-textarea"/>
                                 <HBox spacing="5" alignment="CENTER_RIGHT">
-                                    <Label text="0" styleClass="char-count"/>
+                                    <Label fx:id="charCount" text="0" styleClass="char-count"/>
                                     <Label text="/ 500 caractères" styleClass="char-limit"/>
                                 </HBox>
                             </VBox>
@@ -245,12 +269,16 @@
 
                             <!-- Boutons d'action -->
                             <HBox spacing="15" alignment="CENTER">
-                                <Button text="Annuler" styleClass="secondary-button">
-                                    <tooltip><Tooltip text="Effacer le formulaire"/></tooltip>
+                                <Button text="🗑️ Annuler" onAction="#resetFeedbackForm" styleClass="secondary-button">
+                                    <tooltip>
+                                        <Tooltip text="Effacer le formulaire"/>
+                                    </tooltip>
                                 </Button>
-                                <Button text="✓ Enregistrer l'Évaluation" onAction="#submitFeedback"
+                                <Button text="✅ Enregistrer l'Évaluation" onAction="#submitFeedback"
                                         styleClass="primary-button">
-                                    <tooltip><Tooltip text="Soumettre votre évaluation"/></tooltip>
+                                    <tooltip>
+                                        <Tooltip text="Soumettre votre évaluation"/>
+                                    </tooltip>
                                 </Button>
                             </HBox>
 
@@ -267,20 +295,43 @@
 
             <!-- ==================== ONGLET HISTORIQUE ==================== -->
             <Tab text="📋 Historique" styleClass="history-tab">
-                <VBox spacing="20" style="-fx-padding: 30; -fx-background-color: #fafafa;">
+                <VBox spacing="20" style="-fx-padding: 30;">
                     <VBox spacing="10">
                         <Label text="📋 Historique des Évaluations" styleClass="section-title"/>
                         <Label text="Consultez toutes vos évaluations passées" styleClass="section-subtitle"/>
                     </VBox>
 
-                    <TableView fx:id="feedbackHistoryTable" styleClass="modern-table">
+                    <TableView fx:id="feedbackHistoryTable" styleClass="modern-table" VBox.vgrow="ALWAYS">
                         <columns>
-                            <TableColumn text="📅 Date" prefWidth="200"/>
-                            <TableColumn text="🔧 Service" prefWidth="180"/>
-                            <TableColumn text="⭐ Score QoE" prefWidth="140"/>
-                            <TableColumn text="🎥 Qualité Vidéo" prefWidth="150"/>
-                            <TableColumn text="🔊 Qualité Audio" prefWidth="150"/>
+                            <TableColumn text="📅 Date" prefWidth="200">
+                                <cellValueFactory>
+                                    <PropertyValueFactory property="timestamp" />
+                                </cellValueFactory>
+                            </TableColumn>
+                            <TableColumn text="🔧 Service" prefWidth="180">
+                                <cellValueFactory>
+                                    <PropertyValueFactory property="serviceType" />
+                                </cellValueFactory>
+                            </TableColumn>
+                            <TableColumn text="⭐ Score QoE" prefWidth="140">
+                                <cellValueFactory>
+                                    <PropertyValueFactory property="overallQoe" />
+                                </cellValueFactory>
+                            </TableColumn>
+                            <TableColumn text="🎥 Qualité Vidéo" prefWidth="150">
+                                <cellValueFactory>
+                                    <PropertyValueFactory property="videoQuality" />
+                                </cellValueFactory>
+                            </TableColumn>
+                            <TableColumn text="🔊 Qualité Audio" prefWidth="150">
+                                <cellValueFactory>
+                                    <PropertyValueFactory property="audioQuality" />
+                                </cellValueFactory>
+                            </TableColumn>
                         </columns>
+                        <columnResizePolicy>
+                            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                        </columnResizePolicy>
                         <placeholder>
                             <VBox alignment="CENTER" spacing="15" styleClass="table-placeholder">
                                 <Label text="📭" styleClass="placeholder-icon"/>

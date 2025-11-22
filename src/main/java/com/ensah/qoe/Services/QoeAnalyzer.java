@@ -1,7 +1,6 @@
 package com.ensah.qoe.Services;
 
 import com.ensah.qoe.Models.QoE;
-import com.ensah.qoe.Models.Qos;
 import com.ensah.qoe.Models.DBConnection;
 
 import java.io.BufferedReader;
@@ -14,27 +13,25 @@ import java.util.List;
 
 public class QoeAnalyzer {
 
-    //                     1) ANALYSE QoE SUBJECTIF depuis CSV
+    /**
+     * Analyse QoE subjectif depuis CSV et retourne un objet QoE pour insertion
+     */
+    public static QoE analyserQoE(String csvPath, int clientId, String genre) {
 
-    public static QoE analyserQoE(String csvPath) {
+        // Listes de moyennes pour les métriques subjectives
+        List<Double> satisfactionList = new ArrayList<>();
+        List<Double> serviceList      = new ArrayList<>();
+        List<Double> prixList         = new ArrayList<>();
+        List<Double> contratList      = new ArrayList<>();
+        List<Double> lifetimeList     = new ArrayList<>();
 
-        // 1) Récupérer le dernier QoS pour lier QoE → QoS
-        Qos lastQos = getLastQos();
-        Integer lastQosId = (lastQos != null) ? lastQos.getId_mesure() : null;
-
-        // Listes de moyennes
-        List<Double> bufferingList   = new ArrayList<>();
-        List<Double> loadingList     = new ArrayList<>();
-        List<Double> videoList       = new ArrayList<>();
-        List<Double> audioList       = new ArrayList<>();
-        List<Double> interList       = new ArrayList<>();
-        List<Double> relList         = new ArrayList<>();
-        List<Double> satisfactionList= new ArrayList<>();
-        List<Double> failureList     = new ArrayList<>();
-
-        String lastServiceType = "";
-        String lastDeviceType  = "";
-        int lastUserId         = 1;   // utilisateur connecté
+        // Métriques QoS simulées basées sur le CSV
+        List<Double> latenceList      = new ArrayList<>();
+        List<Double> jitterList       = new ArrayList<>();
+        List<Double> perteList        = new ArrayList<>();
+        List<Double> bandePassanteList= new ArrayList<>();
+        List<Double> mosList          = new ArrayList<>();
+        List<Double> signalList       = new ArrayList<>();
 
         // ==================== LECTURE CSV =====================
         try (BufferedReader br = new BufferedReader(new FileReader(csvPath))) {
@@ -50,38 +47,47 @@ public class QoeAnalyzer {
 
                 if (v.length < 20) continue;
 
-                // Colonnes importantes
+                // Colonnes importantes du CSV Telco
                 String internet        = v[7];
                 String techSupport     = v[11];
                 String streamingTV     = v[12];
                 String streamingMovies = v[13];
+                String contract        = v[15];
+                String paymentMethod   = v[16];
                 String churn           = v[19];
 
                 double tenure = parseDouble(v[4]);
-                double price  = parseDouble(v[17]);
+                double monthlyCharges = parseDouble(v[17]);
+                double totalCharges = parseDouble(v[18]);
 
-                // --- MAPPINGS TELCO ---
-                double buffering = mapMonthlyToBuffering(price);
-                double loading   = mapInternetToLoading(internet);
-                double video     = mapStreamingToQuality(streamingTV, streamingMovies);
-                double audio     = video;
-                double inter     = mapTenureToInteractivity(tenure);
-                double rel       = mapTechSupportToReliability(techSupport);
-                double satisfaction = mapSatisfaction(tenure, video);
-                double failure      = churn.equals("Yes") ? 5 : 1;
+                // --- MAPPINGS TELCO vers métriques QOE ---
+                double satisfaction = mapSatisfaction(tenure, monthlyCharges, churn);
+                double service      = mapServiceQuality(internet, streamingTV, streamingMovies);
+                double prix         = mapPrixSatisfaction(monthlyCharges, totalCharges);
+                double contrat      = mapContratSatisfaction(contract, paymentMethod);
+                double lifetime     = mapLifetimeValue(tenure, totalCharges, churn);
+
+                // Métriques QoS simulées basées sur les données client
+                double latence      = mapInternetToLatence(internet);
+                double jitter       = mapInternetToJitter(internet);
+                double perte        = mapChurnToPerte(churn);
+                double bandePassante = mapInternetToBandePassante(internet);
+                double mos          = mapStreamingToMos(streamingTV, streamingMovies);
+                double signal       = mapTechSupportToSignal(techSupport);
 
                 // Ajouter dans les listes
-                bufferingList.add(buffering);
-                loadingList.add(loading);
-                videoList.add(video);
-                audioList.add(audio);
-                interList.add(inter);
-                relList.add(rel);
                 satisfactionList.add(satisfaction);
-                failureList.add(failure);
+                serviceList.add(service);
+                prixList.add(prix);
+                contratList.add(contrat);
+                lifetimeList.add(lifetime);
 
-                lastServiceType = internet;
-                lastDeviceType  = v[10];
+                latenceList.add(latence);
+                jitterList.add(jitter);
+                perteList.add(perte);
+                bandePassanteList.add(bandePassante);
+                mosList.add(mos);
+                signalList.add(signal);
             }
         }
         catch (Exception e) {
@@ -89,57 +95,69 @@ public class QoeAnalyzer {
             return null;
         }
 
-        // ================== MOYENNES SUBJECTIVES ===================
+        // ================== CALCUL DES MOYENNES ===================
         double avgSatisfaction = moyenne(satisfactionList);
-        double avgVideo        = moyenne(videoList);
-        double avgAudio        = moyenne(audioList);
-        double avgInter        = moyenne(interList);
-        double avgReliability  = moyenne(relList);
-        double avgBuffering    = moyenne(bufferingList);
-        double avgLoading      = moyenne(loadingList);
-        double avgFailure      = moyenne(failureList);
+        double avgService      = moyenne(serviceList);
+        double avgPrix         = moyenne(prixList);
+        double avgContrat      = moyenne(contratList);
+        double avgLifetime     = moyenne(lifetimeList);
 
-        double streamingQuality = 5 - (avgBuffering + avgLoading) / 2;
+        double avgLatence      = moyenne(latenceList);
+        double avgJitter       = moyenne(jitterList);
+        double avgPerte        = moyenne(perteList);
+        double avgBandePassante= moyenne(bandePassanteList);
+        double avgMos          = moyenne(mosList);
+        double avgSignal       = moyenne(signalList);
 
-        // === Calcul QoE Subjectif ===
-        double qoeSubjectif =
-                avgSatisfaction * 0.30 +
-                        avgVideo        * 0.25 +
-                        avgAudio        * 0.20 +
-                        avgInter        * 0.15 +
-                        avgReliability  * 0.10;
+        // === Calcul QoE Global ===
+        double qoeGlobal = calculerQoeGlobal(
+                avgSatisfaction, avgService, avgPrix, avgContrat, avgLifetime,
+                avgLatence, avgJitter, avgPerte, avgBandePassante, avgMos, avgSignal
+        );
 
-        System.out.println("🎯 QoE Subjectif = " + qoeSubjectif);
-
-        // ============================================================================
-        //                     2) CALCUL QoE OBJECTIF depuis BD MESURES_QOS
-        // ============================================================================
-        if (lastQos == null) {
-            System.out.println("⚠️ Aucun QoS trouvé en base !");
-            return null;
-        }
-
-        QoE qoeObjectif = calculerQoeObjectif(lastQos);
-        double qoeObj = qoeObjectif.getOverallQoe();
-
-        System.out.println("🎯 QoE Objectif = " + qoeObj);
+        System.out.println("🎯 QoE Global calculé = " + qoeGlobal);
 
         // ============================================================================
-        //                     3) FUSION SUBJECTIF + OBJECTIF
-        // ============================================================================
-        double qoeFinal = (qoeSubjectif + qoeObj) / 2;
-
-        // ============================================================================
-        //                     4) RETOURNER QoE COMPLET
+        //                      RETOURNER QoE COMPLET POUR INSERTION
         // ============================================================================
         return new QoE(
-                avgSatisfaction, avgVideo, avgAudio, avgInter, avgReliability,
-                qoeFinal, avgBuffering, avgLoading, avgFailure,
-                streamingQuality, lastDeviceType,
-                lastUserId,
-                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
-                lastQosId
+                // ID_QOE sera généré automatiquement par la base
+                clientId, genre,
+                // Métriques QoS
+                avgLatence, avgJitter, avgPerte, avgBandePassante, avgMos, avgSignal,
+                // Métriques QoE subjectives
+                avgSatisfaction, avgService, avgPrix, avgContrat, avgLifetime,
+                // Feedback score (moyenne des satisfactions)
+                avgSatisfaction,
+                // Score final
+                qoeGlobal,
+                LocalDateTime.now()
         );
+    }
+
+    /**
+     * Calcule le score QoE global avec pondération
+     */
+    private static double calculerQoeGlobal(
+            double satisfaction, double service, double prix, double contrat, double lifetime,
+            double latence, double jitter, double perte, double bandePassante, double mos, double signal) {
+
+        // Pondération: 60% QoE subjectif + 40% QoS objectif
+        double qoeSubjectif =
+                satisfaction * 0.35 +
+                        service      * 0.25 +
+                        prix         * 0.15 +
+                        contrat      * 0.15 +
+                        lifetime     * 0.10;
+
+        double qoeObjectif =
+                (5 - mapLatenceToScore(latence))    * 0.25 +
+                        (5 - mapJitterToScore(jitter))      * 0.20 +
+                        (5 - mapPerteToScore(perte))        * 0.20 +
+                        mapBandePassanteToScore(bandePassante) * 0.20 +
+                        mos                                * 0.15;
+
+        return (qoeSubjectif * 0.6) + (qoeObjectif * 0.4);
     }
 
     // ============================================================================
@@ -155,127 +173,240 @@ public class QoeAnalyzer {
     }
 
     // ============================================================================
-    //                     5) MAPPINGS (TELCO CSV)
+    //                     MAPPINGS SUBJECTIFS (TELCO CSV → QoE)
     // ============================================================================
-    private static double mapMonthlyToBuffering(double price) {
-        if (price > 90) return 0.5;
-        if (price > 70) return 1;
-        if (price > 50) return 2.5;
-        return 4;
+
+    private static double mapSatisfaction(double tenure, double monthlyCharges, String churn) {
+        double baseScore = 3.0;
+
+        // Plus le client est ancien, plus il est satisfait
+        baseScore += Math.min(2.0, tenure / 20.0);
+
+        // Prix élevé peut réduire la satisfaction
+        if (monthlyCharges > 80) baseScore -= 0.5;
+        else if (monthlyCharges < 40) baseScore += 0.5;
+
+        // Churn = insatisfaction
+        if ("Yes".equals(churn)) baseScore -= 1.5;
+
+        return Math.max(1.0, Math.min(5.0, baseScore));
     }
 
-    private static double mapInternetToLoading(String type) {
-        if (type.contains("Fiber")) return 1;
-        if (type.contains("DSL")) return 2;
-        return 4;
+    private static double mapServiceQuality(String internet, String streamingTV, String streamingMovies) {
+        double score = 3.0;
+
+        // Type d'internet
+        if (internet.contains("Fiber")) score += 1.5;
+        else if (internet.contains("DSL")) score += 0.5;
+
+        // Services de streaming
+        if ("Yes".equals(streamingTV)) score += 0.5;
+        if ("Yes".equals(streamingMovies)) score += 0.5;
+
+        return Math.max(1.0, Math.min(5.0, score));
     }
 
-    private static double mapStreamingToQuality(String tv, String movies) {
-        int score = 2;
-        if (tv.equals("Yes")) score++;
-        if (movies.equals("Yes")) score++;
-        return Math.min(5, score);
+    private static double mapPrixSatisfaction(double monthlyCharges, double totalCharges) {
+        double score = 3.0;
+
+        // Prix modéré = meilleure satisfaction
+        if (monthlyCharges >= 40 && monthlyCharges <= 70) score += 1.0;
+        else if (monthlyCharges > 70) score -= 0.5;
+
+        // Client à forte valeur
+        if (totalCharges > 2000) score += 0.5;
+
+        return Math.max(1.0, Math.min(5.0, score));
     }
 
-    private static double mapTenureToInteractivity(double t) {
-        if (t > 50) return 5;
-        if (t > 30) return 4;
-        if (t > 10) return 3;
-        return 2;
+    private static double mapContratSatisfaction(String contract, String paymentMethod) {
+        double score = 3.0;
+
+        // Type de contrat
+        if ("Two year".equals(contract)) score += 1.0;
+        else if ("One year".equals(contract)) score += 0.5;
+
+        // Méthode de paiement
+        if ("Electronic check".equals(paymentMethod)) score -= 0.5;
+        else if ("Credit card".equals(paymentMethod)) score += 0.5;
+
+        return Math.max(1.0, Math.min(5.0, score));
     }
 
-    private static double mapTechSupportToReliability(String t) {
-        return t.equals("Yes") ? 5 : 2;
-    }
+    private static double mapLifetimeValue(double tenure, double totalCharges, String churn) {
+        double score = 3.0;
 
-    private static double mapSatisfaction(double tenure, double video) {
-        return Math.min(5, (tenure / 20) + (video / 2));
+        // Ancienneté
+        score += Math.min(1.5, tenure / 25.0);
+
+        // Valeur totale
+        if (totalCharges > 1500) score += 0.5;
+
+        // Risque de départ
+        if ("Yes".equals(churn)) score -= 2.0;
+
+        return Math.max(1.0, Math.min(5.0, score));
     }
 
     // ============================================================================
-    //                  6) CALCUL QoE OBJECTIF depuis QOS (BD Oracle)
+    //                     MAPPINGS QOS SIMULÉS
     // ============================================================================
-    public static QoE calculerQoeObjectif(Qos qos) {
 
-        double video = mapMos(qos.getMos());
-        double audio = video;
-        double inter = mapLatence(qos.getLatence());
-        double rel   = mapPerte(qos.getPerte());
-        double buffer= estimerBuffer(qos.getBandePassante());
-        double load  = estimerLoading(qos.getLatence(), qos.getBandePassante());
-        double fail  = qos.getPerte();
-
-        double satisfaction = (video + audio + inter + rel) / 4;
-
-        double stream = 5 - (buffer + load) / 2;
-
-        double qoe =
-                satisfaction * 0.30 +
-                        video        * 0.25 +
-                        audio        * 0.20 +
-                        inter        * 0.15 +
-                        rel          * 0.10;
-
-        return new QoE(satisfaction, video, audio, inter, rel, qoe, buffer, load, fail, stream, "Network Device", 1, LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")), qos.getId_mesure());
+    private static double mapInternetToLatence(String internet) {
+        if (internet.contains("Fiber")) return 20.0;
+        if (internet.contains("DSL")) return 50.0;
+        return 100.0; // Dial-up ou autre
     }
 
-    // --- MAPPINGS QoS → QoE Objectif ---
-    private static double mapMos(double mos) { return Math.max(1, Math.min(5, mos)); }
-
-    private static double mapLatence(double l) {
-        if (l < 50)  return 5;
-        if (l < 100) return 4;
-        if (l < 150) return 3;
-        if (l < 200) return 2;
-        return 1;
+    private static double mapInternetToJitter(String internet) {
+        if (internet.contains("Fiber")) return 5.0;
+        if (internet.contains("DSL")) return 15.0;
+        return 30.0;
     }
 
-    private static double mapPerte(double p) {
-        if (p < 1)  return 5;
-        if (p < 3)  return 4;
-        if (p < 5)  return 3;
-        if (p < 10) return 2;
-        return 1;
+    private static double mapChurnToPerte(String churn) {
+        return "Yes".equals(churn) ? 8.0 : 2.0;
     }
 
-    private static double estimerBuffer(double bp) {
-        if (bp > 10) return 0.5;
-        if (bp > 5)  return 1;
-        if (bp > 2)  return 2;
+    private static double mapInternetToBandePassante(String internet) {
+        if (internet.contains("Fiber")) return 100.0;
+        if (internet.contains("DSL")) return 20.0;
+        return 5.0;
+    }
+
+    private static double mapStreamingToMos(String streamingTV, String streamingMovies) {
+        double baseMos = 3.5;
+        if ("Yes".equals(streamingTV)) baseMos += 0.5;
+        if ("Yes".equals(streamingMovies)) baseMos += 0.5;
+        return Math.min(5.0, baseMos);
+    }
+
+    private static double mapTechSupportToSignal(String techSupport) {
+        return "Yes".equals(techSupport) ? 80.0 : 60.0;
+    }
+
+    // ============================================================================
+    //                     MAPPINGS QOS → SCORES
+    // ============================================================================
+
+    private static double mapLatenceToScore(double latence) {
+        if (latence < 30) return 1;
+        if (latence < 60) return 2;
+        if (latence < 100) return 3;
+        if (latence < 150) return 4;
         return 5;
     }
 
-    private static double estimerLoading(double lat, double bp) {
-        return (lat / 100.0) + (bp > 0 ? (10.0 / bp) : 10);
+    private static double mapJitterToScore(double jitter) {
+        if (jitter < 10) return 1;
+        if (jitter < 20) return 2;
+        if (jitter < 30) return 3;
+        if (jitter < 40) return 4;
+        return 5;
+    }
+
+    private static double mapPerteToScore(double perte) {
+        if (perte < 2) return 1;
+        if (perte < 4) return 2;
+        if (perte < 6) return 3;
+        if (perte < 8) return 4;
+        return 5;
+    }
+
+    private static double mapBandePassanteToScore(double bandePassante) {
+        if (bandePassante > 50) return 5;
+        if (bandePassante > 25) return 4;
+        if (bandePassante > 10) return 3;
+        if (bandePassante > 5) return 2;
+        return 1;
     }
 
     // ============================================================================
-    //                 7) RÉCUPÉRER DERNIÈRE LIGNE QOS EN BD ORACLE
+    //                  MÉTHODE D'INSERTION DANS LA TABLE QOE
     // ============================================================================
-    public static Qos getLastQos() {
 
-        String sql = "SELECT * FROM MESURES_QOS ORDER BY ID_MESURE DESC FETCH FIRST 1 ROW ONLY";
+    /**
+     * Insère un objet QoE dans la base de données
+     */
+    public static boolean insererQoe(QoE qoe) {
+        String sql = "INSERT INTO QOE (" +
+                "ID_CLIENT, GENRE, " +
+                "LATENCE_MOY, JITTER_MOY, PERTE_MOY, BANDE_PASSANTE_MOY, MOS_MOY, SIGNAL_MOY, " +
+                "SATISFACTION_QOE, SERVICE_QOE, PRIX_QOE, CONTRAT_QOE, LIFETIME_QOE, " +
+                "FEEDBACK_SCORE, QOE_GLOBAL, DATE_CALCULE" +
+                ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            if (rs.next()) {
-                Qos q = new Qos();
-                q.setId_mesure(rs.getInt("ID_MESURE"));
-                q.setLatence(rs.getDouble("LATENCE"));
-                q.setJitter(rs.getDouble("JITTER"));
-                q.setPerte(rs.getDouble("PERTE"));
-                q.setBandePassante(rs.getDouble("BANDE_PASSANTE"));
-                q.setMos(rs.getDouble("MOS"));
-                q.setSignalScore(rs.getDouble("SIGNAL_SCORE"));
-                return q;
+            // Données client
+            stmt.setInt(1, qoe.getIdClient());
+            stmt.setString(2, qoe.getGenre());
+
+            // Métriques QoS
+            stmt.setDouble(3, qoe.getLatenceMoy());
+            stmt.setDouble(4, qoe.getJitterMoy());
+            stmt.setDouble(5, qoe.getPerteMoy());
+            stmt.setDouble(6, qoe.getBandePassanteMoy());
+            stmt.setDouble(7, qoe.getMosMoy());
+            stmt.setDouble(8, qoe.getSignalMoy());
+
+            // Métriques QoE subjectives
+            stmt.setDouble(9, qoe.getSatisfactionQoe());
+            stmt.setDouble(10, qoe.getServiceQoe());
+            stmt.setDouble(11, qoe.getPrixQoe());
+            stmt.setDouble(12, qoe.getContratQoe());
+            stmt.setDouble(13, qoe.getLifetimeQoe());
+
+            // Feedback et score global
+            stmt.setDouble(14, qoe.getFeedbackScore());
+            stmt.setDouble(15, qoe.getQoeGlobal());
+
+            // Date
+            stmt.setTimestamp(16, Timestamp.valueOf(qoe.getDateCalcule()));
+
+            int rowsAffected = stmt.executeUpdate();
+            boolean success = rowsAffected > 0;
+
+            if (success) {
+                System.out.println("✅ Données QoE insérées avec succès pour le client " + qoe.getIdClient());
+            } else {
+                System.err.println("❌ Échec de l'insertion des données QoE");
             }
 
+            return success;
+
         } catch (Exception e) {
+            System.err.println("❌ Erreur insertion QoE: " + e.getMessage());
             e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Méthode principale pour analyser et insérer les données QoE
+     */
+    public static boolean analyserEtInsererQoe(String csvPath, int clientId, String genre) {
+        System.out.println("🔄 Début de l'analyse QoE...");
+
+        // 1. Analyser le CSV
+        QoE qoe = analyserQoE(csvPath, clientId, genre);
+
+        if (qoe == null) {
+            System.err.println("❌ Échec de l'analyse QoE");
+            return false;
         }
 
-        return null;
+        // 2. Insérer dans la base
+        boolean success = insererQoe(qoe);
+
+        if (success) {
+            System.out.println("✅ Analyse et insertion QoE terminées avec succès");
+            System.out.println("📊 Score QoE Global: " + qoe.getQoeGlobal());
+        } else {
+            System.err.println("❌ Échec de l'insertion QoE");
+        }
+
+        return success;
     }
 }
