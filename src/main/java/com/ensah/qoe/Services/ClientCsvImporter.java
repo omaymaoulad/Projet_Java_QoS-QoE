@@ -9,7 +9,7 @@ import java.sql.PreparedStatement;
 public class ClientCsvImporter {
 
     public static void importClients() {
-        String csvPath = "src/main/resources/clients_finland_international_1000.csv";
+        String csvPath = "src/main/resources/clients_localisation_underscore.csv";
 
         String sql = "INSERT INTO CLIENT (NOM, GENRE, TELEPHONE, LOCALISATION_ZONE, EST_USER_APP) " +
                 "VALUES (?, ?, ?, ?, ?)";

@@ -59,9 +59,6 @@ public class QoEController implements Initializable {
     @FXML private Label failureRateLabel;
     @FXML private Label streamingQualityLabel;
 
-    @FXML private Label serviceTypeLabel;
-    @FXML private Label deviceTypeLabel;
-
 
     // =========================================================================
     // INITIALISATION
@@ -374,9 +371,6 @@ public class QoEController implements Initializable {
         failureRateLabel.setText(String.format("%.2f %%", q.getPerteMoy()));
         streamingQualityLabel.setText(String.format("%.2f Mbps", q.getBandePassanteMoy()));
 
-        // Contexte correct
-        deviceTypeLabel.setText(q.getGenre() != null ? q.getGenre() : "-"); // Male / Female
-        serviceTypeLabel.setText(q.getMosMoy() > 0 ? "Zone Qualifiée" : "-");
     }
 
 

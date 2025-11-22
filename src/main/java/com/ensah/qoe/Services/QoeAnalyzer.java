@@ -79,8 +79,8 @@ public class QoeAnalyzer {
         String sql =
                 "INSERT INTO QOE (ID_CLIENT, GENRE, LATENCE_MOY, JITTER_MOY, PERTE_MOY," +
                         " BANDE_PASSANTE_MOY, MOS_MOY, SATISFACTION_QOE, SERVICE_QOE," +
-                        " PRIX_QOE, CONTRAT_QOE, LIFETIME_QOE, QOE_GLOBAL) " +
-                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                        " PRIX_QOE, CONTRAT_QOE, LIFETIME_QOE, QOE_GLOBAL,NOM_FICHIER) " +
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)";
 
         PreparedStatement ps = conn.prepareStatement(sql);
 
@@ -104,6 +104,7 @@ public class QoeAnalyzer {
             ps.setDouble(11, q.getContratQoe());
             ps.setDouble(12, q.getLifetimeQoe());
             ps.setDouble(13, q.getQoeGlobal());
+            ps.setString(14, q.getNomFichier());
 
             ps.executeUpdate();
         }
