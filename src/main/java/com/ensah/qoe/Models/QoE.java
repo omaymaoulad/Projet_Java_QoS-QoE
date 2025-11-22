@@ -1,131 +1,51 @@
 package com.ensah.qoe.Models;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.time.ZoneId;
+import java.util.Date;
 
 public class QoE {
-    private int idQoe;
-    private int idClient;
-    private String genre;
 
-    // Métriques QoS agrégées
+    private Integer idQoe;
+    private Integer idClient;          // pour lien futur avec CLIENT
+    private String genre;             // 'Male' / 'Female' (optionnel)
+
+    // ---- Métriques QoS (moyennes par défaut) ----
     private double latenceMoy;
     private double jitterMoy;
     private double perteMoy;
     private double bandePassanteMoy;
+    private double signalScoreMoy;
     private double mosMoy;
-    private double signalMoy;
 
-    // Métriques QoE subjectives
+    // ---- Métriques QoE subjectives ----
     private double satisfactionQoe;
     private double serviceQoe;
     private double prixQoe;
     private double contratQoe;
     private double lifetimeQoe;
+    private Double feedbackScore;     // peut être null
 
-    // Feedback utilisateur
-    private double feedbackScore;
-
-    // Score final
+    // ---- Score global ----
     private double qoeGlobal;
     private LocalDateTime dateCalcule;
 
-    // Champs supplémentaires pour l'interface
+    // ---- Métadonnées ----
+    private String nomFichier;        // NOM_FICHIER dans la table
+
+    // ---- Champs pour l’UI (pas en BD) ----
     private String serviceType;
     private String deviceType;
-    private String timestamp;
 
-    // Constructeurs
     public QoE() {}
 
-    // Constructeur pour l'interface (compatible avec le code existant)
-    public QoE(double satisfactionScore, double videoQuality, double audioQuality,
-               double interactivity, double reliability, double overallQoe,
-               double loadingTime, double buffering, double failureRate, double streamingQuality,
-               String serviceType, String deviceType, int idClient, String timestamp, int idQoe) {
-        this.satisfactionQoe = satisfactionScore;
-        this.serviceQoe = videoQuality;
-        this.prixQoe = audioQuality;
-        this.contratQoe = interactivity;
-        this.lifetimeQoe = reliability;
-        this.qoeGlobal = overallQoe;
-        this.latenceMoy = loadingTime;
-        this.jitterMoy = buffering;
-        this.perteMoy = failureRate;
-        this.bandePassanteMoy = streamingQuality;
-        this.serviceType = serviceType;
-        this.deviceType = deviceType;
-        this.idClient = idClient;
-        this.timestamp = timestamp;
-        this.idQoe = idQoe;
-    }
-    // Ajoutez ce constructeur dans votre classe QoE
-    public QoE(int idClient, String genre,
-               double latenceMoy, double jitterMoy, double perteMoy, double bandePassanteMoy,
-               double mosMoy, double signalMoy, double satisfactionQoe, double serviceQoe,
-               double prixQoe, double contratQoe, double lifetimeQoe, double feedbackScore,
-               double qoeGlobal, LocalDateTime dateCalcule) {
+    // ================== GETTERS / SETTERS BD ==================
 
-        this.idClient = idClient;
-        this.genre = genre;
-        this.latenceMoy = latenceMoy;
-        this.jitterMoy = jitterMoy;
-        this.perteMoy = perteMoy;
-        this.bandePassanteMoy = bandePassanteMoy;
-        this.mosMoy = mosMoy;
-        this.signalMoy = signalMoy;
-        this.satisfactionQoe = satisfactionQoe;
-        this.serviceQoe = serviceQoe;
-        this.prixQoe = prixQoe;
-        this.contratQoe = contratQoe;
-        this.lifetimeQoe = lifetimeQoe;
-        this.feedbackScore = feedbackScore;
-        this.qoeGlobal = qoeGlobal;
-        this.dateCalcule = dateCalcule;
+    public Integer getIdQoe() { return idQoe; }
+    public void setIdQoe(Integer idQoe) { this.idQoe = idQoe; }
 
-        // Valeurs par défaut pour l'interface
-        this.serviceType = "Service Générique";
-        this.deviceType = "Device Client";
-        this.timestamp = dateCalcule.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
-    }
-    // Constructeur pour la base de données
-    public QoE(int idQoe, int idClient, String genre,
-               double latenceMoy, double jitterMoy, double perteMoy, double bandePassanteMoy,
-               double mosMoy, double signalMoy, double satisfactionQoe, double serviceQoe,
-               double prixQoe, double contratQoe, double lifetimeQoe, double feedbackScore,
-               double qoeGlobal, LocalDateTime dateCalcule) {
-        this.idQoe = idQoe;
-        this.idClient = idClient;
-        this.genre = genre;
-        this.latenceMoy = latenceMoy;
-        this.jitterMoy = jitterMoy;
-        this.perteMoy = perteMoy;
-        this.bandePassanteMoy = bandePassanteMoy;
-        this.mosMoy = mosMoy;
-        this.signalMoy = signalMoy;
-        this.satisfactionQoe = satisfactionQoe;
-        this.serviceQoe = serviceQoe;
-        this.prixQoe = prixQoe;
-        this.contratQoe = contratQoe;
-        this.lifetimeQoe = lifetimeQoe;
-        this.feedbackScore = feedbackScore;
-        this.qoeGlobal = qoeGlobal;
-        this.dateCalcule = dateCalcule;
-
-        // Valeurs par défaut pour l'interface
-        this.serviceType = "Service Générique";
-        this.deviceType = "Device Client";
-        this.timestamp = dateCalcule != null ?
-                dateCalcule.format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")) :
-                LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
-    }
-
-    // Getters et Setters
-    public int getIdQoe() { return idQoe; }
-    public void setIdQoe(int idQoe) { this.idQoe = idQoe; }
-
-    public int getIdClient() { return idClient; }
-    public void setIdClient(int idClient) { this.idClient = idClient; }
+    public Integer getIdClient() { return idClient; }
+    public void setIdClient(Integer idClient) { this.idClient = idClient; }
 
     public String getGenre() { return genre; }
     public void setGenre(String genre) { this.genre = genre; }
@@ -142,11 +62,11 @@ public class QoE {
     public double getBandePassanteMoy() { return bandePassanteMoy; }
     public void setBandePassanteMoy(double bandePassanteMoy) { this.bandePassanteMoy = bandePassanteMoy; }
 
+    public double getSignalScoreMoy() { return signalScoreMoy; }
+    public void setSignalScoreMoy(double signalScoreMoy) { this.signalScoreMoy = signalScoreMoy; }
+
     public double getMosMoy() { return mosMoy; }
     public void setMosMoy(double mosMoy) { this.mosMoy = mosMoy; }
-
-    public double getSignalMoy() { return signalMoy; }
-    public void setSignalMoy(double signalMoy) { this.signalMoy = signalMoy; }
 
     public double getSatisfactionQoe() { return satisfactionQoe; }
     public void setSatisfactionQoe(double satisfactionQoe) { this.satisfactionQoe = satisfactionQoe; }
@@ -163,8 +83,8 @@ public class QoE {
     public double getLifetimeQoe() { return lifetimeQoe; }
     public void setLifetimeQoe(double lifetimeQoe) { this.lifetimeQoe = lifetimeQoe; }
 
-    public double getFeedbackScore() { return feedbackScore; }
-    public void setFeedbackScore(double feedbackScore) { this.feedbackScore = feedbackScore; }
+    public Double getFeedbackScore() { return feedbackScore; }
+    public void setFeedbackScore(Double feedbackScore) { this.feedbackScore = feedbackScore; }
 
     public double getQoeGlobal() { return qoeGlobal; }
     public void setQoeGlobal(double qoeGlobal) { this.qoeGlobal = qoeGlobal; }
@@ -172,16 +92,28 @@ public class QoE {
     public LocalDateTime getDateCalcule() { return dateCalcule; }
     public void setDateCalcule(LocalDateTime dateCalcule) { this.dateCalcule = dateCalcule; }
 
-    // Getters pour l'interface (compatibilité avec le code existant)
+    public void setDateCalculeFromDate(Date d) {
+        if (d != null) {
+            this.dateCalcule = d.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+        }
+    }
+
+    public String getNomFichier() { return nomFichier; }
+    public void setNomFichier(String nomFichier) { this.nomFichier = nomFichier; }
+
+    // ================== GETTERS POUR L’UI ==================
+    // (compatibles avec ton FXML / Controller actuel)
+
     public double getSatisfactionScore() { return satisfactionQoe; }
-    public double getVideoQuality() { return serviceQoe; }
-    public double getAudioQuality() { return prixQoe; }
-    public double getInteractivity() { return contratQoe; }
-    public double getReliability() { return lifetimeQoe; }
-    public double getOverallQoe() { return qoeGlobal; }
-    public double getLoadingTime() { return latenceMoy; }
-    public double getBuffering() { return jitterMoy; }
-    public double getFailureRate() { return perteMoy; }
+    public double getVideoQuality()     { return serviceQoe; }
+    public double getAudioQuality()     { return prixQoe; }
+    public double getInteractivity()    { return contratQoe; }
+    public double getReliability()      { return lifetimeQoe; }
+    public double getOverallQoe()       { return qoeGlobal; }
+
+    public double getBuffering()        { return jitterMoy; }
+    public double getLoadingTime()      { return latenceMoy; }
+    public double getFailureRate()      { return perteMoy; }
     public double getStreamingQuality() { return bandePassanteMoy; }
 
     public String getServiceType() { return serviceType; }
@@ -190,18 +122,14 @@ public class QoE {
     public String getDeviceType() { return deviceType; }
     public void setDeviceType(String deviceType) { this.deviceType = deviceType; }
 
-    public String getTimestamp() { return timestamp; }
-    public void setTimestamp(String timestamp) { this.timestamp = timestamp; }
-
     @Override
     public String toString() {
         return "QoE{" +
                 "idQoe=" + idQoe +
                 ", idClient=" + idClient +
                 ", qoeGlobal=" + qoeGlobal +
-                ", satisfaction=" + satisfactionQoe +
-                ", serviceType='" + serviceType + '\'' +
-                ", dateCalcule=" + timestamp +
+                ", satisfactionQoe=" + satisfactionQoe +
+                ", nomFichier='" + nomFichier + '\'' +
                 '}';
     }
 }

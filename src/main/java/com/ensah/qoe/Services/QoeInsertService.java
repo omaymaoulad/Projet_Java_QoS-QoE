@@ -1,100 +1,101 @@
 package com.ensah.qoe.Services;
 
 import com.ensah.qoe.Models.DBConnection;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import com.ensah.qoe.Models.QoE;
+
+import java.sql.*;
 
 public class QoeInsertService {
 
-    /**
-     * Insère les données QoE dans la base de données
-     */
-    public void insert(double satisfactionScore, double videoQuality, double audioQuality,
-                       double interactivity, double reliability, double overallQoe,
-                       double buffering, double loadingTime, double failureRate,
-                       double streamingQuality, String serviceType, String deviceType,
-                       int userId) {
+    public static void insererQoe(QoE q) {
 
-        String query = "INSERT INTO qoe_metrics " +
-                "(satisfaction_score, video_quality, audio_quality, interactivity, " +
-                "reliability, overall_qoe, buffering, loading_time, failure_rate, " +
-                "streaming_quality, service_type, device_type, user_id, created_at) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,  SYSDATE)";
+        String sql =
+                "INSERT INTO QOE(" +
+                        "ID_CLIENT, GENRE, LATENCE_MOY, JITTER_MOY, PERTE_MOY," +
+                        "BANDE_PASSANTE_MOY, SIGNAL_SCORE_MOY, MOS_MOY," +
+                        "SATISFACTION_QOE, SERVICE_QOE, PRIX_QOE, CONTRAT_QOE," +
+                        "LIFETIME_QOE, FEEDBACK_SCORE, QOE_GLOBAL, NOM_FICHIER" +
+                        ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(query)) {
+             PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            pstmt.setDouble(1, satisfactionScore);
-            pstmt.setDouble(2, videoQuality);
-            pstmt.setDouble(3, audioQuality);
-            pstmt.setDouble(4, interactivity);
-            pstmt.setDouble(5, reliability);
-            pstmt.setDouble(6, overallQoe);
-            pstmt.setDouble(7, buffering);
-            pstmt.setDouble(8, loadingTime);
-            pstmt.setDouble(9, failureRate);
-            pstmt.setDouble(10, streamingQuality);
-            pstmt.setString(11, serviceType);
-            pstmt.setString(12, deviceType);
-            pstmt.setInt(13, userId);
+            ps.setObject(1, q.getIdClient());
+            ps.setString(2, q.getGenre());
+            ps.setDouble(3, q.getLatenceMoy());
+            ps.setDouble(4, q.getJitterMoy());
+            ps.setDouble(5, q.getPerteMoy());
+            ps.setDouble(6, q.getBandePassanteMoy());
+            ps.setDouble(7, q.getSignalScoreMoy());
+            ps.setDouble(8, q.getMosMoy());
+            ps.setDouble(9, q.getSatisfactionQoe());
+            ps.setDouble(10, q.getServiceQoe());
+            ps.setDouble(11, q.getPrixQoe());
+            ps.setDouble(12, q.getContratQoe());
+            ps.setDouble(13, q.getLifetimeQoe());
 
-            int rowsAffected = pstmt.executeUpdate();
+            if (q.getFeedbackScore() == null)
+                ps.setNull(14, Types.NUMERIC);
+            else
+                ps.setDouble(14, q.getFeedbackScore());
 
-            if (rowsAffected > 0) {
-                System.out.println("✅ Données QoE insérées avec succès dans la base de données");
-            } else {
-                System.out.println("⚠️ Aucune ligne insérée");
-            }
+            ps.setDouble(15, q.getQoeGlobal());
+            ps.setString(16, q.getNomFichier());
 
-        } catch (SQLException e) {
-            System.err.println(" Erreur lors de l'insertion QoE: " + e.getMessage());
+            ps.executeUpdate();
+
+            System.out.println("✔ QOE inséré : " + q.getNomFichier());
+
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    /**
-     * Insère les données QoE avec lien vers QoS
-     */
-    public void insertWithQosLink(double satisfactionScore, double videoQuality, double audioQuality,
-                                  double interactivity, double reliability, double overallQoe,
-                                  double buffering, double loadingTime, double failureRate,
-                                  double streamingQuality, String serviceType, String deviceType,
-                                  int userId, int qosId) {
+    public static QoE chargerParNomFichier(String nom) {
 
-        String query = "INSERT INTO qoe_metrics " +
-                "(satisfaction_score, video_quality, audio_quality, interactivity, " +
-                "reliability, overall_qoe, buffering, loading_time, failure_rate, " +
-                "streaming_quality, service_type, device_type, user_id, qos_id, created_at) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,  SYSDATE)";
+        String sql = "SELECT * FROM QOE WHERE NOM_FICHIER=? ORDER BY ID_QOE DESC FETCH FIRST 1 ROWS ONLY";
 
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(query)) {
+             PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            pstmt.setDouble(1, satisfactionScore);
-            pstmt.setDouble(2, videoQuality);
-            pstmt.setDouble(3, audioQuality);
-            pstmt.setDouble(4, interactivity);
-            pstmt.setDouble(5, reliability);
-            pstmt.setDouble(6, overallQoe);
-            pstmt.setDouble(7, buffering);
-            pstmt.setDouble(8, loadingTime);
-            pstmt.setDouble(9, failureRate);
-            pstmt.setDouble(10, streamingQuality);
-            pstmt.setString(11, serviceType);
-            pstmt.setString(12, deviceType);
-            pstmt.setInt(13, userId);
-            pstmt.setInt(14, qosId);
+            ps.setString(1, nom);
+            ResultSet rs = ps.executeQuery();
 
-            int rowsAffected = pstmt.executeUpdate();
+            if (!rs.next()) return null;
 
-            if (rowsAffected > 0) {
-                System.out.println("✅ Données QoE avec lien QoS insérées avec succès");
-            }
+            QoE q = new QoE();
 
-        } catch (SQLException e) {
-            System.err.println("❌ Erreur lors de l'insertion QoE avec lien: " + e.getMessage());
+            q.setIdQoe(rs.getInt("ID_QOE"));
+            q.setIdClient(rs.getInt("ID_CLIENT"));
+            q.setGenre(rs.getString("GENRE"));
+
+            q.setLatenceMoy(rs.getDouble("LATENCE_MOY"));
+            q.setJitterMoy(rs.getDouble("JITTER_MOY"));
+            q.setPerteMoy(rs.getDouble("PERTE_MOY"));
+            q.setBandePassanteMoy(rs.getDouble("BANDE_PASSANTE_MOY"));
+            q.setSignalScoreMoy(rs.getDouble("SIGNAL_SCORE_MOY"));
+            q.setMosMoy(rs.getDouble("MOS_MOY"));
+
+            q.setSatisfactionQoe(rs.getDouble("SATISFACTION_QOE"));
+            q.setServiceQoe(rs.getDouble("SERVICE_QOE"));
+            q.setPrixQoe(rs.getDouble("PRIX_QOE"));
+            q.setContratQoe(rs.getDouble("CONTRAT_QOE"));
+            q.setLifetimeQoe(rs.getDouble("LIFETIME_QOE"));
+
+            Object fb = rs.getObject("FEEDBACK_SCORE");
+            q.setFeedbackScore(fb != null ? rs.getDouble("FEEDBACK_SCORE") : null);
+
+            q.setQoeGlobal(rs.getDouble("QOE_GLOBAL"));
+            q.setNomFichier(rs.getString("NOM_FICHIER"));
+
+            q.setServiceType("Streaming");
+            q.setDeviceType("Mobile");
+
+            return q;
+
+        } catch (Exception e) {
             e.printStackTrace();
+            return null;
         }
     }
 }
