@@ -1,281 +1,460 @@
 package com.ensah.qoe.Services;
 
-import com.ensah.qoe.Models.QoE;
-import com.ensah.qoe.Models.Qos;
 import com.ensah.qoe.Models.DBConnection;
+import com.ensah.qoe.Models.QoE;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.sql.*;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public class QoeAnalyzer {
 
-    //                     1) ANALYSE QoE SUBJECTIF depuis CSV
+    private static final Map<Integer, QoE> subjectifParClient = new HashMap<>();
+    private static boolean csvCharge = false;
 
-    public static QoE analyserQoE(String csvPath) {
 
-        // 1) Récupérer le dernier QoS pour lier QoE → QoS
-        Qos lastQos = getLastQos();
-        Integer lastQosId = (lastQos != null) ? lastQos.getId_mesure() : null;
+    // =========================================================================
+    // 1) IMPORT CSV + INSERTION AUTOMATIQUE
+    // =========================================================================
+    public static boolean analyserFichierCsv(String csvPath) {
+        System.out.println("=== [QoeAnalyzer] Import CSV + Subjectif ===");
 
-        // Listes de moyennes
-        List<Double> bufferingList   = new ArrayList<>();
-        List<Double> loadingList     = new ArrayList<>();
-        List<Double> videoList       = new ArrayList<>();
-        List<Double> audioList       = new ArrayList<>();
-        List<Double> interList       = new ArrayList<>();
-        List<Double> relList         = new ArrayList<>();
-        List<Double> satisfactionList= new ArrayList<>();
-        List<Double> failureList     = new ArrayList<>();
+        subjectifParClient.clear();
 
-        String lastServiceType = "";
-        String lastDeviceType  = "";
-        int lastUserId         = 1;   // utilisateur connecté
-
-        // ==================== LECTURE CSV =====================
         try (BufferedReader br = new BufferedReader(new FileReader(csvPath))) {
 
+            String header = br.readLine();
+            if (header == null) return false;
+
             String line;
-            boolean first = true;
+            int id = 1;
 
             while ((line = br.readLine()) != null) {
 
-                if (first) { first = false; continue; }  // ignorer l'en-tête
+                if (line.trim().isEmpty()) continue;
 
-                String[] v = line.split(",");
+                String[] c = line.split(",", -1);
+                if (c.length < 20) continue;
 
-                if (v.length < 20) continue;
+                QoE q = new QoE();
 
-                // Colonnes importantes
-                String internet        = v[7];
-                String techSupport     = v[11];
-                String streamingTV     = v[12];
-                String streamingMovies = v[13];
-                String churn           = v[19];
+                q.setSatisfactionQoe(computeSatisfaction(c[19], parseDoubleSafe(c[17]), c[11], c[14]));
+                q.setServiceQoe(computeVideoQuality(c[7], c[12], c[13]));
+                q.setPrixQoe(computeAudioQuality(c[11], c[10], c[8]));
+                q.setContratQoe(computeInteractivity(c[5], c[6], c[2], parseIntSafe(c[4])));
+                q.setLifetimeQoe(computeReliability(c[9], c[10], c[14], parseIntSafe(c[1])));
 
-                double tenure = parseDouble(v[4]);
-                double price  = parseDouble(v[17]);
-
-                // --- MAPPINGS TELCO ---
-                double buffering = mapMonthlyToBuffering(price);
-                double loading   = mapInternetToLoading(internet);
-                double video     = mapStreamingToQuality(streamingTV, streamingMovies);
-                double audio     = video;
-                double inter     = mapTenureToInteractivity(tenure);
-                double rel       = mapTechSupportToReliability(techSupport);
-                double satisfaction = mapSatisfaction(tenure, video);
-                double failure      = churn.equals("Yes") ? 5 : 1;
-
-                // Ajouter dans les listes
-                bufferingList.add(buffering);
-                loadingList.add(loading);
-                videoList.add(video);
-                audioList.add(audio);
-                interList.add(inter);
-                relList.add(rel);
-                satisfactionList.add(satisfaction);
-                failureList.add(failure);
-
-                lastServiceType = internet;
-                lastDeviceType  = v[10];
+                subjectifParClient.put(id, q);
+                id++;
             }
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
 
-        // ================== MOYENNES SUBJECTIVES ===================
-        double avgSatisfaction = moyenne(satisfactionList);
-        double avgVideo        = moyenne(videoList);
-        double avgAudio        = moyenne(audioList);
-        double avgInter        = moyenne(interList);
-        double avgReliability  = moyenne(relList);
-        double avgBuffering    = moyenne(bufferingList);
-        double avgLoading      = moyenne(loadingList);
-        double avgFailure      = moyenne(failureList);
+            csvCharge = true;
 
-        double streamingQuality = 5 - (avgBuffering + avgLoading) / 2;
+            System.out.println("[CSV] Nombre de clients subjectifs chargés = " + subjectifParClient.size());
 
-        // === Calcul QoE Subjectif ===
-        double qoeSubjectif =
-                avgSatisfaction * 0.30 +
-                        avgVideo        * 0.25 +
-                        avgAudio        * 0.20 +
-                        avgInter        * 0.15 +
-                        avgReliability  * 0.10;
+            // INSERTION AUTOMATIQUE
+            insererToutesLesQoe();
 
-        System.out.println("🎯 QoE Subjectif = " + qoeSubjectif);
-
-        // ============================================================================
-        //                     2) CALCUL QoE OBJECTIF depuis BD MESURES_QOS
-        // ============================================================================
-        if (lastQos == null) {
-            System.out.println("⚠️ Aucun QoS trouvé en base !");
-            return null;
-        }
-
-        QoE qoeObjectif = calculerQoeObjectif(lastQos);
-        double qoeObj = qoeObjectif.getOverallQoe();
-
-        System.out.println("🎯 QoE Objectif = " + qoeObj);
-
-        // ============================================================================
-        //                     3) FUSION SUBJECTIF + OBJECTIF
-        // ============================================================================
-        double qoeFinal = (qoeSubjectif + qoeObj) / 2;
-
-        // ============================================================================
-        //                     4) RETOURNER QoE COMPLET
-        // ============================================================================
-        return new QoE(
-                avgSatisfaction, avgVideo, avgAudio, avgInter, avgReliability,
-                qoeFinal, avgBuffering, avgLoading, avgFailure,
-                streamingQuality, lastDeviceType,
-                lastUserId,
-                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
-                lastQosId
-        );
-    }
-
-    // ============================================================================
-    //                      UTILITAIRES GÉNÉRAUX
-    // ============================================================================
-    private static double parseDouble(String s) {
-        try { return Double.parseDouble(s); }
-        catch (Exception e) { return 0; }
-    }
-
-    public static double moyenne(List<Double> list) {
-        return list.stream().mapToDouble(x -> x).average().orElse(0);
-    }
-
-    // ============================================================================
-    //                     5) MAPPINGS (TELCO CSV)
-    // ============================================================================
-    private static double mapMonthlyToBuffering(double price) {
-        if (price > 90) return 0.5;
-        if (price > 70) return 1;
-        if (price > 50) return 2.5;
-        return 4;
-    }
-
-    private static double mapInternetToLoading(String type) {
-        if (type.contains("Fiber")) return 1;
-        if (type.contains("DSL")) return 2;
-        return 4;
-    }
-
-    private static double mapStreamingToQuality(String tv, String movies) {
-        int score = 2;
-        if (tv.equals("Yes")) score++;
-        if (movies.equals("Yes")) score++;
-        return Math.min(5, score);
-    }
-
-    private static double mapTenureToInteractivity(double t) {
-        if (t > 50) return 5;
-        if (t > 30) return 4;
-        if (t > 10) return 3;
-        return 2;
-    }
-
-    private static double mapTechSupportToReliability(String t) {
-        return t.equals("Yes") ? 5 : 2;
-    }
-
-    private static double mapSatisfaction(double tenure, double video) {
-        return Math.min(5, (tenure / 20) + (video / 2));
-    }
-
-    // ============================================================================
-    //                  6) CALCUL QoE OBJECTIF depuis QOS (BD Oracle)
-    // ============================================================================
-    public static QoE calculerQoeObjectif(Qos qos) {
-
-        double video = mapMos(qos.getMos());
-        double audio = video;
-        double inter = mapLatence(qos.getLatence());
-        double rel   = mapPerte(qos.getPerte());
-        double buffer= estimerBuffer(qos.getBandePassante());
-        double load  = estimerLoading(qos.getLatence(), qos.getBandePassante());
-        double fail  = qos.getPerte();
-
-        double satisfaction = (video + audio + inter + rel) / 4;
-
-        double stream = 5 - (buffer + load) / 2;
-
-        double qoe =
-                satisfaction * 0.30 +
-                        video        * 0.25 +
-                        audio        * 0.20 +
-                        inter        * 0.15 +
-                        rel          * 0.10;
-
-        return new QoE(satisfaction, video, audio, inter, rel, qoe, buffer, load, fail, stream, "Network Device", 1, LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")), qos.getId_mesure());
-    }
-
-    // --- MAPPINGS QoS → QoE Objectif ---
-    private static double mapMos(double mos) { return Math.max(1, Math.min(5, mos)); }
-
-    private static double mapLatence(double l) {
-        if (l < 50)  return 5;
-        if (l < 100) return 4;
-        if (l < 150) return 3;
-        if (l < 200) return 2;
-        return 1;
-    }
-
-    private static double mapPerte(double p) {
-        if (p < 1)  return 5;
-        if (p < 3)  return 4;
-        if (p < 5)  return 3;
-        if (p < 10) return 2;
-        return 1;
-    }
-
-    private static double estimerBuffer(double bp) {
-        if (bp > 10) return 0.5;
-        if (bp > 5)  return 1;
-        if (bp > 2)  return 2;
-        return 5;
-    }
-
-    private static double estimerLoading(double lat, double bp) {
-        return (lat / 100.0) + (bp > 0 ? (10.0 / bp) : 10);
-    }
-
-    // ============================================================================
-    //                 7) RÉCUPÉRER DERNIÈRE LIGNE QOS EN BD ORACLE
-    // ============================================================================
-    public static Qos getLastQos() {
-
-        String sql = "SELECT * FROM MESURES_QOS ORDER BY ID_MESURE DESC FETCH FIRST 1 ROW ONLY";
-
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-
-            if (rs.next()) {
-                Qos q = new Qos();
-                q.setId_mesure(rs.getInt("ID_MESURE"));
-                q.setLatence(rs.getDouble("LATENCE"));
-                q.setJitter(rs.getDouble("JITTER"));
-                q.setPerte(rs.getDouble("PERTE"));
-                q.setBandePassante(rs.getDouble("BANDE_PASSANTE"));
-                q.setMos(rs.getDouble("MOS"));
-                q.setSignalScore(rs.getDouble("SIGNAL_SCORE"));
-                return q;
-            }
+            return true;
 
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        return null;
+        return false;
+    }
+
+
+    // =========================================================================
+    // 2) INSERTION AUTOMATIQUE AVEC UNE SEULE CONNEXION
+    // =========================================================================
+    private static void insererToutesLesQoe() throws SQLException {
+
+        System.out.println("=== [AUTO INSERT] Calcul + insertion ===");
+
+        Connection conn = DBConnection.getConnection();
+
+        String sql =
+                "INSERT INTO QOE (ID_CLIENT, GENRE, LATENCE_MOY, JITTER_MOY, PERTE_MOY," +
+                        " BANDE_PASSANTE_MOY, MOS_MOY, SATISFACTION_QOE, SERVICE_QOE," +
+                        " PRIX_QOE, CONTRAT_QOE, LIFETIME_QOE, QOE_GLOBAL) " +
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+        PreparedStatement ps = conn.prepareStatement(sql);
+
+        for (int id = 1; id <= subjectifParClient.size(); id++) {
+
+            QoE q = analyserParClientSansConnexion(id, conn);
+
+            if (q == null) continue;
+
+            ps.setInt(1, id);
+            ps.setString(2, q.getGenre());
+            ps.setDouble(3, q.getLatenceMoy());
+            ps.setDouble(4, q.getJitterMoy());
+            ps.setDouble(5, q.getPerteMoy());
+            ps.setDouble(6, q.getBandePassanteMoy());
+            ps.setDouble(7, q.getMosMoy());
+
+            ps.setDouble(8, q.getSatisfactionQoe());
+            ps.setDouble(9, q.getServiceQoe());
+            ps.setDouble(10, q.getPrixQoe());
+            ps.setDouble(11, q.getContratQoe());
+            ps.setDouble(12, q.getLifetimeQoe());
+            ps.setDouble(13, q.getQoeGlobal());
+
+            ps.executeUpdate();
+        }
+
+        ps.close();
+        conn.close();
+
+        System.out.println("=== ✔ FIN : Insertion automatique de tous les QoE ===");
+    }
+
+
+    // =========================================================================
+    // 3) ANALYSE CLIENT SANS FERMER LA CONNEXION
+    // =========================================================================
+    private static QoE analyserParClientSansConnexion(int id, Connection conn) {
+
+        QoE q = copierSubjectif(subjectifParClient.get(id));
+        if (q == null) return null;
+
+        String zone = null, genre = null;
+
+        try (PreparedStatement ps = conn.prepareStatement(
+                "SELECT LOCALISATION_ZONE, GENRE FROM CLIENT WHERE ID_CLIENT = ?"
+        )) {
+            ps.setInt(1, id);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                zone = rs.getString(1);
+                genre = rs.getString(2);
+            }
+
+        } catch (Exception ignore) {}
+
+        q.setGenre(genre);
+
+        if (zone != null)
+            remplirQosPourZoneSansConnexion(q, zone, conn);
+
+        // Calcul final
+        q.setQoeGlobal(computeGlobalQoe(
+                q.getSatisfactionQoe(), q.getServiceQoe(),
+                q.getPrixQoe(), q.getContratQoe(), q.getLifetimeQoe(),
+                q.getMosMoy(), q.getPerteMoy()
+        ));
+
+        return q;
+    }
+
+
+    // =========================================================================
+    // 4) ANALYSE UTILISÉE PAR LE CONTROLLER (séparée)
+    // =========================================================================
+    public static QoE analyserParClient(int idClient) {
+
+        if (!csvCharge || !subjectifParClient.containsKey(idClient)) return null;
+
+        try (Connection conn = DBConnection.getConnection()) {
+            return analyserParClientSansConnexion(idClient, conn);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+    public static QoE analyserParGenre(String genre) {
+
+        if (!csvCharge) return null;
+
+        QoE q = new QoE();
+        q.setGenre(genre);
+
+        // ==========================
+        // 1) SUBJECTIF filtré par genre
+        // ==========================
+        double s1=0, s2=0, s3=0, s4=0, s5=0;
+        int count = 0;
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(
+                     "SELECT ID_CLIENT FROM CLIENT WHERE GENRE = ? ORDER BY ID_CLIENT"
+             )) {
+
+            ps.setString(1, genre);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                int id = rs.getInt(1);
+
+                if (!subjectifParClient.containsKey(id)) continue;
+
+                QoE c = subjectifParClient.get(id);
+
+                s1 += c.getSatisfactionQoe();
+                s2 += c.getServiceQoe();
+                s3 += c.getPrixQoe();
+                s4 += c.getContratQoe();
+                s5 += c.getLifetimeQoe();
+                count++;
+            }
+
+        } catch (Exception e) { e.printStackTrace(); }
+
+        if (count == 0) return null;
+
+        // === Moyenne subjectif genre ===
+        q.setSatisfactionQoe(s1 / count);
+        q.setServiceQoe(s2 / count);
+        q.setPrixQoe(s3 / count);
+        q.setContratQoe(s4 / count);
+        q.setLifetimeQoe(s5 / count);
+
+
+        // ==========================
+        // 2) OBJECTIF filtré par genre
+        // ==========================
+        String sql =
+                "SELECT AVG(m.LATENCE), AVG(m.JITTER), AVG(m.PERTE), " +
+                        "AVG(m.BANDE_PASSANTE), AVG(m.MOS) " +
+                        "FROM CLIENT c " +
+                        "JOIN MESURES_QOS m ON m.ZONE = c.LOCALISATION_ZONE " +
+                        "WHERE c.GENRE = ?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, genre);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                q.setLatenceMoy(rs.getDouble(1));
+                q.setJitterMoy(rs.getDouble(2));
+                q.setPerteMoy(rs.getDouble(3));
+                q.setBandePassanteMoy(rs.getDouble(4));
+                q.setMosMoy(rs.getDouble(5));
+            }
+
+        } catch (Exception e) { e.printStackTrace(); }
+
+
+        // ==========================
+        // 3) CALCUL QoE GLOBAL du genre
+        // ==========================
+        q.setQoeGlobal(computeGlobalQoe(
+                q.getSatisfactionQoe(), q.getServiceQoe(),
+                q.getPrixQoe(), q.getContratQoe(), q.getLifetimeQoe(),
+                q.getMosMoy(), q.getPerteMoy()
+        ));
+
+        return q;
+    }
+
+    public static QoE analyserParZone(String zone) {
+
+        if (!csvCharge) return null;
+
+        QoE q = new QoE();
+
+        // SUBJECTIF = MOYENNE du CSV (global)
+        double s1=0,s2=0,s3=0,s4=0,s5=0;
+        int count = subjectifParClient.size();
+
+        for (QoE c : subjectifParClient.values()) {
+            s1 += c.getSatisfactionQoe();
+            s2 += c.getServiceQoe();
+            s3 += c.getPrixQoe();
+            s4 += c.getContratQoe();
+            s5 += c.getLifetimeQoe();
+        }
+
+        q.setSatisfactionQoe(s1/count);
+        q.setServiceQoe(s2/count);
+        q.setPrixQoe(s3/count);
+        q.setContratQoe(s4/count);
+        q.setLifetimeQoe(s5/count);
+
+        // REMPLIR QOS pour la zone
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(
+                     "SELECT AVG(LATENCE), AVG(JITTER), AVG(PERTE), AVG(BANDE_PASSANTE), AVG(MOS) " +
+                             "FROM MESURES_QOS WHERE ZONE = ?"
+             )) {
+
+            ps.setString(1, zone);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                q.setLatenceMoy(rs.getDouble(1));
+                q.setJitterMoy(rs.getDouble(2));
+                q.setPerteMoy(rs.getDouble(3));
+                q.setBandePassanteMoy(rs.getDouble(4));
+                q.setMosMoy(rs.getDouble(5));
+            }
+
+        } catch (Exception e) { e.printStackTrace(); }
+
+        q.setQoeGlobal(computeGlobalQoe(
+                q.getSatisfactionQoe(), q.getServiceQoe(),
+                q.getPrixQoe(), q.getContratQoe(), q.getLifetimeQoe(),
+                q.getMosMoy(), q.getPerteMoy()
+        ));
+
+        return q;
+    }
+
+
+
+
+    // =========================================================================
+    // 5) REMPLISSAGE QOS
+    // =========================================================================
+    private static void remplirQosPourZoneSansConnexion(QoE q, String zone, Connection conn) {
+
+        String sql =
+                "SELECT AVG(LATENCE), AVG(JITTER), AVG(PERTE), " +
+                        "AVG(BANDE_PASSANTE), AVG(MOS) " +
+                        "FROM MESURES_QOS WHERE ZONE = ?";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, zone);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                q.setLatenceMoy(rs.getDouble(1));
+                q.setJitterMoy(rs.getDouble(2));
+                q.setPerteMoy(rs.getDouble(3));
+                q.setBandePassanteMoy(rs.getDouble(4));
+                q.setMosMoy(rs.getDouble(5));
+            }
+
+        } catch (Exception ignore) {}
+    }
+
+
+
+    // =========================================================================
+    // 6) FORMULE GLOBALE
+    // =========================================================================
+    private static double computeGlobalQoe(
+            double s1, double s2, double s3, double s4, double s5,
+            double mos, double perte) {
+
+        double subjectif = (s1 + s2 + s3 + s4 + s5) / 5.0;
+
+        double mosNorm = mos / 5.0;
+        double perteNorm = (100 - perte) / 100.0;
+
+        double qos = (0.7 * mosNorm + 0.3 * perteNorm) * 5.0;
+
+        return Math.max(1, Math.min(5, 0.6 * subjectif + 0.4 * qos));
+    }
+
+
+    // =========================================================================
+    // HELPERS
+    // =========================================================================
+    private static QoE copierSubjectif(QoE src) {
+        QoE q = new QoE();
+        q.setSatisfactionQoe(src.getSatisfactionQoe());
+        q.setServiceQoe(src.getServiceQoe());
+        q.setPrixQoe(src.getPrixQoe());
+        q.setContratQoe(src.getContratQoe());
+        q.setLifetimeQoe(src.getLifetimeQoe());
+        return q;
+    }
+
+    private static int parseIntSafe(String s) {
+        try { return Integer.parseInt(s); }
+        catch (Exception e) { return 0; }
+    }
+
+    private static double parseDoubleSafe(String s) {
+        try { return Double.parseDouble(s); }
+        catch (Exception e) { return 0.0; }
+    }
+
+
+    // =========================================================================
+    // FORMULES SUBJECTIVES
+    // =========================================================================
+    private static double clamp(double v, double min, double max) {
+        return Math.max(min, Math.min(max, v));
+    }
+
+    private static double computeSatisfaction(String churn, double monthlyCharges,
+                                              String techSupport, String contract) {
+
+        double score = 5.0;
+
+        if ("Yes".equalsIgnoreCase(churn)) score -= 3;
+        if (monthlyCharges > 80) score -= 1;
+        if ("No".equalsIgnoreCase(techSupport)) score -= 1;
+        if ("Month-to-month".equalsIgnoreCase(contract)) score -= 0.5;
+
+        return clamp(score, 1, 5);
+    }
+
+    private static double computeVideoQuality(String internetService,
+                                              String streamingTV,
+                                              String streamingMovies) {
+
+        double score = 1;
+
+        if ("Fiber optic".equalsIgnoreCase(internetService)) score += 3;
+        if ("Yes".equalsIgnoreCase(streamingTV)) score += 0.5;
+        if ("Yes".equalsIgnoreCase(streamingMovies)) score += 0.5;
+
+        return clamp(score, 1, 5);
+    }
+
+    private static double computeAudioQuality(String techSupport,
+                                              String deviceProtection,
+                                              String onlineSecurity) {
+
+        double score = 1;
+
+        if ("Yes".equalsIgnoreCase(techSupport)) score += 2;
+        if ("Yes".equalsIgnoreCase(deviceProtection)) score += 1;
+        if ("Yes".equalsIgnoreCase(onlineSecurity)) score += 1;
+
+        return clamp(score, 1, 5);
+    }
+
+    private static double computeInteractivity(String phoneService,
+                                               String multipleLines,
+                                               String partner,
+                                               int tenure) {
+
+        double score = 1;
+
+        if ("Yes".equalsIgnoreCase(phoneService)) score += 1;
+        if ("Yes".equalsIgnoreCase(multipleLines)) score += 1;
+        if ("Yes".equalsIgnoreCase(partner)) score += 0.5;
+        if (tenure > 12) score += 1;
+
+        return clamp(score, 1, 5);
+    }
+
+    private static double computeReliability(String onlineBackup,
+                                             String deviceProtection,
+                                             String contract,
+                                             int senior) {
+
+        double score = 1;
+
+        if ("Yes".equalsIgnoreCase(onlineBackup)) score += 1;
+        if ("Yes".equalsIgnoreCase(deviceProtection)) score += 1;
+        if ("One year".equalsIgnoreCase(contract) || "Two year".equalsIgnoreCase(contract))
+            score += 1;
+        if (senior == 0) score += 1;
+
+        return clamp(score, 1, 5);
     }
 }

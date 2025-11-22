@@ -250,10 +250,10 @@ public class LoginController implements Initializable {
             if (controller instanceof AdminDashboardController) {
                 ((AdminDashboardController) controller).setUserData(user);
                 System.out.println("✅ Données passées à AdminDashboardController");
-            } else if (controller instanceof ClientDashboardController) {
+            } /*else if (controller instanceof ClientDashboardController) {
                 ((ClientDashboardController) controller).setUserData(user);
                 System.out.println("✅ Données passées à ClientDashboardController");
-            }
+            }*/
 
             // Switch scene
             Stage stage = (Stage) loginButton.getScene().getWindow();

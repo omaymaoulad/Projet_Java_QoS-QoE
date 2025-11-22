@@ -1,4 +1,4 @@
-package com.ensah.qoe.Controller;
+/*package com.ensah.qoe.Controller;
 
 import com.ensah.qoe.Models.QoE;
 import com.ensah.qoe.Models.User;
@@ -19,7 +19,7 @@ import java.time.format.DateTimeFormatter;
 
 public class ClientDashboardController implements Initializable {
 
-    private User currentUser;
+   private User currentUser;
 
     // Labels pour les métriques QoE
     @FXML private Label usernameLabel;
@@ -97,7 +97,7 @@ public class ClientDashboardController implements Initializable {
 
     /**
      * Ajoute l'interactivité au formulaire
-     */
+
     private void setupFormInteractivity() {
         // Animer les RadioButtons lors de la sélection
         if (ratingGroup != null) {
@@ -111,7 +111,7 @@ public class ClientDashboardController implements Initializable {
 
     /**
      * Configure le champ de commentaire avec compteur
-     */
+
     private void setupCommentField() {
         if (commentField != null) {
             commentField.textProperty().addListener((obs, oldText, newText) -> {
@@ -138,7 +138,7 @@ public class ClientDashboardController implements Initializable {
 
     /**
      * Met à jour le compteur de caractères (vous pouvez ajouter un Label dans le FXML)
-     */
+
     private void updateCharacterCount(int count) {
         // Si vous ajoutez un Label fx:id="characterCountLabel" dans le FXML
         // characterCountLabel.setText(count + " / 500 caractères");
@@ -147,7 +147,7 @@ public class ClientDashboardController implements Initializable {
 
     /**
      * Animation lors de la sélection du ComboBox
-     */
+
     private void animateComboSelection() {
         if (serviceTypeCombo != null) {
             ScaleTransition st = new ScaleTransition(Duration.millis(150), serviceTypeCombo);
@@ -163,7 +163,7 @@ public class ClientDashboardController implements Initializable {
 
     /**
      * Animation lors de la sélection d'une étoile
-     */
+
     private void animateStarSelection(RadioButton selectedRadio) {
         if (selectedRadio == null) return;
 
@@ -188,9 +188,7 @@ public class ClientDashboardController implements Initializable {
         showRatingFeedback(rating);
     }
 
-    /**
-     * Affiche un feedback visuel selon le rating
-     */
+
     private void showRatingFeedback(int rating) {
         String[] messages = {
                 "",
@@ -341,9 +339,7 @@ public class ClientDashboardController implements Initializable {
         }
     }
 
-    /**
-     * Anime le label lors de la mise à jour
-     */
+
     private void animateLabel(Label label) {
         FadeTransition ft = new FadeTransition(Duration.millis(300), label);
         ft.setFromValue(0.3);
@@ -420,9 +416,7 @@ public class ClientDashboardController implements Initializable {
         showSuccessAlert();
     }
 
-    /**
-     * Affiche une alerte de succès animée
-     */
+
     private void showSuccessAlert() {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("✅ Succès");
@@ -493,4 +487,4 @@ public class ClientDashboardController implements Initializable {
         alert.setContentText(message);
         alert.showAndWait();
     }
-}
+}*/

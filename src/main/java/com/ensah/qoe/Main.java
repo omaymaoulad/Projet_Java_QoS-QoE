@@ -1,5 +1,6 @@
 package com.ensah.qoe;
 
+import com.ensah.qoe.Services.ClientCsvImporter;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -14,6 +15,7 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) {
         try {
+            //ClientCsvImporter.importClients();
             Parent root = FXMLLoader.load(getClass().getResource("/fxml/Login.fxml"));
 
             Scene scene = new Scene(root, 1200, 650);
