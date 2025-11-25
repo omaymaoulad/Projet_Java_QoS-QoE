@@ -96,6 +96,7 @@ public class QoEController implements Initializable {
     @FXML
     private void importerCsv() {
 
+
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Choisir un CSV Telco");
         chooser.getExtensionFilters().add(
@@ -105,6 +106,12 @@ public class QoEController implements Initializable {
         File f = chooser.showOpenDialog(importCsvButton.getScene().getWindow());
         if (f == null) return;
 
+        // Nom du fichier
+        String nomFichier = f.getName();
+
+        boolean fichierDejaImporte =
+                com.ensah.qoe.Services.FichierService.fichierExiste(nomFichier);
+
         boolean ok = QoeAnalyzer.analyserFichierCsv(f.getAbsolutePath());
 
         if (!ok) {
@@ -112,9 +119,16 @@ public class QoEController implements Initializable {
             return;
         }
 
-        afficherMessageCsvOK();
+        // ==============================
+        // ✔ Affichage intelligent
+        // ==============================
+        if (fichierDejaImporte) {
+            overallQoeLabel.setText("Données chargées depuis la base !");
+        } else {
+            overallQoeLabel.setText("CSV chargé !");
+        }
 
-        // Mise à jour des filtres et tableau
+        // Mise à jour UI
         chargerFiltresDepuisBD();
         rafraichirTableClients();
     }

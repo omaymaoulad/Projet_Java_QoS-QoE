@@ -19,6 +19,18 @@ public class QoeAnalyzer {
     // 1) IMPORT CSV + INSERTION AUTOMATIQUE
     // =========================================================================
     public static boolean analyserFichierCsv(String csvPath) {
+        String nomFichier = new java.io.File(csvPath).getName().trim();
+        System.out.println("=== [QoeAnalyzer] Fichier détecté : " + nomFichier + " ===");
+        // -------------------------------------------------------
+        //  Vérifier si le fichier a déjà été importé
+        // -------------------------------------------------------
+        if (FichierService.fichierExiste(nomFichier)) {
+            System.out.println("⚠ Le fichier est déjà importé. Chargement depuis la base...");
+
+            csvCharge = false; // empêche l’analyse par CSV
+            chargerDepuisBase(nomFichier);
+            return true;
+        }
         System.out.println("=== [QoeAnalyzer] Import CSV + Subjectif ===");
 
         subjectifParClient.clear();
@@ -39,7 +51,7 @@ public class QoeAnalyzer {
                 if (c.length < 20) continue;
 
                 QoE q = new QoE();
-
+                q.setNomFichier(nomFichier);
                 q.setSatisfactionQoe(computeSatisfaction(c[19], parseDoubleSafe(c[17]), c[11], c[14]));
                 q.setServiceQoe(computeVideoQuality(c[7], c[12], c[13]));
                 q.setPrixQoe(computeAudioQuality(c[11], c[10], c[8]));
@@ -56,7 +68,7 @@ public class QoeAnalyzer {
 
             // INSERTION AUTOMATIQUE
             insererToutesLesQoe();
-
+            FichierService.enregistrerFichier(nomFichier);
             return true;
 
         } catch (Exception e) {
@@ -65,6 +77,61 @@ public class QoeAnalyzer {
 
         return false;
     }
+    private static void chargerDepuisBase(String nomFichier) {
+
+        subjectifParClient.clear();
+
+        String sql =
+                "SELECT ID_CLIENT, GENRE, LATENCE_MOY, JITTER_MOY, PERTE_MOY, " +
+                        "BANDE_PASSANTE_MOY, SIGNAL_SCORE_MOY, MOS_MOY, " +
+                        "SATISFACTION_QOE, SERVICE_QOE, PRIX_QOE, CONTRAT_QOE, " +
+                        "LIFETIME_QOE, FEEDBACK_SCORE, QOE_GLOBAL " +
+                        "FROM QOE WHERE NOM_FICHIER = ? ORDER BY ID_CLIENT";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, nomFichier);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+
+                QoE q = new QoE();
+
+                int id = rs.getInt("ID_CLIENT");
+
+                // === SUBJECTIF ===
+                q.setSatisfactionQoe(rs.getDouble("SATISFACTION_QOE"));
+                q.setServiceQoe(rs.getDouble("SERVICE_QOE"));
+                q.setPrixQoe(rs.getDouble("PRIX_QOE"));
+                q.setContratQoe(rs.getDouble("CONTRAT_QOE"));
+                q.setLifetimeQoe(rs.getDouble("LIFETIME_QOE"));
+                q.setFeedbackScore(rs.getDouble("FEEDBACK_SCORE"));
+
+                // === OBJECTIF ===
+                q.setLatenceMoy(rs.getDouble("LATENCE_MOY"));
+                q.setJitterMoy(rs.getDouble("JITTER_MOY"));
+                q.setPerteMoy(rs.getDouble("PERTE_MOY"));
+                q.setBandePassanteMoy(rs.getDouble("BANDE_PASSANTE_MOY"));
+                q.setSignalScoreMoy(rs.getDouble("SIGNAL_SCORE_MOY"));
+                q.setMosMoy(rs.getDouble("MOS_MOY"));
+
+                // === Infos générales ===
+                q.setGenre(rs.getString("GENRE"));
+                q.setQoeGlobal(rs.getDouble("QOE_GLOBAL"));
+                q.setNomFichier(nomFichier);
+
+                subjectifParClient.put(id, q);
+            }
+
+            System.out.println("✔ QOE chargées intégralement depuis la base : "
+                    + subjectifParClient.size());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 
 
     // =========================================================================
@@ -77,10 +144,12 @@ public class QoeAnalyzer {
         Connection conn = DBConnection.getConnection();
 
         String sql =
-                "INSERT INTO QOE (ID_CLIENT, GENRE, LATENCE_MOY, JITTER_MOY, PERTE_MOY," +
-                        " BANDE_PASSANTE_MOY, MOS_MOY, SATISFACTION_QOE, SERVICE_QOE," +
-                        " PRIX_QOE, CONTRAT_QOE, LIFETIME_QOE, QOE_GLOBAL,NOM_FICHIER) " +
-                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)";
+                "INSERT INTO QOE (" +
+                        "ID_CLIENT, GENRE, LATENCE_MOY, JITTER_MOY, PERTE_MOY," +
+                        "BANDE_PASSANTE_MOY, SIGNAL_SCORE_MOY, MOS_MOY," +
+                        "SATISFACTION_QOE, SERVICE_QOE, PRIX_QOE, CONTRAT_QOE," +
+                        "LIFETIME_QOE, FEEDBACK_SCORE, QOE_GLOBAL, NOM_FICHIER" +
+                        ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         PreparedStatement ps = conn.prepareStatement(sql);
 
@@ -96,15 +165,20 @@ public class QoeAnalyzer {
             ps.setDouble(4, q.getJitterMoy());
             ps.setDouble(5, q.getPerteMoy());
             ps.setDouble(6, q.getBandePassanteMoy());
-            ps.setDouble(7, q.getMosMoy());
-
-            ps.setDouble(8, q.getSatisfactionQoe());
-            ps.setDouble(9, q.getServiceQoe());
-            ps.setDouble(10, q.getPrixQoe());
-            ps.setDouble(11, q.getContratQoe());
-            ps.setDouble(12, q.getLifetimeQoe());
-            ps.setDouble(13, q.getQoeGlobal());
-            ps.setString(14, q.getNomFichier());
+            ps.setDouble(7, q.getSignalScoreMoy()); // IMPORTANT
+            ps.setDouble(8, q.getMosMoy());
+            ps.setDouble(9, q.getSatisfactionQoe());
+            ps.setDouble(10, q.getServiceQoe());
+            ps.setDouble(11, q.getPrixQoe());
+            ps.setDouble(12, q.getContratQoe());
+            ps.setDouble(13, q.getLifetimeQoe());
+            if (q.getFeedbackScore() == null) {
+                ps.setNull(14, java.sql.Types.DOUBLE);
+            } else {
+                ps.setDouble(14, q.getFeedbackScore());
+            }
+            ps.setDouble(15, q.getQoeGlobal());
+            ps.setString(16, q.getNomFichier());
 
             ps.executeUpdate();
         }
@@ -160,7 +234,7 @@ public class QoeAnalyzer {
     // =========================================================================
     public static QoE analyserParClient(int idClient) {
 
-        if (!csvCharge || !subjectifParClient.containsKey(idClient)) return null;
+        if (!subjectifParClient.containsKey(idClient)) return null;
 
         try (Connection conn = DBConnection.getConnection()) {
             return analyserParClientSansConnexion(idClient, conn);
@@ -170,9 +244,6 @@ public class QoeAnalyzer {
         }
     }
     public static QoE analyserParGenre(String genre) {
-
-        if (!csvCharge) return null;
-
         QoE q = new QoE();
         q.setGenre(genre);
 
@@ -258,7 +329,7 @@ public class QoeAnalyzer {
 
     public static QoE analyserParZone(String zone) {
 
-        if (!csvCharge) return null;
+
 
         QoE q = new QoE();
 
@@ -368,6 +439,7 @@ public class QoeAnalyzer {
         q.setPrixQoe(src.getPrixQoe());
         q.setContratQoe(src.getContratQoe());
         q.setLifetimeQoe(src.getLifetimeQoe());
+        q.setNomFichier(src.getNomFichier());
         return q;
     }
 
