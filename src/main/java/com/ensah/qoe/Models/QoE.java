@@ -31,7 +31,7 @@ public class QoE {
     private LocalDateTime dateCalcule;
 
     // ---- Métadonnées ----
-    private String nomFichier;        // NOM_FICHIER dans la table
+    private String nomFichier;
 
     // ---- Champs pour l’UI (pas en BD) ----
     private String serviceType;

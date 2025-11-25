@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
@@ -11,14 +12,16 @@
             vbarPolicy="AS_NEEDED"
             style="-fx-background-color: transparent;">
 
-    <VBox spacing="10" alignment="TOP_CENTER"
-          style="-fx-background-color: linear-gradient(to bottom, #fff2f2, #ffffff);">
+    <VBox spacing="20" alignment="TOP_CENTER"
+          style="-fx-background-color: linear-gradient(to bottom, #fff2f2, #ffffff);
+                 -fx-padding: 20;">
 
         <!-- ===================== HEADER ===================== -->
         <VBox spacing="12" alignment="CENTER"
               style="-fx-padding: 25 30 20 30;
                      -fx-background-color: linear-gradient(to right, #f59e0b, #d97706);
-                     -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.15), 15, 0, 0, 5);">
+                     -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.15), 15, 0, 0, 5);
+                     -fx-background-radius:15;">
 
             <HBox alignment="CENTER" spacing="18">
 
@@ -26,117 +29,115 @@
                     <Rectangle width="55" height="55" arcWidth="15" arcHeight="15"
                                fill="linear-gradient(to bottom right, #fbbf24, #f59e0b)">
                         <effect>
-                            <DropShadow color="rgba(251,191,36,0.5)"
-                                        radius="12" spread="0.4"/>
+                            <DropShadow color="rgba(251,191,36,0.5)" radius="12" spread="0.4"/>
                         </effect>
                     </Rectangle>
                     <Text text="⭐" style="-fx-font-size: 28; -fx-fill: white;"/>
                 </StackPane>
 
-                <VBox spacing="3">
+                <VBox spacing="2">
                     <Label text="QUALITÉ D'EXPÉRIENCE"
                            style="-fx-text-fill: white; -fx-font-weight: bold;
                                   -fx-font-size: 28; -fx-font-family: 'Segoe UI';"/>
 
-                    <Label text="Tableau de bord de l'expérience utilisateur"
-                           style="-fx-text-fill: #fef3c7;
-                                  -fx-font-size: 14; -fx-font-family: 'Segoe UI';"/>
+                    <Label text="Dashboard de l'expérience utilisateur"
+                           style="-fx-text-fill: #fef3c7; -fx-font-size: 14;"/>
                 </VBox>
             </HBox>
-
         </VBox>
 
-
         <!-- ===================== IMPORT CSV ===================== -->
-        <VBox spacing="10" alignment="CENTER" style="-fx-padding: 20 0 0 0;">
-            <Button fx:id="importCsvButton" text="📁 Importer un fichier CSV"
+        <VBox spacing="10" alignment="CENTER">
+            <Button fx:id="importCsvButton"
+                    text="📁 Importer un fichier CSV"
                     onAction="#importerCsv"
                     style="-fx-background-color: linear-gradient(to right, #f59e0b, #d97706);
                            -fx-text-fill: white; -fx-font-size: 15; -fx-font-weight: bold;
                            -fx-background-radius: 12; -fx-padding: 12 40;"/>
-            <Label text="Sélectionnez un fichier CSV contenant les données QoE / Telco"
-                   style="-fx-text-fill: #6b7280; -fx-font-style: italic;"/>
+            <Label text="Sélectionnez un fichier contenant les données QoE / Telco"
+                   style="-fx-text-fill: #6b7280;"/>
         </VBox>
 
 
-
         <!-- ===================== MODES D'ANALYSE ===================== -->
-        <VBox spacing="14" alignment="CENTER">
+        <VBox spacing="10" alignment="CENTER">
             <Label text="Choisir le mode d’analyse"
                    style="-fx-text-fill:#f59e0b; -fx-font-size:18; -fx-font-weight:bold;"/>
 
             <HBox spacing="20" alignment="CENTER">
                 <RadioButton fx:id="radioClient" text="Par Client" onAction="#modeClient"/>
-                <RadioButton fx:id="radioGenre"  text="Par Genre"  onAction="#modeGenre"/>
-                <RadioButton fx:id="radioZone"   text="Par Zone"   onAction="#modeZone"/>
+                <RadioButton fx:id="radioGenre" text="Par Genre" onAction="#modeGenre"/>
+                <RadioButton fx:id="radioZone" text="Par Zone" onAction="#modeZone"/>
             </HBox>
         </VBox>
 
-
-
-        <!-- ===================== SELECTIONS ===================== -->
-        <HBox fx:id="clientSelectionBox" spacing="10" visible="false"
-              style="-fx-padding: 10;">
+        <!-- ===================== SELECTION BOXES ===================== -->
+        <HBox fx:id="clientSelectionBox" spacing="10" visible="false">
             <Label text="Client :" style="-fx-font-weight:bold;"/>
             <ComboBox fx:id="clientCombo"/>
         </HBox>
 
-        <HBox fx:id="genreSelectionBox" spacing="10" visible="false"
-              style="-fx-padding: 10;">
+        <HBox fx:id="genreSelectionBox" spacing="10" visible="false">
             <Label text="Genre :" style="-fx-font-weight:bold;"/>
             <ComboBox fx:id="genreCombo"/>
         </HBox>
 
-        <HBox fx:id="zoneSelectionBox" spacing="10" visible="false"
-              style="-fx-padding: 10;">
+        <HBox fx:id="zoneSelectionBox" spacing="10" visible="false">
             <Label text="Zone :" style="-fx-font-weight:bold;"/>
             <ComboBox fx:id="zoneCombo"/>
         </HBox>
+
+
         <!-- ===================== QoE GLOBAL ===================== -->
-        <VBox spacing="5" alignment="CENTER"
+        <VBox spacing="6" alignment="CENTER"
               style="-fx-background-color: linear-gradient(to bottom right, #fef3c7, #fde68a);
                      -fx-background-radius: 12; -fx-padding: 20;
-                     -fx-border-color: #fbbf24; -fx-border-radius: 12; -fx-border-width: 2;">
+                     -fx-border-color: #fbbf24; -fx-border-width: 2; -fx-border-radius:12;">
 
             <Label text="🎯 QoE GLOBAL"
-                   style="-fx-text-fill: #92400e; -fx-font-weight: bold; -fx-font-size: 18;"/>
+                   style="-fx-text-fill: #92400e; -fx-font-size: 20; -fx-font-weight: bold;"/>
 
             <Label fx:id="overallQoeLabel" text="-"
-                   style="-fx-text-fill: #d97706; -fx-font-weight: bold; -fx-font-size: 32;"/>
+                   style="-fx-text-fill: #d97706; -fx-font-weight: bold;
+                          -fx-font-size: 36;"/>
         </VBox>
-        <!-- ===================== TABLE VIEW CLIENT ===================== -->
-        <VBox fx:id="tableContainer" spacing="10" visible="false"
-              style="-fx-min-height:300; -fx-background-color:white;
-                     -fx-background-radius:10; -fx-padding:10;">
 
-            <Label text="📋 Liste des clients"
-                   style="-fx-font-size:16; -fx-text-fill:#374151; -fx-font-weight:bold;"/>
 
-            <TableView fx:id="clientTable" />
-        </VBox>
-        <!-- ===================== GRAPH GENRE ===================== -->
-        <VBox fx:id="graphContainer" spacing="10" visible="false"
-              style="-fx-min-height:300; -fx-background-color:#f3f4f6;
-                     -fx-background-radius:10; -fx-padding:10;">
+        <!-- ===================== CONTENEUR DYNAMIQUE ===================== -->
+        <StackPane style="-fx-padding: 10; -fx-min-height:300;">
 
-            <Label text="📊 Graphique QoE par Genre"
-                   style="-fx-font-size:16; -fx-text-fill:#374151; -fx-font-weight:bold;"/>
-        </VBox>
-        <!-- ===================== ZONE VIEW ===================== -->
-        <VBox fx:id="mapContainer" spacing="10" visible="false"
-              style="-fx-min-height:300; -fx-background-color:#e5e7eb;
-                     -fx-background-radius:10; -fx-padding:10;">
+            <!-- TABLE CLIENT -->
+            <VBox fx:id="tableContainer" visible="false" spacing="10"
+                  style="-fx-background-color:white; -fx-background-radius:10; -fx-padding:10;">
+                <Label text="📋 Liste des clients"
+                       style="-fx-font-size:16; -fx-font-weight:bold;"/>
+                <TableView fx:id="clientTable"/>
+            </VBox>
 
-            <Label text="🗺️ Zone sélectionnée"
-                   style="-fx-font-size:16; -fx-text-fill:#374151; -fx-font-weight:bold;"/>
-        </VBox>
-        <!-- ===================== SUBJECTIF ===================== -->
-        <VBox spacing="15" alignment="CENTER">
+            <!-- GRAPH GENRE -->
+            <VBox fx:id="graphContainer" visible="false" spacing="10"
+                  style="-fx-background-color:#f3f4f6; -fx-background-radius:10; -fx-padding:10;">
+                <Label text="📊 Graphique QoE par Genre"
+                       style="-fx-font-size:16; -fx-font-weight:bold;"/>
+            </VBox>
 
+            <!-- MAP ZONE -->
+            <VBox fx:id="mapContainer" visible="false" spacing="10"
+                  style="-fx-background-color:#e5e7eb; -fx-background-radius:10; -fx-padding:10;">
+                <Label text="🗺️ Carte de la zone"
+                       style="-fx-font-size:16; -fx-font-weight:bold;"/>
+            </VBox>
+
+        </StackPane>
+
+
+        <!-- ===================== MÉTRIQUES SUBJECTIVES ===================== -->
+        <VBox alignment="CENTER" spacing="10">
             <Label text="MÉTRIQUES SUBJECTIVES"
-                   style="-fx-text-fill: #f59e0b; -fx-font-size:18; -fx-font-weight:bold;"/>
+                   style="-fx-text-fill:#f59e0b; -fx-font-size:18; -fx-font-weight:bold;"/>
 
-            <GridPane hgap="15" vgap="15" style="-fx-padding: 10;">
+            <GridPane hgap="15" vgap="15">
+
                 <columnConstraints>
                     <ColumnConstraints percentWidth="50"/>
                     <ColumnConstraints percentWidth="50"/>
@@ -144,44 +145,45 @@
 
                 <VBox spacing="5" GridPane.rowIndex="0" GridPane.columnIndex="0"
                       style="-fx-background-color:#fff7d6; -fx-padding:15; -fx-background-radius:10;">
-                    <Label text="😊 Satisfaction" style="-fx-font-weight:bold;"/>
+                    <Label text="😊 Satisfaction"/>
                     <Label fx:id="satisfactionLabel" text="-" style="-fx-font-size:18;"/>
                 </VBox>
 
                 <VBox spacing="5" GridPane.rowIndex="0" GridPane.columnIndex="1"
                       style="-fx-background-color:#ffe3e3; -fx-padding:15; -fx-background-radius:10;">
-                    <Label text="📹 Qualité Vidéo" style="-fx-font-weight:bold;"/>
+                    <Label text="📹 Qualité Vidéo"/>
                     <Label fx:id="videoQualityLabel" text="-" style="-fx-font-size:18;"/>
                 </VBox>
 
                 <VBox spacing="5" GridPane.rowIndex="1" GridPane.columnIndex="0"
                       style="-fx-background-color:#eee9ff; -fx-padding:15; -fx-background-radius:10;">
-                    <Label text="🎵 Qualité Audio" style="-fx-font-weight:bold;"/>
+                    <Label text="🎵 Qualité Audio"/>
                     <Label fx:id="audioQualityLabel" text="-" style="-fx-font-size:18;"/>
                 </VBox>
 
                 <VBox spacing="5" GridPane.rowIndex="1" GridPane.columnIndex="1"
                       style="-fx-background-color:#e2f0ff; -fx-padding:15; -fx-background-radius:10;">
-                    <Label text="⚡ Interactivité" style="-fx-font-weight:bold;"/>
+                    <Label text="⚡ Interactivité"/>
                     <Label fx:id="interactivityLabel" text="-" style="-fx-font-size:18;"/>
                 </VBox>
 
                 <VBox spacing="5" GridPane.rowIndex="2" GridPane.columnIndex="0"
                       style="-fx-background-color:#d7ffee; -fx-padding:15; -fx-background-radius:10;">
-                    <Label text="🛡️ Fiabilité" style="-fx-font-weight:bold;"/>
+                    <Label text="🛡️ Fiabilité"/>
                     <Label fx:id="reliabilityLabel" text="-" style="-fx-font-size:18;"/>
                 </VBox>
 
             </GridPane>
-
         </VBox>
-        <!-- ===================== OBJECTIF ===================== -->
-        <VBox spacing="15" alignment="CENTER">
 
+
+        <!-- ===================== MÉTRIQUES OBJECTIVES ===================== -->
+        <VBox alignment="CENTER" spacing="10">
             <Label text="MÉTRIQUES OBJECTIVES"
-                   style="-fx-text-fill: #f59e0b; -fx-font-size:18; -fx-font-weight:bold;"/>
+                   style="-fx-text-fill:#f59e0b; -fx-font-size:18; -fx-font-weight:bold;"/>
 
             <GridPane hgap="20" vgap="15">
+
                 <columnConstraints>
                     <ColumnConstraints percentWidth="33"/>
                     <ColumnConstraints percentWidth="33"/>
@@ -190,30 +192,31 @@
 
                 <VBox spacing="5" GridPane.columnIndex="0">
                     <Label text="⏳ Buffering"/>
-                    <Label fx:id="bufferingLabel" text="-" style="-fx-font-size:16;"/>
+                    <Label fx:id="bufferingLabel" text="-"/>
                 </VBox>
 
                 <VBox spacing="5" GridPane.columnIndex="1">
                     <Label text="⏱️ Loading Time"/>
-                    <Label fx:id="loadingTimeLabel" text="-" style="-fx-font-size:16;"/>
+                    <Label fx:id="loadingTimeLabel" text="-"/>
                 </VBox>
 
                 <VBox spacing="5" GridPane.columnIndex="2">
                     <Label text="❌ Failure Rate"/>
-                    <Label fx:id="failureRateLabel" text="-" style="-fx-font-size:16;"/>
+                    <Label fx:id="failureRateLabel" text="-"/>
                 </VBox>
 
-                <HBox alignment="CENTER_LEFT" spacing="10"
-                      GridPane.rowIndex="1" GridPane.columnIndex="0" GridPane.columnSpan="3">
-                    <Label text="📶 Streaming Quality" style="-fx-font-weight: bold;"/>
-                    <Label fx:id="streamingQualityLabel" text="-" style="-fx-text-fill: #555;"/>
+                <HBox spacing="10" GridPane.rowIndex="1" GridPane.columnIndex="0"
+                      GridPane.columnSpan="3">
+                    <Label text="📶 Streaming Quality" style="-fx-font-weight:bold;"/>
+                    <Label fx:id="streamingQualityLabel" text="-"/>
                 </HBox>
             </GridPane>
-
         </VBox>
+
+
         <!-- ===================== FOOTER ===================== -->
         <HBox alignment="CENTER" style="-fx-padding: 20 0 10 0;">
-            <Label text="QoE Analysis System • Quality of Experience • v2.0 • © 2024"
+            <Label text="QoE Analysis System • v2.0 • © 2024"
                    style="-fx-text-fill: #9ca3af; -fx-font-size: 11;"/>
         </HBox>
 

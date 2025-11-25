@@ -40,13 +40,14 @@ public class QoEController implements Initializable {
 
     @FXML private Button importCsvButton;
 
+    // Conteneur dynamique
     @FXML private VBox tableContainer;
     @FXML private VBox graphContainer;
     @FXML private VBox mapContainer;
 
     @FXML private TableView<ClientRow> clientTable;
 
-    // Labels
+    // === Labels ===
     @FXML private Label satisfactionLabel;
     @FXML private Label videoQualityLabel;
     @FXML private Label audioQualityLabel;
@@ -60,9 +61,9 @@ public class QoEController implements Initializable {
     @FXML private Label streamingQualityLabel;
 
 
-    // =========================================================================
+    // =====================================================================
     // INITIALISATION
-    // =========================================================================
+    // =====================================================================
     @Override
     public void initialize(URL location, ResourceBundle resources) {
 
@@ -74,8 +75,8 @@ public class QoEController implements Initializable {
         hideAllSelectionBoxes();
         hideAllViews();
 
-        chargerFiltresDepuisBD();
-        preparerTableClients();
+        loadFilters();
+        setupClientTable();
 
         genreCombo.setOnAction(e -> afficherQoeParGenre(genreCombo.getValue()));
         zoneCombo.setOnAction(e -> afficherQoeParZone(zoneCombo.getValue()));
@@ -89,10 +90,9 @@ public class QoEController implements Initializable {
         });
     }
 
-
-    // =========================================================================
+    // =====================================================================
     // IMPORT CSV
-    // =========================================================================
+    // =====================================================================
     @FXML
     private void importerCsv() {
 
@@ -108,25 +108,23 @@ public class QoEController implements Initializable {
         boolean ok = QoeAnalyzer.analyserFichierCsv(f.getAbsolutePath());
 
         if (!ok) {
-            afficherErreur();
+            overallQoeLabel.setText("Erreur");
             return;
         }
 
-        afficherMessageCsvOK();
-
-        // Mise à jour des filtres et tableau
-        chargerFiltresDepuisBD();
-        rafraichirTableClients();
+        overallQoeLabel.setText("CSV chargé !");
+        loadFilters();
+        refreshClientTable();
     }
 
-
-    // =========================================================================
-    // MODES D'ANALYSE
-    // =========================================================================
+    // =====================================================================
+    // MODES (CLIENT / GENRE / ZONE)
+    // =====================================================================
     @FXML
     private void modeClient() {
         hideAllSelectionBoxes();
         hideAllViews();
+
         clientSelectionBox.setVisible(true);
         tableContainer.setVisible(true);
     }
@@ -135,6 +133,7 @@ public class QoEController implements Initializable {
     private void modeGenre() {
         hideAllSelectionBoxes();
         hideAllViews();
+
         genreSelectionBox.setVisible(true);
         graphContainer.setVisible(true);
     }
@@ -143,15 +142,15 @@ public class QoEController implements Initializable {
     private void modeZone() {
         hideAllSelectionBoxes();
         hideAllViews();
+
         zoneSelectionBox.setVisible(true);
         mapContainer.setVisible(true);
     }
 
-
-    // =========================================================================
+    // =====================================================================
     // FILTRES
-    // =========================================================================
-    private void chargerFiltresDepuisBD() {
+    // =====================================================================
+    private void loadFilters() {
 
         genreCombo.getItems().clear();
         zoneCombo.getItems().clear();
@@ -159,7 +158,7 @@ public class QoEController implements Initializable {
 
         try (Connection conn = DBConnection.getConnection()) {
 
-            // Genres
+            // Genre
             try (PreparedStatement ps = conn.prepareStatement(
                     "SELECT DISTINCT GENRE FROM CLIENT ORDER BY GENRE")) {
                 ResultSet rs = ps.executeQuery();
@@ -187,16 +186,15 @@ public class QoEController implements Initializable {
         } catch (Exception e) { e.printStackTrace(); }
     }
 
-
-    // =========================================================================
+    // =====================================================================
     // AFFICHAGE CLIENT / GENRE / ZONE
-    // =========================================================================
+    // =====================================================================
     private void afficherQoeParClient(int id) {
 
         QoE q = QoeAnalyzer.analyserParClient(id);
 
         if (q != null) afficherQoeDansInterface(q);
-        else afficherErreur();
+        else overallQoeLabel.setText("Erreur");
     }
 
     private void afficherQoeParGenre(String g) {
@@ -206,7 +204,7 @@ public class QoEController implements Initializable {
         if (q != null) {
             afficherQoeDansInterface(q);
             afficherGraphiqueGenre();
-        } else afficherErreur();
+        } else overallQoeLabel.setText("Erreur");
     }
 
     private void afficherQoeParZone(String z) {
@@ -216,14 +214,13 @@ public class QoEController implements Initializable {
         if (q != null) {
             afficherQoeDansInterface(q);
             afficherCartePourZone(z, q);
-        } else afficherErreur();
+        } else overallQoeLabel.setText("Erreur");
     }
 
-
-    // =========================================================================
-    // TABLE DES CLIENTS
-    // =========================================================================
-    private void preparerTableClients() {
+    // =====================================================================
+    // TABLE CLIENTS
+    // =====================================================================
+    private void setupClientTable() {
 
         TableColumn<ClientRow, Number> c1 = new TableColumn<>("ID");
         c1.setCellValueFactory(x -> x.getValue().idClientProperty());
@@ -241,14 +238,15 @@ public class QoEController implements Initializable {
         c5.setCellValueFactory(x -> x.getValue().qoeGlobalProperty());
 
         clientTable.getColumns().setAll(c1, c2, c3, c4, c5);
-        rafraichirTableClients();
+
+        refreshClientTable();
     }
 
-    private void rafraichirTableClients() {
-        clientTable.setItems(chargerClientsAvecQoe());
+    private void refreshClientTable() {
+        clientTable.setItems(loadClientRows());
     }
 
-    private ObservableList<ClientRow> chargerClientsAvecQoe() {
+    private ObservableList<ClientRow> loadClientRows() {
 
         ObservableList<ClientRow> list = FXCollections.observableArrayList();
 
@@ -276,86 +274,58 @@ public class QoEController implements Initializable {
                 ));
             }
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        } catch (Exception e) { e.printStackTrace(); }
 
         return list;
     }
 
-
-    // =========================================================================
+    // =====================================================================
     // GRAPHIQUE GENRE
-    // =========================================================================
+    // =====================================================================
     private void afficherGraphiqueGenre() {
 
         graphContainer.getChildren().clear();
 
-        // ==========================
-        // 1) Récupération des QoE pour Male et Female
-        // ==========================
-        QoE qMale = QoeAnalyzer.analyserParGenre("Male");
-        QoE qFemale = QoeAnalyzer.analyserParGenre("Female");
-
-        // ==========================
-        // 2) Préparation du graphique
-        // ==========================
         CategoryAxis x = new CategoryAxis();
-        x.setLabel("Genre");
-
         NumberAxis y = new NumberAxis();
-        y.setLabel("QoE Global (1 à 5)");
 
         BarChart<String, Number> chart = new BarChart<>(x, y);
-        chart.setTitle("Comparaison QoE Global : Male vs Female");
 
         XYChart.Series<String, Number> serie = new XYChart.Series<>();
         serie.setName("QoE Global");
 
-        // ==========================
-        // 3) Ajout des valeurs
-        // ==========================
-        if (qMale != null) {
-            serie.getData().add(new XYChart.Data<>("Male", qMale.getQoeGlobal()));
-        }
+        QoE male = QoeAnalyzer.analyserParGenre("Male");
+        QoE female = QoeAnalyzer.analyserParGenre("Female");
 
-        if (qFemale != null) {
-            serie.getData().add(new XYChart.Data<>("Female", qFemale.getQoeGlobal()));
-        }
+        if (male != null)
+            serie.getData().add(new XYChart.Data<>("Male", male.getQoeGlobal()));
 
-        // ==========================
-        // 4) Affichage
-        // ==========================
+        if (female != null)
+            serie.getData().add(new XYChart.Data<>("Female", female.getQoeGlobal()));
+
         chart.getData().add(serie);
         graphContainer.getChildren().add(chart);
     }
 
-
-    // =========================================================================
+    // =====================================================================
     // CARTE ZONE
-    // =========================================================================
+    // =====================================================================
     private void afficherCartePourZone(String zone, QoE q) {
 
         mapContainer.getChildren().clear();
 
         Label title = new Label("📍 Zone : " + zone);
-        title.setStyle("-fx-font-size: 18; -fx-font-weight: bold;");
+        Label qos = new Label(
+                "Latence: " + q.getLatenceMoy() +
+                        " | Jitter: " + q.getJitterMoy() +
+                        " | Perte: " + q.getPerteMoy());
 
-        Label qos = new Label(String.format(
-                "Latence %.2f ms • Jitter %.2f ms • Perte %.2f %% • Bande passante %.2f Mbps",
-                q.getLatenceMoy(), q.getJitterMoy(),
-                q.getPerteMoy(), q.getBandePassanteMoy()
-        ));
-
-        Label note = new Label("QoE global : " + format5(q.getQoeGlobal()));
-
-        mapContainer.getChildren().addAll(title, qos, note);
+        mapContainer.getChildren().addAll(title, qos);
     }
 
-
-    // =========================================================================
-    // AFFICHAGE DES LABELS
-    // =========================================================================
+    // =====================================================================
+    // AFFICHAGE DES METRIQUES
+    // =====================================================================
     private void afficherQoeDansInterface(QoE q) {
 
         satisfactionLabel.setText(format5(q.getSatisfactionQoe()));
@@ -366,43 +336,31 @@ public class QoEController implements Initializable {
 
         overallQoeLabel.setText(format5(q.getQoeGlobal()));
 
-        loadingTimeLabel.setText(String.format("%.2f ms", q.getLatenceMoy()));
-        bufferingLabel.setText(String.format("%.2f ms", q.getJitterMoy()));
-        failureRateLabel.setText(String.format("%.2f %%", q.getPerteMoy()));
-        streamingQualityLabel.setText(String.format("%.2f Mbps", q.getBandePassanteMoy()));
-
+        loadingTimeLabel.setText(q.getLatenceMoy() + " ms");
+        bufferingLabel.setText(q.getJitterMoy() + " ms");
+        failureRateLabel.setText(q.getPerteMoy() + " %");
+        streamingQualityLabel.setText(q.getBandePassanteMoy() + " Mbps");
     }
 
+    private String format5(double d) { return String.format("%.2f / 5", d); }
 
-    // =========================================================================
-    // HELPERS
-    // =========================================================================
-    private void hideAllSelectionBoxes() {
-        clientSelectionBox.setVisible(false);
-        genreSelectionBox.setVisible(false);
-        zoneSelectionBox.setVisible(false);
-    }
-
+    // Hide all containers
     private void hideAllViews() {
         tableContainer.setVisible(false);
         graphContainer.setVisible(false);
         mapContainer.setVisible(false);
     }
 
-    private String format5(double d) { return String.format("%.2f / 5", d); }
-
-    private void afficherErreur() {
-        overallQoeLabel.setText("Erreur");
-    }
-
-    private void afficherMessageCsvOK() {
-        overallQoeLabel.setText("CSV chargé !");
+    private void hideAllSelectionBoxes() {
+        clientSelectionBox.setVisible(false);
+        genreSelectionBox.setVisible(false);
+        zoneSelectionBox.setVisible(false);
     }
 
 
-    // =========================================================================
+    // =====================================================================
     // TABLE CLASS
-    // =========================================================================
+    // =====================================================================
     public static class ClientRow {
         private final IntegerProperty id = new SimpleIntegerProperty();
         private final StringProperty nom = new SimpleStringProperty();
