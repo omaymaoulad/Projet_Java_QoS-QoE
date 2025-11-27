@@ -1,4 +1,4 @@
-/*package com.ensah.qoe.Controller;
+package com.ensah.qoe.Controller;
 
 import com.ensah.qoe.Models.QoE;
 import com.ensah.qoe.Models.User;
@@ -94,9 +94,7 @@ public class ClientDashboardController implements Initializable {
         // Configurer le TextArea avec compteur de caractères
         setupCommentField();
     }
-
-    /**
-     * Ajoute l'interactivité au formulaire
+     // Ajoute l'interactivité au formulaire
 
     private void setupFormInteractivity() {
         // Animer les RadioButtons lors de la sélection
@@ -109,8 +107,8 @@ public class ClientDashboardController implements Initializable {
         }
     }
 
-    /**
-     * Configure le champ de commentaire avec compteur
+
+     //Configure le champ de commentaire avec compteur
 
     private void setupCommentField() {
         if (commentField != null) {
@@ -136,8 +134,7 @@ public class ClientDashboardController implements Initializable {
         }
     }
 
-    /**
-     * Met à jour le compteur de caractères (vous pouvez ajouter un Label dans le FXML)
+   // Met à jour le compteur de caractères (vous pouvez ajouter un Label dans le FXML)
 
     private void updateCharacterCount(int count) {
         // Si vous ajoutez un Label fx:id="characterCountLabel" dans le FXML
@@ -145,8 +142,7 @@ public class ClientDashboardController implements Initializable {
         System.out.println("Caractères: " + count + "/500");
     }
 
-    /**
-     * Animation lors de la sélection du ComboBox
+    // Animation lors de la sélection du ComboBox
 
     private void animateComboSelection() {
         if (serviceTypeCombo != null) {
@@ -161,8 +157,7 @@ public class ClientDashboardController implements Initializable {
         }
     }
 
-    /**
-     * Animation lors de la sélection d'une étoile
+    //Animation lors de la sélection d'une étoile
 
     private void animateStarSelection(RadioButton selectedRadio) {
         if (selectedRadio == null) return;
@@ -487,4 +482,4 @@ public class ClientDashboardController implements Initializable {
         alert.setContentText(message);
         alert.showAndWait();
     }
-}*/
+}

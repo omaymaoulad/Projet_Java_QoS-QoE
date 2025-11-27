@@ -13,7 +13,7 @@
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.ensah.qoe.Controller.AdminDashboardController"
             minWidth="600.0" minHeight="500.0"
-            prefHeight="750.0" prefWidth="1000.0"
+            prefHeight="750.0" prefWidth="1200.0"
             style="-fx-background-color: #f8f9fa;">
 
     <!-- Layout principal -->
