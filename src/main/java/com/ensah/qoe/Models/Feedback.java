@@ -1,6 +1,7 @@
 package com.ensah.qoe.Models;
 
-import java.util.Date;
+import java.time.LocalDateTime;
+
 
 public class Feedback {
 
@@ -9,7 +10,7 @@ public class Feedback {
     private String service;
     private Double score;
     private String commentaire;
-    private Date date;
+    private LocalDateTime date;
 
     public Feedback() {}
 
@@ -30,6 +31,6 @@ public class Feedback {
     public String getCommentaire() { return commentaire; }
     public void setCommentaire(String commentaire) { this.commentaire = commentaire; }
 
-    public Date getDate() { return date; }
-    public void setDate(Date date) { this.date = date; }
+    public LocalDateTime getDate() { return date; }
+    public void setDate(LocalDateTime date) { this.date = date; }
 }

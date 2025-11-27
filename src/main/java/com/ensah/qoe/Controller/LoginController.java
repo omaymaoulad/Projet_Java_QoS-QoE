@@ -149,7 +149,6 @@ public class LoginController implements Initializable {
         new Thread(() -> {
             try {
                 User authenticatedUser = authenticateUser(username, password);
-
                 javafx.application.Platform.runLater(() -> {
                     if (authenticatedUser != null) {
                         showSuccess("Login successful! Redirecting...");
@@ -178,13 +177,23 @@ public class LoginController implements Initializable {
 
         try {
             conn = DBConnection.getConnection();
-            String sql = "SELECT id_user, username, email, role FROM utilisateurs WHERE username = ? AND password = ?";
+            String sql =
+                    "SELECT id_user, username, email, role " +
+                            "FROM utilisateurs " +
+                            "WHERE username = ? AND TRIM(password) = ?";
             pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, username);
             pstmt.setString(2, password);
-
+            System.out.println("Connected as Oracle user: " + conn.getMetaData().getUserName());
             System.out.println("Executing query: username=" + username + ", password=" + password);
-
+            System.out.println("---- DEBUG USERNAME ----");
+            System.out.println("username raw = [" + username + "]");
+            System.out.println("username length = " + username.length());
+            for (int i = 0; i < username.length(); i++) {
+                System.out.println("char[" + i + "] = '" + username.charAt(i) +
+                        "' (code=" + (int) username.charAt(i) + ")");
+            }
+            System.out.println("-------------------------");
             rs = pstmt.executeQuery();
 
             if (rs.next()) {
@@ -250,10 +259,10 @@ public class LoginController implements Initializable {
             if (controller instanceof AdminDashboardController) {
                 ((AdminDashboardController) controller).setUserData(user);
                 System.out.println("✅ Données passées à AdminDashboardController");
-            } /*else if (controller instanceof ClientDashboardController) {
+            } else if (controller instanceof ClientDashboardController) {
                 ((ClientDashboardController) controller).setUserData(user);
                 System.out.println("✅ Données passées à ClientDashboardController");
-            }*/
+            }
 
             // Switch scene
             Stage stage = (Stage) loginButton.getScene().getWindow();

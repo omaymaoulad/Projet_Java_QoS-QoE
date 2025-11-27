@@ -161,8 +161,10 @@
                                 <Label text="Évaluez votre expérience de 1 à 5 étoiles" styleClass="form-helper"/>
 
                                 <!-- Étoiles cliquables -->
+                                <fx:define>
+                                    <ToggleGroup fx:id="ratingGroup"/>
+                                </fx:define>
                                 <HBox spacing="15" alignment="CENTER" styleClass="star-container">
-<!--                                    <ToggleGroup fx:id="ratingGroup"/>-->
 
                                     <VBox spacing="8" alignment="CENTER" styleClass="star-wrapper">
                                         <RadioButton toggleGroup="$ratingGroup" userData="1" styleClass="star-radio">
@@ -275,11 +277,10 @@
 
                     <TableView fx:id="feedbackHistoryTable" styleClass="modern-table">
                         <columns>
-                            <TableColumn text="📅 Date" prefWidth="200"/>
-                            <TableColumn text="🔧 Service" prefWidth="180"/>
-                            <TableColumn text="⭐ Score QoE" prefWidth="140"/>
-                            <TableColumn text="🎥 Qualité Vidéo" prefWidth="150"/>
-                            <TableColumn text="🔊 Qualité Audio" prefWidth="150"/>
+                            <TableColumn fx:id="colDate" text="📅 Date" prefWidth="200"/>
+                            <TableColumn fx:id="colService" text="🔧 Service" prefWidth="180"/>
+                            <TableColumn fx:id="colScore" text="⭐ Score" prefWidth="140"/>
+                            <TableColumn fx:id="colComment" text="📝 Commentaire" prefWidth="300"/>
                         </columns>
                         <placeholder>
                             <VBox alignment="CENTER" spacing="15" styleClass="table-placeholder">
