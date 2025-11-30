@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carte QoE - Full Screen</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+          crossorigin=""/>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        #map {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+            background: #1a1a2e;
+        }
+
+        .leaflet-container {
+            background: #1a1a2e !important;
+            font: 14px/1.5 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+        }
+
+        .custom-popup .leaflet-popup-content-wrapper {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .custom-popup .leaflet-popup-tip {
+            background: #764ba2;
+        }
+
+        .popup-header {
+            background: rgba(0,0,0,0.2);
+            padding: 15px;
+            border-bottom: 2px solid rgba(255,255,255,0.3);
+        }
+
+        .popup-title {
+            font-size: 18px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0;
+        }
+
+        .popup-body {
+            padding: 15px;
+        }
+
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .metric-row:last-child {
+            border-bottom: none;
+        }
+
+        .metric-label {
+            font-weight: 600;
+            opacity: 0.9;
+        }
+
+        .metric-value {
+            font-weight: bold;
+            font-size: 15px;
+        }
+
+        .qoe-badge {
+            background: rgba(255,255,255,0.3);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .legend {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            line-height: 24px;
+            backdrop-filter: blur(10px);
+        }
+
+        .legend h4 {
+            margin: 0 0 12px 0;
+            color: #2c3e50;
+            font-size: 16px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 8px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 8px 0;
+            font-size: 14px;
+        }
+
+        .legend-circle {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body>
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin=""></script>
+
+<script>
+    // Initialisation de la carte
+    var map = L.map('map', {
+        center: [34.0, -6.0],
+        zoom: 6,
+        zoomControl: true,
+        preferCanvas: true
+    });
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap',
+        maxZoom: 18,
+        minZoom: 3
+    }).addTo(map);
+
+    var markersLayer = L.layerGroup().addTo(map);
+
+    // Couleurs QoE
+    function getQoEColor(qoe) {
+        if (qoe >= 4.5) return '#10b981';
+        if (qoe >= 4.0) return '#22c55e';
+        if (qoe >= 3.0) return '#eab308';
+        if (qoe >= 2.0) return '#f97316';
+        return '#ef4444';
+    }
+
+    function getQoELabel(qoe) {
+        if (qoe >= 4.5) return 'Excellent';
+        if (qoe >= 4.0) return 'Bon';
+        if (qoe >= 3.0) return 'Moyen';
+        if (qoe >= 2.0) return 'Faible';
+        return 'Mauvais';
+    }
+
+    // Ajouter un marqueur
+    function addMarker(lat, lng, nom, qoe, clients, debit, latence) {
+        var color = getQoEColor(qoe);
+        var label = getQoELabel(qoe);
+        var radius = Math.max(12, 10 + (clients / 4));
+
+        var marker = L.circleMarker([lat, lng], {
+            radius: radius,
+            fillColor: color,
+            color: '#ffffff',
+            weight: 3,
+            opacity: 1,
+            fillOpacity: 0.9
+        }).addTo(markersLayer);
+
+        var popup = `
+                <div class="popup-header">
+                    <div class="popup-title">
+                        <span>📍</span>
+                        <span>${nom}</span>
+                    </div>
+                </div>
+                <div class="popup-body">
+                    <div class="metric-row">
+                        <span class="metric-label">Qualité QoE</span>
+                        <span class="qoe-badge">${qoe.toFixed(2)}/5 (${label})</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">👥 Clients</span>
+                        <span class="metric-value">${clients}</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">⚡ Débit</span>
+                        <span class="metric-value">${debit}</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">⏱️ Latence</span>
+                        <span class="metric-value">${latence}</span>
+                    </div>
+                </div>
+            `;
+
+        marker.bindPopup(popup, {
+            maxWidth: 300,
+            className: 'custom-popup'
+        });
+
+        return marker;
+    }
+
+    function clearMarkers() {
+        markersLayer.clearLayers();
+    }
+
+    function fitBounds(bounds) {
+        var sw = L.latLng(bounds[0][0], bounds[0][1]);
+        var ne = L.latLng(bounds[1][0], bounds[1][1]);
+        map.fitBounds(L.latLngBounds(sw, ne), {
+            padding: [40, 40],
+            animate: true
+        });
+    }
+
+    // Légende
+    var legend = L.control({position: 'bottomright'});
+    legend.onAdd = function(map) {
+        var div = L.DomUtil.create('div', 'legend');
+        div.innerHTML = `
+                <h4>📊 Légende QoE</h4>
+                <div class="legend-item">
+                    <div class="legend-circle" style="background: #10b981;"></div>
+                    <span>Excellent (4.5-5.0)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-circle" style="background: #22c55e;"></div>
+                    <span>Bon (4.0-4.4)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-circle" style="background: #eab308;"></div>
+                    <span>Moyen (3.0-3.9)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-circle" style="background: #f97316;"></div>
+                    <span>Faible (2.0-2.9)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-circle" style="background: #ef4444;"></div>
+                    <span>Mauvais (< 2.0)</span>
+                </div>
+            `;
+        return div;
+    };
+    legend.addTo(map);
+
+    // API globale
+    window.mapAPI = {
+        addMarker: addMarker,
+        clearMarkers: clearMarkers,
+        fitBounds: fitBounds
+    };
+
+    // Fonction pour le redimensionnement
+    window.invalidateMapSize = function() {
+        if (map) {
+            setTimeout(function() {
+                map.invalidateSize(true);
+            }, 100);
+        }
+    };
+
+    // Redimensionnement initial
+    setTimeout(function() {
+        map.invalidateSize();
+    }, 200);
+</script>
+</body>
+</html>

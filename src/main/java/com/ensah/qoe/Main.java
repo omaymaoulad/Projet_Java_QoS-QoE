@@ -16,7 +16,7 @@ public class Main extends Application {
     public void start(Stage primaryStage) {
         try {
             //ClientCsvImporter.importClients();
-            Parent root = FXMLLoader.load(getClass().getResource("/fxml/Login.fxml"));
+            Parent root = FXMLLoader.load(getClass().getResource("/fxml/login.fxml"));
 
             Scene scene = new Scene(root, 1200, 650);
             scene.getStylesheets().add(getClass().getResource("/css/style.css").toExternalForm());

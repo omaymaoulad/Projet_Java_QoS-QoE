@@ -11,8 +11,8 @@ public class ClientCsvImporter {
     public static void importClients() {
         String csvPath = "src/main/resources/clients_localisation_underscore.csv";
 
-        String sql = "INSERT INTO CLIENT (NOM, GENRE, TELEPHONE, LOCALISATION_ZONE, EST_USER_APP) " +
-                "VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO CLIENT (ID_CLIENT, NOM, GENRE, TELEPHONE, LOCALISATION_ZONE, EST_USER_APP) " +
+                "VALUES (CLIENT_SEQ.NEXTVAL, ?, ?, ?, ?, ?)";
 
         try (BufferedReader br = new BufferedReader(new FileReader(csvPath));
              Connection conn = DBConnection.getConnection();

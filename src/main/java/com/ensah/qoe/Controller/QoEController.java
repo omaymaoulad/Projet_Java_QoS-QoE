@@ -7,11 +7,15 @@ import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.chart.*;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 import javafx.stage.FileChooser;
 
 import java.io.File;
@@ -43,11 +47,10 @@ public class QoEController implements Initializable {
     // Conteneur dynamique
     @FXML private VBox tableContainer;
     @FXML private VBox graphContainer;
-    @FXML private VBox mapContainer;
 
     @FXML private TableView<ClientRow> clientTable;
 
-    // === Labels ===
+    // Labels
     @FXML private Label satisfactionLabel;
     @FXML private Label videoQualityLabel;
     @FXML private Label audioQualityLabel;
@@ -59,7 +62,6 @@ public class QoEController implements Initializable {
     @FXML private Label loadingTimeLabel;
     @FXML private Label failureRateLabel;
     @FXML private Label streamingQualityLabel;
-
 
     // =====================================================================
     // INITIALISATION
@@ -78,14 +80,22 @@ public class QoEController implements Initializable {
         loadFilters();
         setupClientTable();
 
+        // Actions des ComboBox
         genreCombo.setOnAction(e -> afficherQoeParGenre(genreCombo.getValue()));
-        zoneCombo.setOnAction(e -> afficherQoeParZone(zoneCombo.getValue()));
 
         clientCombo.setOnAction(e -> {
             String s = clientCombo.getValue();
             if (s != null) {
                 int id = Integer.parseInt(s.split(" - ")[0]);
                 afficherQoeParClient(id);
+            }
+        });
+
+        // Action pour le ComboBox de zone
+        zoneCombo.setOnAction(e -> {
+            String zone = zoneCombo.getValue();
+            if (zone != null) {
+                afficherQoeParZone(zone);
             }
         });
     }
@@ -95,7 +105,6 @@ public class QoEController implements Initializable {
     // =====================================================================
     @FXML
     private void importerCsv() {
-
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Choisir un CSV Telco");
         chooser.getExtensionFilters().add(
@@ -139,12 +148,77 @@ public class QoEController implements Initializable {
     }
 
     @FXML
-    private void modeZone() {
+    public void modeZone() {
         hideAllSelectionBoxes();
         hideAllViews();
 
         zoneSelectionBox.setVisible(true);
-        mapContainer.setVisible(true);
+
+        // Ouvrir directement la carte avec toutes les zones
+        ouvrirCarteComplete();
+    }
+
+    // =====================================================================
+    // OUVERTURE DE LA CARTE
+    // =====================================================================
+    private void ouvrirCarteComplete() {
+        try {
+            // Charger le FXML de la carte
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/map_geographique.fxml"));
+            Parent root = loader.load();
+
+            // Obtenir le contrôleur de la carte
+            MapGeographiqueController mapController = loader.getController();
+
+            // Ne pas définir de filtre de zone (afficher tous les clients)
+            // mapController.setZoneFiltre(null);
+
+            // Créer la nouvelle fenêtre
+            Stage mapStage = new Stage();
+            mapStage.setTitle("Carte QoE - Tous les clients");
+            mapStage.setScene(new Scene(root, 1200, 800));
+            mapStage.setMaximized(true);
+
+            mapStage.show();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            afficherAlerteErreur("Erreur", "Impossible d'ouvrir la carte géographique");
+        }
+    }
+
+    private void ouvrirCarteZone(String zone) {
+        try {
+            // Charger le FXML de la carte
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/map_geographique.fxml"));
+            Parent root = loader.load();
+
+            // Obtenir le contrôleur de la carte
+            MapGeographiqueController mapController = loader.getController();
+
+            // Passer la zone sélectionnée au contrôleur de la carte
+            mapController.setZoneFiltre(zone);
+
+            // Créer la nouvelle fenêtre
+            Stage mapStage = new Stage();
+            mapStage.setTitle("Carte QoE - " + zone);
+            mapStage.setScene(new Scene(root, 1200, 800));
+            mapStage.setMaximized(true);
+
+            mapStage.show();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            afficherAlerteErreur("Erreur", "Impossible d'ouvrir la carte pour la zone: " + zone);
+        }
+    }
+
+    private void afficherAlerteErreur(String titre, String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(titre);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 
     // =====================================================================
@@ -167,9 +241,14 @@ public class QoEController implements Initializable {
 
             // Zones
             try (PreparedStatement ps = conn.prepareStatement(
-                    "SELECT DISTINCT ZONE FROM MESURES_QOS ORDER BY ZONE")) {
+                    "SELECT DISTINCT LOCALISATION_ZONE FROM CLIENT WHERE LOCALISATION_ZONE IS NOT NULL ORDER BY LOCALISATION_ZONE")) {
                 ResultSet rs = ps.executeQuery();
-                while (rs.next()) zoneCombo.getItems().add(rs.getString(1));
+                while (rs.next()) {
+                    String zone = rs.getString(1);
+                    if (zone != null && !zone.trim().isEmpty()) {
+                        zoneCombo.getItems().add(zone);
+                    }
+                }
             }
 
             // Clients
@@ -183,24 +262,22 @@ public class QoEController implements Initializable {
                 }
             }
 
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     // =====================================================================
     // AFFICHAGE CLIENT / GENRE / ZONE
     // =====================================================================
     private void afficherQoeParClient(int id) {
-
         QoE q = QoeAnalyzer.analyserParClient(id);
-
         if (q != null) afficherQoeDansInterface(q);
         else overallQoeLabel.setText("Erreur");
     }
 
     private void afficherQoeParGenre(String g) {
-
         QoE q = QoeAnalyzer.analyserParGenre(g);
-
         if (q != null) {
             afficherQoeDansInterface(q);
             afficherGraphiqueGenre();
@@ -208,12 +285,11 @@ public class QoEController implements Initializable {
     }
 
     private void afficherQoeParZone(String z) {
-
         QoE q = QoeAnalyzer.analyserParZone(z);
-
         if (q != null) {
             afficherQoeDansInterface(q);
-            afficherCartePourZone(z, q);
+            // Ouvrir la carte filtrée pour cette zone
+            ouvrirCarteZone(z);
         } else overallQoeLabel.setText("Erreur");
     }
 
@@ -221,7 +297,6 @@ public class QoEController implements Initializable {
     // TABLE CLIENTS
     // =====================================================================
     private void setupClientTable() {
-
         TableColumn<ClientRow, Number> c1 = new TableColumn<>("ID");
         c1.setCellValueFactory(x -> x.getValue().idClientProperty());
 
@@ -238,7 +313,6 @@ public class QoEController implements Initializable {
         c5.setCellValueFactory(x -> x.getValue().qoeGlobalProperty());
 
         clientTable.getColumns().setAll(c1, c2, c3, c4, c5);
-
         refreshClientTable();
     }
 
@@ -247,7 +321,6 @@ public class QoEController implements Initializable {
     }
 
     private ObservableList<ClientRow> loadClientRows() {
-
         ObservableList<ClientRow> list = FXCollections.observableArrayList();
 
         String sql =
@@ -283,13 +356,13 @@ public class QoEController implements Initializable {
     // GRAPHIQUE GENRE
     // =====================================================================
     private void afficherGraphiqueGenre() {
-
         graphContainer.getChildren().clear();
 
         CategoryAxis x = new CategoryAxis();
         NumberAxis y = new NumberAxis();
 
         BarChart<String, Number> chart = new BarChart<>(x, y);
+        chart.setTitle("QoE par Genre");
 
         XYChart.Series<String, Number> serie = new XYChart.Series<>();
         serie.setName("QoE Global");
@@ -308,26 +381,9 @@ public class QoEController implements Initializable {
     }
 
     // =====================================================================
-    // CARTE ZONE
-    // =====================================================================
-    private void afficherCartePourZone(String zone, QoE q) {
-
-        mapContainer.getChildren().clear();
-
-        Label title = new Label("📍 Zone : " + zone);
-        Label qos = new Label(
-                "Latence: " + q.getLatenceMoy() +
-                        " | Jitter: " + q.getJitterMoy() +
-                        " | Perte: " + q.getPerteMoy());
-
-        mapContainer.getChildren().addAll(title, qos);
-    }
-
-    // =====================================================================
     // AFFICHAGE DES METRIQUES
     // =====================================================================
     private void afficherQoeDansInterface(QoE q) {
-
         satisfactionLabel.setText(format5(q.getSatisfactionQoe()));
         videoQualityLabel.setText(format5(q.getServiceQoe()));
         audioQualityLabel.setText(format5(q.getPrixQoe()));
@@ -348,7 +404,6 @@ public class QoEController implements Initializable {
     private void hideAllViews() {
         tableContainer.setVisible(false);
         graphContainer.setVisible(false);
-        mapContainer.setVisible(false);
     }
 
     private void hideAllSelectionBoxes() {
@@ -357,9 +412,8 @@ public class QoEController implements Initializable {
         zoneSelectionBox.setVisible(false);
     }
 
-
     // =====================================================================
-    // TABLE CLASS
+    // CLASSES INTERNES
     // =====================================================================
     public static class ClientRow {
         private final IntegerProperty id = new SimpleIntegerProperty();
