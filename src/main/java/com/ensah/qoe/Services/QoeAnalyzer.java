@@ -5,6 +5,8 @@ import com.ensah.qoe.Models.QoE;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.PrintWriter;
 import java.sql.*;
 import java.util.HashMap;
 import java.util.Map;
@@ -15,6 +17,7 @@ public class QoeAnalyzer {
     private static boolean csvCharge = false;
 
     private static Double feedbackTemp = null;
+
     // =========================================================================
     // 1) IMPORT CSV + INSERTION AUTOMATIQUE
     // =========================================================================
@@ -27,7 +30,7 @@ public class QoeAnalyzer {
         if (FichierService.fichierExiste(nomFichier)) {
             System.out.println("⚠ Le fichier est déjà importé. Chargement depuis la base...");
 
-            csvCharge = false; // empêche l’analyse par CSV
+            csvCharge = false; // empêche l'analyse par CSV
             chargerDepuisBase(nomFichier);
             return true;
         }
@@ -77,6 +80,7 @@ public class QoeAnalyzer {
 
         return false;
     }
+
     private static void chargerDepuisBase(String nomFichier) {
 
         subjectifParClient.clear();
@@ -131,8 +135,6 @@ public class QoeAnalyzer {
             e.printStackTrace();
         }
     }
-
-
 
     // =========================================================================
     // 2) INSERTION AUTOMATIQUE AVEC UNE SEULE CONNEXION
@@ -189,7 +191,6 @@ public class QoeAnalyzer {
         System.out.println("=== ✔ FIN : Insertion automatique de tous les QoE ===");
     }
 
-
     // =========================================================================
     // 3) ANALYSE CLIENT SANS FERMER LA CONNEXION
     // =========================================================================
@@ -230,7 +231,6 @@ public class QoeAnalyzer {
         return q;
     }
 
-
     // =========================================================================
     // 4) ANALYSE UTILISÉE PAR LE CONTROLLER (séparée)
     // =========================================================================
@@ -260,6 +260,7 @@ public class QoeAnalyzer {
 
         return q;
     }
+
     public static QoE analyserParGenre(String genre) {
         QoE q = new QoE();
         q.setGenre(genre);
@@ -304,7 +305,6 @@ public class QoeAnalyzer {
         q.setContratQoe(s4 / count);
         q.setLifetimeQoe(s5 / count);
 
-
         // ==========================
         // 2) OBJECTIF filtré par genre
         // ==========================
@@ -331,7 +331,6 @@ public class QoeAnalyzer {
 
         } catch (Exception e) { e.printStackTrace(); }
 
-
         // ==========================
         // 3) CALCUL QoE GLOBAL du genre
         // ==========================
@@ -345,8 +344,6 @@ public class QoeAnalyzer {
     }
 
     public static QoE analyserParZone(String zone) {
-
-
 
         QoE q = new QoE();
 
@@ -397,8 +394,220 @@ public class QoeAnalyzer {
         return q;
     }
 
+    // =========================================================================
+    // NOUVELLES MÉTHODES POUR LE MENU QoE GLOBAL
+    // =========================================================================
 
+    /**
+     * Calcule le QoE global pour toutes les données
+     */
+    public static QoE analyserQoEGlobal() {
+        try (Connection conn = DBConnection.getConnection()) {
+            String sql = """
+                SELECT 
+                    AVG(q.SATISFACTION_QOE) as satisfaction,
+                    AVG(q.SERVICE_QOE) as service,
+                    AVG(q.PRIX_QOE) as prix,
+                    AVG(q.CONTRAT_QOE) as contrat,
+                    AVG(q.LIFETIME_QOE) as lifetime,
+                    AVG(q.QOE_GLOBAL) as qoe_global,
+                    AVG(q.LATENCE_MOY) as latence,
+                    AVG(q.JITTER_MOY) as jitter,
+                    AVG(q.PERTE_MOY) as perte,
+                    AVG(q.BANDE_PASSANTE_MOY) as bande_passante
+                FROM QOE q
+                WHERE q.QOE_GLOBAL IS NOT NULL
+                """;
 
+            try (PreparedStatement ps = conn.prepareStatement(sql);
+                 ResultSet rs = ps.executeQuery()) {
+
+                if (rs.next()) {
+                    QoE qoe = new QoE();
+                    qoe.setSatisfactionQoe(rs.getDouble("satisfaction"));
+                    qoe.setServiceQoe(rs.getDouble("service"));
+                    qoe.setPrixQoe(rs.getDouble("prix"));
+                    qoe.setContratQoe(rs.getDouble("contrat"));
+                    qoe.setLifetimeQoe(rs.getDouble("lifetime"));
+                    qoe.setQoeGlobal(rs.getDouble("qoe_global"));
+                    qoe.setLatenceMoy(rs.getDouble("latence"));
+                    qoe.setJitterMoy(rs.getDouble("jitter"));
+                    qoe.setPerteMoy(rs.getDouble("perte"));
+                    qoe.setBandePassanteMoy(rs.getDouble("bande_passante"));
+
+                    return qoe;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * Exporte un rapport dans le format spécifié
+     */
+    public static boolean exporterRapport(String cheminFichier) {
+        try {
+            // Déterminer le format basé sur l'extension
+            if (cheminFichier.toLowerCase().endsWith(".csv")) {
+                return exporterRapportCSV(cheminFichier);
+            } else if (cheminFichier.toLowerCase().endsWith(".pdf")) {
+                return exporterRapportPDF(cheminFichier);
+            } else if (cheminFichier.toLowerCase().endsWith(".xlsx")) {
+                return exporterRapportExcel(cheminFichier);
+            } else {
+                System.err.println("Format non supporté: " + cheminFichier);
+                return false;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Exporte un rapport CSV simple
+     */
+    private static boolean exporterRapportCSV(String cheminFichier) {
+        try (Connection conn = DBConnection.getConnection();
+             PrintWriter writer = new PrintWriter(new FileWriter(cheminFichier))) {
+
+            // En-tête CSV
+            writer.println("ID_Client,Nom,Genre,Zone,QoE_Global,Satisfaction,Service,Prix,Contrat,Lifetime,Latence,Jitter,Perte,BandePassante");
+
+            String sql = """
+                SELECT 
+                    c.ID_CLIENT, c.NOM, c.GENRE, c.LOCALISATION_ZONE,
+                    q.QOE_GLOBAL, q.SATISFACTION_QOE, q.SERVICE_QOE, q.PRIX_QOE, 
+                    q.CONTRAT_QOE, q.LIFETIME_QOE, q.LATENCE_MOY, q.JITTER_MOY, 
+                    q.PERTE_MOY, q.BANDE_PASSANTE_MOY
+                FROM CLIENT c
+                LEFT JOIN QOE q ON c.ID_CLIENT = q.ID_CLIENT
+                WHERE q.QOE_GLOBAL IS NOT NULL
+                ORDER BY c.NOM
+                """;
+
+            try (PreparedStatement ps = conn.prepareStatement(sql);
+                 ResultSet rs = ps.executeQuery()) {
+
+                while (rs.next()) {
+                    writer.printf("%d,%s,%s,%s,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f%n",
+                            rs.getInt("ID_CLIENT"),
+                            escapeCsv(rs.getString("NOM")),
+                            escapeCsv(rs.getString("GENRE")),
+                            escapeCsv(rs.getString("LOCALISATION_ZONE")),
+                            rs.getDouble("QOE_GLOBAL"),
+                            rs.getDouble("SATISFACTION_QOE"),
+                            rs.getDouble("SERVICE_QOE"),
+                            rs.getDouble("PRIX_QOE"),
+                            rs.getDouble("CONTRAT_QOE"),
+                            rs.getDouble("LIFETIME_QOE"),
+                            rs.getDouble("LATENCE_MOY"),
+                            rs.getDouble("JITTER_MOY"),
+                            rs.getDouble("PERTE_MOY"),
+                            rs.getDouble("BANDE_PASSANTE_MOY")
+                    );
+                }
+            }
+
+            System.out.println("Rapport CSV exporté: " + cheminFichier);
+            return true;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Échappe les caractères spéciaux pour CSV
+     */
+    private static String escapeCsv(String value) {
+        if (value == null) return "";
+        if (value.contains(",") || value.contains("\"") || value.contains("\n")) {
+            return "\"" + value.replace("\"", "\"\"") + "\"";
+        }
+        return value;
+    }
+
+    /**
+     * Exporte un rapport PDF (version simplifiée)
+     */
+    private static boolean exporterRapportPDF(String cheminFichier) {
+        try {
+            // Pour une implémentation PDF complète, vous pourriez utiliser une bibliothèque comme iText
+            // Cette version crée un simple fichier texte pour l'exemple
+            try (PrintWriter writer = new PrintWriter(new FileWriter(cheminFichier.replace(".pdf", "_report.txt")))) {
+
+                writer.println("=== RAPPORT QoE ===");
+                writer.println("Généré le: " + new java.util.Date());
+                writer.println();
+
+                try (Connection conn = DBConnection.getConnection()) {
+                    // Statistiques globales
+                    String statsSql = """
+                        SELECT 
+                            COUNT(*) as total_clients,
+                            AVG(QOE_GLOBAL) as qoe_moyen,
+                            MIN(QOE_GLOBAL) as qoe_min,
+                            MAX(QOE_GLOBAL) as qoe_max
+                        FROM QOE 
+                        WHERE QOE_GLOBAL IS NOT NULL
+                        """;
+
+                    try (PreparedStatement ps = conn.prepareStatement(statsSql);
+                         ResultSet rs = ps.executeQuery()) {
+
+                        if (rs.next()) {
+                            writer.printf("Total clients: %d%n", rs.getInt("total_clients"));
+                            writer.printf("QoE moyen: %.2f/5%n", rs.getDouble("qoe_moyen"));
+                            writer.printf("QoE min: %.2f/5%n", rs.getDouble("qoe_min"));
+                            writer.printf("QoE max: %.2f/5%n", rs.getDouble("qoe_max"));
+                            writer.println();
+                        }
+                    }
+
+                    // Détails par genre
+                    writer.println("=== QoE PAR GENRE ===");
+                    String genreSql = """
+                        SELECT c.GENRE, AVG(q.QOE_GLOBAL) as qoe_moyen, COUNT(*) as count
+                        FROM CLIENT c
+                        JOIN QOE q ON c.ID_CLIENT = q.ID_CLIENT
+                        WHERE c.GENRE IS NOT NULL AND q.QOE_GLOBAL IS NOT NULL
+                        GROUP BY c.GENRE
+                        ORDER BY qoe_moyen DESC
+                        """;
+
+                    try (PreparedStatement ps = conn.prepareStatement(genreSql);
+                         ResultSet rs = ps.executeQuery()) {
+
+                        while (rs.next()) {
+                            writer.printf("%s: %.2f/5 (%d clients)%n",
+                                    rs.getString("GENRE"),
+                                    rs.getDouble("qoe_moyen"),
+                                    rs.getInt("count"));
+                        }
+                    }
+                }
+
+                System.out.println("Rapport texte exporté: " + cheminFichier.replace(".pdf", "_report.txt"));
+                return true;
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Exporte un rapport Excel (version simplifiée - CSV avec extension xlsx)
+     */
+    private static boolean exporterRapportExcel(String cheminFichier) {
+        // Pour l'instant, on utilise le même format que CSV
+        return exporterRapportCSV(cheminFichier.replace(".xlsx", ".csv"));
+    }
 
     // =========================================================================
     // 5) REMPLISSAGE QOS
@@ -426,8 +635,6 @@ public class QoeAnalyzer {
         } catch (Exception ignore) {}
     }
 
-
-
     // =========================================================================
     // 6) FORMULE GLOBALE
     // =========================================================================
@@ -447,7 +654,6 @@ public class QoeAnalyzer {
 
         return Math.max(1, Math.min(5, 0.6 * subjectif + 0.4 * qos));
     }
-
 
     // =========================================================================
     // HELPERS
@@ -472,7 +678,6 @@ public class QoeAnalyzer {
         try { return Double.parseDouble(s); }
         catch (Exception e) { return 0.0; }
     }
-
 
     // =========================================================================
     // FORMULES SUBJECTIVES
@@ -550,6 +755,7 @@ public class QoeAnalyzer {
 
         return clamp(score, 1, 5);
     }
+
     private static Double getFeedbackScore(int idClient, Connection conn) {
 
         String sql = "SELECT score FROM FEEDBACKS WHERE CLIENT_NAME = " +
@@ -564,6 +770,7 @@ public class QoeAnalyzer {
 
         return null;
     }
+
     private static QoE chargerQoeDepuisBase(int id, Connection conn) {
 
         String sql = "SELECT * FROM QOE WHERE ID_CLIENT = ?";
@@ -597,5 +804,4 @@ public class QoeAnalyzer {
         }
         return null;
     }
-
 }
