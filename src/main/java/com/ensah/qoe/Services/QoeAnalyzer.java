@@ -14,7 +14,7 @@ public class QoeAnalyzer {
     private static final Map<Integer, QoE> subjectifParClient = new HashMap<>();
     private static boolean csvCharge = false;
 
-
+    private static Double feedbackTemp = null;
     // =========================================================================
     // 1) IMPORT CSV + INSERTION AUTOMATIQUE
     // =========================================================================
@@ -217,7 +217,9 @@ public class QoeAnalyzer {
 
         if (zone != null)
             remplirQosPourZoneSansConnexion(q, zone, conn);
-
+        if (q.getFeedbackScore() != null) {
+            System.out.println("✔ Feedback détecté : " + q.getFeedbackScore());
+        }
         // Calcul final
         q.setQoeGlobal(computeGlobalQoe(
                 q.getSatisfactionQoe(), q.getServiceQoe(),
@@ -234,14 +236,29 @@ public class QoeAnalyzer {
     // =========================================================================
     public static QoE analyserParClient(int idClient) {
 
-        if (!subjectifParClient.containsKey(idClient)) return null;
+        QoE q = null;
 
         try (Connection conn = DBConnection.getConnection()) {
-            return analyserParClientSansConnexion(idClient, conn);
+
+            // Récupérer feedback APRES calcul subjectif
+            feedbackTemp = getFeedbackScore(idClient, conn);
+
+            // 2) Vérifier si subjectif existe
+            if (!subjectifParClient.containsKey(idClient)) {
+                System.out.println("⚠ Subjectif introuvable pour id=" + idClient +
+                        " → chargement depuis la BDD");
+
+                return chargerQoeDepuisBase(idClient, conn);
+            }
+            q = analyserParClientSansConnexion(idClient, conn);
+
+            feedbackTemp = null; // reset
+
         } catch (Exception e) {
             e.printStackTrace();
-            return null;
         }
+
+        return q;
     }
     public static QoE analyserParGenre(String genre) {
         QoE q = new QoE();
@@ -416,10 +433,13 @@ public class QoeAnalyzer {
     // =========================================================================
     private static double computeGlobalQoe(
             double s1, double s2, double s3, double s4, double s5,
-            double mos, double perte) {
-
+            double mos, double perte ) {
+        double feedback;
         double subjectif = (s1 + s2 + s3 + s4 + s5) / 5.0;
-
+        // Petit bonus = 10% si feedback existe
+        if (feedbackTemp != null) {
+            subjectif = (subjectif * 0.9) + (feedbackTemp * 0.1);
+        }
         double mosNorm = mos / 5.0;
         double perteNorm = (100 - perte) / 100.0;
 
@@ -530,4 +550,52 @@ public class QoeAnalyzer {
 
         return clamp(score, 1, 5);
     }
+    private static Double getFeedbackScore(int idClient, Connection conn) {
+
+        String sql = "SELECT score FROM FEEDBACKS WHERE CLIENT_NAME = " +
+                "(SELECT NOM FROM CLIENT WHERE ID_CLIENT = ?) " +
+                "ORDER BY FEEDBACK_DATE DESC FETCH FIRST 1 ROW ONLY";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, idClient);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return rs.getDouble(1);
+        } catch (Exception ignored) {}
+
+        return null;
+    }
+    private static QoE chargerQoeDepuisBase(int id, Connection conn) {
+
+        String sql = "SELECT * FROM QOE WHERE ID_CLIENT = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                QoE q = new QoE();
+                q.setIdClient(id);
+                q.setSatisfactionQoe(rs.getDouble("SATISFACTION_QOE"));
+                q.setServiceQoe(rs.getDouble("SERVICE_QOE"));
+                q.setPrixQoe(rs.getDouble("PRIX_QOE"));
+                q.setContratQoe(rs.getDouble("CONTRAT_QOE"));
+                q.setLifetimeQoe(rs.getDouble("LIFETIME_QOE"));
+                q.setFeedbackScore(rs.getDouble("FEEDBACK_SCORE"));
+
+                q.setLatenceMoy(rs.getDouble("LATENCE_MOY"));
+                q.setJitterMoy(rs.getDouble("JITTER_MOY"));
+                q.setPerteMoy(rs.getDouble("PERTE_MOY"));
+                q.setBandePassanteMoy(rs.getDouble("BANDE_PASSANTE_MOY"));
+                q.setMosMoy(rs.getDouble("MOS_MOY"));
+
+                q.setQoeGlobal(rs.getDouble("QOE_GLOBAL"));
+
+                return q;
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
 }
