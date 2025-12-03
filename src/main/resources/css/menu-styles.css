@@ -1,0 +1,33 @@
+/* Effet hover pour les boutons du menu */
+.menu-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #ecf0f1;
+    -fx-font-size: 15px;
+    -fx-font-weight: 600;
+    -fx-alignment: center-left;
+    -fx-padding: 14 18;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+    -fx-cursor: hand;
+}
+
+.menu-button:hover {
+    -fx-background-color: rgba(52, 152, 219, 0.15);
+    -fx-text-fill: #3498db;
+    -fx-effect: dropshadow(gaussian, rgba(52, 152, 219, 0.2), 8, 0, 0, 2);
+}
+
+.menu-button:pressed {
+    -fx-background-color: rgba(52, 152, 219, 0.25);
+    -fx-scale-x: 0.98;
+    -fx-scale-y: 0.98;
+}
+
+/* Effet pour le bouton actif */
+.menu-button.active {
+    -fx-background-color: rgba(52, 152, 219, 0.3);
+    -fx-text-fill: #3498db;
+    -fx-border-color: #3498db;
+    -fx-border-width: 0 0 0 3px;
+    -fx-font-weight: 700;
+}

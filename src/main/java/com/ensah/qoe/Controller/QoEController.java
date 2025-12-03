@@ -84,7 +84,14 @@ public class QoEController implements Initializable {
 
         loadFilters();
         setupClientTable();
+        // Créer et assigner un ToggleGroup programmatiquement
+        ToggleGroup modeGroup = new ToggleGroup();
+        radioClient.setToggleGroup(modeGroup);
+        radioGenre.setToggleGroup(modeGroup);
+        radioZone.setToggleGroup(modeGroup);
 
+        // Optionnel: sélectionner un bouton par défaut
+        radioGenre.setSelected(true);
         // Actions des ComboBox avec animations
         genreCombo.setOnAction(e -> {
             if (genreCombo.getValue() != null) {

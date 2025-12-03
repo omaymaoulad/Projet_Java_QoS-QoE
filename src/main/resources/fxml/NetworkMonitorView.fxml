@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
+
+<ScrollPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.ensah.qoe.Controller.NetworkMonitorController"
+            fitToWidth="true"
+            hbarPolicy="NEVER"
+            vbarPolicy="AS_NEEDED"
+            style="-fx-background-color: #f8fafc;">
+
+    <VBox spacing="20" style="-fx-padding: 30;">
+        <!-- Header -->
+        <HBox alignment="CENTER_LEFT" spacing="15">
+            <Label text="🌐" style="-fx-font-size: 32;"/>
+            <VBox>
+                <Label text="Network Monitor" style="-fx-font-size: 28; -fx-font-weight: bold; -fx-text-fill: #1e293b;"/>
+                <Label text="Real-time network performance monitoring" style="-fx-text-fill: #64748b; -fx-font-size: 14;"/>
+            </VBox>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="🔄 Refresh" onAction="#refreshData"
+                    style="-fx-background-color: #3b82f6; -fx-text-fill: white; -fx-padding: 10 20; -fx-background-radius: 6; -fx-font-weight: bold;"/>
+        </HBox>
+
+        <!-- QoS Zone Selection -->
+        <HBox spacing="20" alignment="CENTER_LEFT">
+            <VBox spacing="10" style="-fx-background-color: white; -fx-padding: 20; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);" HBox.hgrow="ALWAYS">
+                <Label text="Select QoS Zone" style="-fx-font-size: 14; -fx-text-fill: #64748b; -fx-font-weight: bold;"/>
+                <ComboBox fx:id="zoneCombo" prefWidth="300" promptText="Select a zone..."/>
+            </VBox>
+        </HBox>
+
+        <!-- Network Status Cards -->
+        <HBox spacing="20">
+            <VBox spacing="10" style="-fx-background-color: white; -fx-padding: 20; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);" HBox.hgrow="ALWAYS">
+                <Label text="Network Status" style="-fx-font-size: 14; -fx-text-fill: #64748b; -fx-font-weight: bold;"/>
+                <HBox alignment="CENTER_LEFT" spacing="10">
+                    <Circle radius="8" fx:id="statusIndicator" fill="#10b981"/>
+                    <Label fx:id="networkStatusLabel" text="Operational" style="-fx-font-size: 24; -fx-font-weight: bold; -fx-text-fill: #10b981;"/>
+                </HBox>
+            </VBox>
+
+            <VBox spacing="10" style="-fx-background-color: white; -fx-padding: 20; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);" HBox.hgrow="ALWAYS">
+                <Label text="Active Connections" style="-fx-font-size: 14; -fx-text-fill: #64748b; -fx-font-weight: bold;"/>
+                <Label fx:id="activeConnectionsLabel" text="156" style="-fx-font-size: 32; -fx-font-weight: bold; -fx-text-fill: #1e293b;"/>
+                <Label text="+12 since last hour" style="-fx-text-fill: #10b981; -fx-font-size: 12;"/>
+            </VBox>
+
+            <VBox spacing="10" style="-fx-background-color: white; -fx-padding: 20; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);" HBox.hgrow="ALWAYS">
+                <Label text="Bandwidth Usage" style="-fx-font-size: 14; -fx-text-fill: #64748b; -fx-font-weight: bold;"/>
+                <Label fx:id="bandwidthLabel" text="2.4 Gbps" style="-fx-font-size: 32; -fx-font-weight: bold; -fx-text-fill: #1e293b;"/>
+                <ProgressBar fx:id="bandwidthProgress" progress="0.68" prefWidth="200" style="-fx-accent: #3b82f6;"/>
+            </VBox>
+
+            <VBox spacing="10" style="-fx-background-color: white; -fx-padding: 20; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);" HBox.hgrow="ALWAYS">
+                <Label text="Packet Loss" style="-fx-font-size: 14; -fx-text-fill: #64748b; -fx-font-weight: bold;"/>
+                <Label fx:id="packetLossLabel" text="0.02%" style="-fx-font-size: 32; -fx-font-weight: bold; -fx-text-fill: #10b981;"/>
+                <Label text="Excellent" style="-fx-text-fill: #64748b; -fx-font-size: 12;"/>
+            </VBox>
+        </HBox>
+
+        <!-- QoS Metrics -->
+        <HBox spacing="20">
+            <GridPane hgap="10" vgap="10" style="-fx-background-color: white; -fx-padding: 20; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);" HBox.hgrow="ALWAYS">
+                <columnConstraints>
+                    <ColumnConstraints percentWidth="50"/>
+                    <ColumnConstraints percentWidth="50"/>
+                </columnConstraints>
+                <rowConstraints>
+                    <RowConstraints prefHeight="40"/>
+                    <RowConstraints prefHeight="40"/>
+                    <RowConstraints prefHeight="40"/>
+                    <RowConstraints prefHeight="40"/>
+                    <RowConstraints prefHeight="40"/>
+                    <RowConstraints prefHeight="40"/>
+                </rowConstraints>
+
+                <Label text="Latency:" style="-fx-font-weight: bold;" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                <Label fx:id="latenceLabel" text="0.00 ms" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+                <Label text="Jitter:" style="-fx-font-weight: bold;" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                <Label fx:id="jitterLabel" text="0.00 ms" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+                <Label text="Packet Loss:" style="-fx-font-weight: bold;" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                <Label fx:id="perteLabel" text="0.00 %" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+
+                <Label text="Bandwidth:" style="-fx-font-weight: bold;" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+                <Label fx:id="bandePassanteLabel" text="0.00 Mbps" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+
+                <Label text="Signal Score:" style="-fx-font-weight: bold;" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+                <Label fx:id="signalLabel" text="0.00" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
+
+                <Label text="MOS:" style="-fx-font-weight: bold;" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
+                <Label fx:id="mosLabel" text="0.00 / 5" GridPane.columnIndex="1" GridPane.rowIndex="5"/>
+            </GridPane>
+
+            <VBox spacing="10" style="-fx-background-color: white; -fx-padding: 20; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);" HBox.hgrow="ALWAYS">
+                <HBox alignment="CENTER_LEFT" spacing="15">
+                    <VBox>
+                        <Label text="Current Time:" style="-fx-font-weight: bold; -fx-font-size: 12; -fx-text-fill: #64748b;"/>
+                        <Label fx:id="trancheLabel" text="N/A" style="-fx-font-weight: bold;"/>
+                    </VBox>
+                    <VBox>
+                        <Label text="City:" style="-fx-font-weight: bold; -fx-font-size: 12; -fx-text-fill: #64748b;"/>
+                        <Label fx:id="villeLabel" text="N/A" style="-fx-font-weight: bold;"/>
+                    </VBox>
+                    <VBox>
+                        <Label text="Country:" style="-fx-font-weight: bold; -fx-font-size: 12; -fx-text-fill: #64748b;"/>
+                        <Label fx:id="paysLabel" text="N/A" style="-fx-font-weight: bold;"/>
+                    </VBox>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="countLabel" text="0 measurements" style="-fx-text-fill: #64748b;"/>
+                </HBox>
+            </VBox>
+        </HBox>
+
+        <!-- Charts Section -->
+        <HBox spacing="20">
+            <!-- QoS Chart -->
+            <VBox spacing="15" style="-fx-background-color: white; -fx-padding: 20; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);" HBox.hgrow="ALWAYS">
+                <Label text="QoS Metrics Over Time" style="-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #1e293b;"/>
+                <LineChart fx:id="qosLineChart" prefHeight="300" legendVisible="true">
+                    <xAxis><CategoryAxis label="Time Interval"/></xAxis>
+                    <yAxis><NumberAxis label="Value"/></yAxis>
+                </LineChart>
+            </VBox>
+
+            <!-- Latency Distribution -->
+            <VBox spacing="15" style="-fx-background-color: white; -fx-padding: 20; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);" HBox.hgrow="ALWAYS">
+                <Label text="Latency Distribution" style="-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #1e293b;"/>
+                <BarChart fx:id="latencyChart" prefHeight="300">
+                    <xAxis><CategoryAxis label="Range (ms)"/></xAxis>
+                    <yAxis><NumberAxis label="Count"/></yAxis>
+                </BarChart>
+            </VBox>
+        </HBox>
+
+        <!-- Active Devices Table -->
+        <VBox spacing="15" style="-fx-background-color: white; -fx-padding: 20; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);">
+            <HBox alignment="CENTER_LEFT" spacing="15">
+                <Label text="Active Network Devices" style="-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #1e293b;"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <TextField fx:id="searchField" promptText="Search devices..." prefWidth="250"
+                           style="-fx-background-radius: 6; -fx-padding: 8;"/>
+            </HBox>
+
+            <TableView fx:id="devicesTable" prefHeight="300">
+                <columns>
+                    <TableColumn text="Device Name" prefWidth="200" fx:id="deviceNameColumn"/>
+                    <TableColumn text="IP Address" prefWidth="150" fx:id="ipAddressColumn"/>
+                    <TableColumn text="MAC Address" prefWidth="150" fx:id="macAddressColumn"/>
+                    <TableColumn text="Status" prefWidth="100" fx:id="statusColumn"/>
+                    <TableColumn text="Bandwidth" prefWidth="120" fx:id="bandwidthColumn"/>
+                    <TableColumn text="Latency" prefWidth="100" fx:id="latencyColumn"/>
+                    <TableColumn text="Uptime" prefWidth="120" fx:id="uptimeColumn"/>
+                    <TableColumn text="Actions" prefWidth="150" fx:id="actionsColumn"/>
+                </columns>
+            </TableView>
+        </VBox>
+    </VBox>
+</ScrollPane>

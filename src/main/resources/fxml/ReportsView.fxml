@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<ScrollPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.ensah.qoe.Controller.ReportsController"
+            fitToWidth="true"
+            hbarPolicy="NEVER"
+            vbarPolicy="AS_NEEDED"
+            style="-fx-background-color: #f8fafc;">
+
+    <VBox spacing="20" style="-fx-padding: 30;">
+
+        <!-- Header -->
+        <HBox alignment="CENTER_LEFT" spacing="15">
+            <Label text="📊" style="-fx-font-size: 32;"/>
+            <VBox>
+                <Label text="Rapports QoS/QoE" style="-fx-font-size: 28; -fx-font-weight: bold; -fx-text-fill: #1e293b;"/>
+                <Label text="Génération de rapports basés sur vos données" style="-fx-text-fill: #64748b; -fx-font-size: 14;"/>
+            </VBox>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="🔄 Rafraîchir" onAction="#refreshData"
+                    style="-fx-background-color: #3b82f6; -fx-text-fill: white; -fx-padding: 10 20; -fx-background-radius: 6; -fx-font-weight: bold;"/>
+        </HBox>
+
+        <!-- Configuration Rapport -->
+        <HBox spacing="20" style="-fx-background-color: white; -fx-padding: 20; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);">
+            <VBox spacing="8" HBox.hgrow="ALWAYS">
+                <Label text="Type de Rapport" style="-fx-font-weight: bold; -fx-text-fill: #1e293b;"/>
+                <ComboBox fx:id="reportTypeCombo" prefWidth="250"/>
+            </VBox>
+
+            <VBox spacing="8" HBox.hgrow="ALWAYS">
+                <Label text="Zone" style="-fx-font-weight: bold; -fx-text-fill: #1e293b;"/>
+                <ComboBox fx:id="zoneCombo" prefWidth="200"/>
+            </VBox>
+
+            <VBox spacing="8" HBox.hgrow="ALWAYS">
+                <Label text="Format" style="-fx-font-weight: bold; -fx-text-fill: #1e293b;"/>
+                <ComboBox fx:id="formatCombo" prefWidth="120"/>
+            </VBox>
+
+            <VBox spacing="8" alignment="BOTTOM_LEFT">
+                <Button text="📄 Générer Rapport" onAction="#generateReport"
+                        style="-fx-background-color: #10b981; -fx-text-fill: white; -fx-padding: 10 20; -fx-background-radius: 6; -fx-font-weight: bold;"/>
+            </VBox>
+        </HBox>
+
+        <!-- Statistiques -->
+        <GridPane hgap="15" vgap="15">
+            <columnConstraints>
+                <ColumnConstraints percentWidth="25"/>
+                <ColumnConstraints percentWidth="25"/>
+                <ColumnConstraints percentWidth="25"/>
+                <ColumnConstraints percentWidth="25"/>
+            </columnConstraints>
+
+            <VBox spacing="10" style="-fx-background-color: white; -fx-padding: 20; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);" GridPane.columnIndex="0">
+                <Label text="Rapports Générés" style="-fx-font-size: 14; -fx-text-fill: #64748b; -fx-font-weight: bold;"/>
+                <Label fx:id="totalReportsLabel" text="0" style="-fx-font-size: 32; -fx-font-weight: bold; -fx-text-fill: #1e293b;"/>
+                <Label text="Historique" style="-fx-text-fill: #64748b; -fx-font-size: 12;"/>
+            </VBox>
+
+            <VBox spacing="10" style="-fx-background-color: white; -fx-padding: 20; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);" GridPane.columnIndex="1">
+                <Label text="Données Traitées" style="-fx-font-size: 14; -fx-text-fill: #64748b; -fx-font-weight: bold;"/>
+                <Label fx:id="dataProcessedLabel" text="0" style="-fx-font-size: 32; -fx-font-weight: bold; -fx-text-fill: #3b82f6;"/>
+                <Label text="Mesures QoS" style="-fx-text-fill: #64748b; -fx-font-size: 12;"/>
+            </VBox>
+
+            <VBox spacing="10" style="-fx-background-color: white; -fx-padding: 20; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);" GridPane.columnIndex="2">
+                <Label text="MOS Moyen" style="-fx-font-size: 14; -fx-text-fill: #64748b; -fx-font-weight: bold;"/>
+                <Label fx:id="avgMOSLabel" text="0.00" style="-fx-font-size: 32; -fx-font-weight: bold; -fx-text-fill: #10b981;"/>
+                <Label text="/ 5.0" style="-fx-text-fill: #64748b; -fx-font-size: 12;"/>
+            </VBox>
+
+            <VBox spacing="10" style="-fx-background-color: white; -fx-padding: 20; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);" GridPane.columnIndex="3">
+                <Label text="Latence Moyenne" style="-fx-font-size: 14; -fx-text-fill: #64748b; -fx-font-weight: bold;"/>
+                <Label fx:id="avgLatencyLabel" text="0 ms" style="-fx-font-size: 32; -fx-font-weight: bold; -fx-text-fill: #8b5cf6;"/>
+                <Button text="📥 Exporter" onAction="#exportData" style="-fx-background-color: #f59e0b; -fx-text-fill: white; -fx-padding: 5 10; -fx-font-size: 11;"/>
+            </VBox>
+        </GridPane>
+
+        <!-- Graphiques -->
+        <HBox spacing="20">
+            <VBox spacing="15" style="-fx-background-color: white; -fx-padding: 20; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);" HBox.hgrow="ALWAYS">
+                <Label text="Tendance MOS" style="-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #1e293b;"/>
+                <LineChart fx:id="mosTrendChart" prefHeight="250" legendVisible="true">
+                    <xAxis><CategoryAxis label="Période"/></xAxis>
+                    <yAxis><NumberAxis label="MOS"/></yAxis>
+                </LineChart>
+            </VBox>
+
+            <VBox spacing="15" style="-fx-background-color: white; -fx-padding: 20; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);" HBox.hgrow="ALWAYS">
+                <Label text="Distribution Qualité" style="-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #1e293b;"/>
+                <BarChart fx:id="qualityDistributionChart" prefHeight="250" legendVisible="false">
+                    <xAxis><CategoryAxis label="Niveau de Qualité"/></xAxis>
+                    <yAxis><NumberAxis label="Nombre"/></yAxis>
+                </BarChart>
+            </VBox>
+        </HBox>
+
+        <!-- Comparaison Zones -->
+        <VBox spacing="15" style="-fx-background-color: white; -fx-padding: 20; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);">
+            <Label text="Comparaison des Zones" style="-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #1e293b;"/>
+            <BarChart fx:id="zoneComparisonChart" prefHeight="300" legendVisible="true">
+                <xAxis><CategoryAxis label="Zones"/></xAxis>
+                <yAxis><NumberAxis label="Valeurs"/></yAxis>
+            </BarChart>
+        </VBox>
+
+        <!-- Tableau Données -->
+        <VBox spacing="15" style="-fx-background-color: white; -fx-padding: 20; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);">
+            <HBox alignment="CENTER_LEFT">
+                <Label text="📋 Données QoS" style="-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #1e293b;"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label text="Total: " fx:id="totalDataLabel" style="-fx-text-fill: #64748b;"/>
+            </HBox>
+
+            <TableView fx:id="qosDataTable" prefHeight="350">
+                <columns>
+                    <TableColumn text="Zone" prefWidth="200" fx:id="zoneColumn"/>
+                    <TableColumn text="Latence (ms)" prefWidth="120" fx:id="latencyColumn"/>
+                    <TableColumn text="Jitter (ms)" prefWidth="100" fx:id="jitterColumn"/>
+                    <TableColumn text="Perte (%)" prefWidth="100" fx:id="packetLossColumn"/>
+                    <TableColumn text="Bande Passante (Mbps)" prefWidth="140" fx:id="bandwidthColumn"/>
+                    <TableColumn text="MOS" prefWidth="80" fx:id="mosColumn"/>
+                    <TableColumn text="Date/Heure" prefWidth="150" fx:id="timeColumn"/>
+                </columns>
+            </TableView>
+        </VBox>
+
+    </VBox>
+</ScrollPane>

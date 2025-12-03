@@ -6,9 +6,10 @@ import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.stage.Stage;
-
+import javafx.scene.input.MouseEvent;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -29,7 +30,26 @@ public class MainAdminLayoutController {
     public void initialize() {
         loadView("/fxml/admin_dashboard.fxml");
     }
+    // Dans votre MainAdminLayoutController
+    public void handleMenuHover(MouseEvent event) {
+        Button btn = (Button) event.getSource();
+        btn.setStyle("-fx-background-color: #34495e; " +
+                "-fx-text-fill: #ecf0f1; " +
+                "-fx-font-size: 14; " +
+                "-fx-font-weight: 600;" +
+                "-fx-alignment: center-left; " +
+                "-fx-padding: 14 20;");
+    }
 
+    public void handleMenuExit(MouseEvent event) {
+        Button btn = (Button) event.getSource();
+        btn.setStyle("-fx-background-color: transparent; " +
+                "-fx-text-fill: #ecf0f1; " +
+                "-fx-font-size: 14; " +
+                "-fx-font-weight: 600;" +
+                "-fx-alignment: center-left; " +
+                "-fx-padding: 14 20;");
+    }
     // Méthode générique pour charger une vue
     private void loadView(String fxmlPath) {
         try {
@@ -49,10 +69,10 @@ public class MainAdminLayoutController {
     @FXML private void loadAdminDashboardView() { loadView("/fxml/admin_dashboard.fxml"); }
     @FXML private void loadQoSView() { loadView("/fxml/qos.fxml"); }
     @FXML private void loadQoEView() { loadView("/fxml/qoe.fxml"); }
-    @FXML private void showNetworkMonitor(){}
-    @FXML private void showUserManagement(){}
-    @FXML private void showReports(){}
-    @FXML private void showSystemSettings(){}
+    @FXML private void showNetworkMonitor(){loadView("/fxml/NetworkMonitorView.fxml");}
+    @FXML private void showUserManagement(){loadView("/fxml/UserManagementView.fxml");}
+    @FXML private void showReports(){loadView("/fxml/ReportsView.fxml");}
+    @FXML private void showSystemSettings(){loadView("/fxml/SystemSettingView.fxml");}
 
     @FXML
     private void handleLogout() {

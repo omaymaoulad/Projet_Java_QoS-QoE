@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.ensah.qoe.Controller.SystemSettingsController"
+      spacing="20" style="-fx-padding: 30; -fx-background-color: #f8fafc;">
+
+    <!-- Header -->
+    <HBox alignment="CENTER_LEFT" spacing="15">
+        <Label text="⚙️" style="-fx-font-size: 32;"/>
+        <VBox>
+            <Label text="System Settings" style="-fx-font-size: 28; -fx-font-weight: bold; -fx-text-fill: #1e293b;"/>
+            <Label text="Configure system parameters and preferences" style="-fx-text-fill: #64748b; -fx-font-size: 14;"/>
+        </VBox>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button text="💾 Save Changes" onAction="#saveSettings"
+                style="-fx-background-color: #10b981; -fx-text-fill: white; -fx-padding: 10 20; -fx-background-radius: 6; -fx-font-weight: bold;"/>
+    </HBox>
+
+    <!-- Settings Navigation & Content -->
+    <HBox spacing="20" VBox.vgrow="ALWAYS">
+        <!-- Settings Menu -->
+        <VBox spacing="5" prefWidth="250" style="-fx-background-color: white; -fx-padding: 15; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);">
+            <Label text="GENERAL" style="-fx-text-fill: #64748b; -fx-font-size: 11; -fx-font-weight: bold; -fx-padding: 10 5 5 5;"/>
+            <Button text="🏢 System Information" fx:id="systemInfoBtn" onAction="#showSystemInfo"
+                    style="-fx-background-color: #eff6ff; -fx-text-fill: #1e40af; -fx-alignment: center-left; -fx-padding: 12 15; -fx-background-radius: 6; -fx-font-size: 13;"/>
+            <Button text="🌐 Network Configuration" fx:id="networkConfigBtn" onAction="#showNetworkConfig"
+                    style="-fx-background-color: transparent; -fx-text-fill: #64748b; -fx-alignment: center-left; -fx-padding: 12 15; -fx-background-radius: 6; -fx-font-size: 13;"/>
+            <Button text="📧 Email Settings" fx:id="emailSettingsBtn" onAction="#showEmailSettings"
+                    style="-fx-background-color: transparent; -fx-text-fill: #64748b; -fx-alignment: center-left; -fx-padding: 12 15; -fx-background-radius: 6; -fx-font-size: 13;"/>
+
+            <Separator style="-fx-padding: 10 0;"/>
+
+            <Label text="MONITORING" style="-fx-text-fill: #64748b; -fx-font-size: 11; -fx-font-weight: bold; -fx-padding: 5 5 5 5;"/>
+            <Button text="📊 QoE Thresholds" fx:id="qoeThresholdsBtn" onAction="#showQoEThresholds"
+                    style="-fx-background-color: transparent; -fx-text-fill: #64748b; -fx-alignment: center-left; -fx-padding: 12 15; -fx-background-radius: 6; -fx-font-size: 13;"/>
+            <Button text="⚡ QoS Parameters" fx:id="qosParamsBtn" onAction="#showQoSParams"
+                    style="-fx-background-color: transparent; -fx-text-fill: #64748b; -fx-alignment: center-left; -fx-padding: 12 15; -fx-background-radius: 6; -fx-font-size: 13;"/>
+            <Button text="🔔 Alerts / Notifications" fx:id="alertsBtn" onAction="#showAlerts"
+                    style="-fx-background-color: transparent; -fx-text-fill: #64748b; -fx-alignment: center-left; -fx-padding: 12 15; -fx-background-radius: 6; -fx-font-size: 13;"/>
+
+            <Separator style="-fx-padding: 10 0;"/>
+
+            <Label text="SECURITY" style="-fx-text-fill: #64748b; -fx-font-size: 11; -fx-font-weight: bold; -fx-padding: 5 5 5 5;"/>
+            <Button text="🔐 Security Policies" fx:id="securityBtn" onAction="#showSecurity"
+                    style="-fx-background-color: transparent; -fx-text-fill: #64748b; -fx-alignment: center-left; -fx-padding: 12 15; -fx-background-radius: 6; -fx-font-size: 13;"/>
+            <Button text="👤 User Permissions" fx:id="permissionsBtn" onAction="#showPermissions"
+                    style="-fx-background-color: transparent; -fx-text-fill: #64748b; -fx-alignment: center-left; -fx-padding: 12 15; -fx-background-radius: 6; -fx-font-size: 13;"/>
+            <Button text="📝 Audit Logs" fx:id="auditLogsBtn" onAction="#showAuditLogs"
+                    style="-fx-background-color: transparent; -fx-text-fill: #64748b; -fx-alignment: center-left; -fx-padding: 12 15; -fx-background-radius: 6; -fx-font-size: 13;"/>
+
+            <Separator style="-fx-padding: 10 0;"/>
+
+            <Label text="MAINTENANCE" style="-fx-text-fill: #64748b; -fx-font-size: 11; -fx-font-weight: bold; -fx-padding: 5 5 5 5;"/>
+            <Button text="💾 Backup et Restore" fx:id="backupBtn" onAction="#showBackup"
+                    style="-fx-background-color: transparent; -fx-text-fill: #64748b; -fx-alignment: center-left; -fx-padding: 12 15; -fx-background-radius: 6; -fx-font-size: 13;"/>
+            <Button text="🔄 System Updates" fx:id="updatesBtn" onAction="#showUpdates"
+                    style="-fx-background-color: transparent; -fx-text-fill: #64748b; -fx-alignment: center-left; -fx-padding: 12 15; -fx-background-radius: 6; -fx-font-size: 13;"/>
+        </VBox>
+
+        <!-- Settings Content Area -->
+        <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;" HBox.hgrow="ALWAYS">
+            <VBox fx:id="settingsContentArea" spacing="20" style="-fx-background-color: white; -fx-padding: 30; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);">
+
+                <!-- System Information (Default View) -->
+                <VBox spacing="15">
+                    <Label text="System Information" style="-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #1e293b;"/>
+
+                    <GridPane hgap="20" vgap="15">
+                        <columnConstraints>
+                            <ColumnConstraints percentWidth="30"/>
+                            <ColumnConstraints percentWidth="70"/>
+                        </columnConstraints>
+
+                        <Label text="System Name:" GridPane.columnIndex="0" GridPane.rowIndex="0"
+                               style="-fx-font-weight: bold; -fx-text-fill: #64748b;"/>
+                        <TextField fx:id="systemNameField" text="QoE Monitoring System" GridPane.columnIndex="1" GridPane.rowIndex="0"
+                                   style="-fx-background-radius: 6; -fx-padding: 10;"/>
+
+                        <Label text="Organization:" GridPane.columnIndex="0" GridPane.rowIndex="1"
+                               style="-fx-font-weight: bold; -fx-text-fill: #64748b;"/>
+                        <TextField fx:id="organizationField" text="ENSAH" GridPane.columnIndex="1" GridPane.rowIndex="1"
+                                   style="-fx-background-radius: 6; -fx-padding: 10;"/>
+
+                        <Label text="Admin Email:" GridPane.columnIndex="0" GridPane.rowIndex="2"
+                               style="-fx-font-weight: bold; -fx-text-fill: #64748b;"/>
+                        <TextField fx:id="adminEmailField" text="admin@ensah.ma" GridPane.columnIndex="1" GridPane.rowIndex="2"
+                                   style="-fx-background-radius: 6; -fx-padding: 10;"/>
+
+                        <Label text="Time Zone:" GridPane.columnIndex="0" GridPane.rowIndex="3"
+                               style="-fx-font-weight: bold; -fx-text-fill: #64748b;"/>
+                        <ComboBox fx:id="timezoneCombo" GridPane.columnIndex="1" GridPane.rowIndex="3" prefWidth="400">
+                            <items>
+                                <String fx:value="UTC+0 (GMT)"/>
+                                <String fx:value="UTC+1 (CET)"/>
+                                <String fx:value="UTC-5 (EST)"/>
+                            </items>
+                        </ComboBox>
+
+                        <Label text="Language:" GridPane.columnIndex="0" GridPane.rowIndex="4"
+                               style="-fx-font-weight: bold; -fx-text-fill: #64748b;"/>
+                        <ComboBox fx:id="languageCombo" GridPane.columnIndex="1" GridPane.rowIndex="4" prefWidth="400">
+                            <items>
+                                <String fx:value="English"/>
+                                <String fx:value="Français"/>
+                                <String fx:value="العربية"/>
+                            </items>
+                        </ComboBox>
+
+                        <Label text="Date Format:" GridPane.columnIndex="0" GridPane.rowIndex="5"
+                               style="-fx-font-weight: bold; -fx-text-fill: #64748b;"/>
+                        <ComboBox fx:id="dateFormatCombo" GridPane.columnIndex="1" GridPane.rowIndex="5" prefWidth="400">
+                            <items>
+                                <String fx:value="DD/MM/YYYY"/>
+                                <String fx:value="MM/DD/YYYY"/>
+                                <String fx:value="YYYY-MM-DD"/>
+                            </items>
+                        </ComboBox>
+                    </GridPane>
+                </VBox>
+
+                <Separator/>
+
+                <!-- System Status -->
+                <VBox spacing="15">
+                    <Label text="System Status" style="-fx-font-size: 18; -fx-font-weight: bold; -fx-text-fill: #1e293b;"/>
+
+                    <HBox spacing="30">
+                        <VBox spacing="8" HBox.hgrow="ALWAYS">
+                            <Label text="Version" style="-fx-text-fill: #64748b; -fx-font-size: 12;"/>
+                            <Label fx:id="versionLabel" text="v2.5.0" style="-fx-font-size: 18; -fx-font-weight: bold; -fx-text-fill: #1e293b;"/>
+                        </VBox>
+
+                        <VBox spacing="8" HBox.hgrow="ALWAYS">
+                            <Label text="Uptime" style="-fx-text-fill: #64748b; -fx-font-size: 12;"/>
+                            <Label fx:id="uptimeLabel" text="15 days 6 hours" style="-fx-font-size: 18; -fx-font-weight: bold; -fx-text-fill: #10b981;"/>
+                        </VBox>
+
+                        <VBox spacing="8" HBox.hgrow="ALWAYS">
+                            <Label text="Database Status" style="-fx-text-fill: #64748b; -fx-font-size: 12;"/>
+                            <Label fx:id="dbStatusLabel" text="Connected" style="-fx-font-size: 18; -fx-font-weight: bold; -fx-text-fill: #10b981;"/>
+                        </VBox>
+
+                        <VBox spacing="8" HBox.hgrow="ALWAYS">
+                            <Label text="License Status" style="-fx-text-fill: #64748b; -fx-font-size: 12;"/>
+                            <Label fx:id="licenseLabel" text="Active" style="-fx-font-size: 18; -fx-font-weight: bold; -fx-text-fill: #10b981;"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+                <Separator/>
+
+                <!-- System Resources -->
+                <VBox spacing="15">
+                    <Label text="System Resources" style="-fx-font-size: 18; -fx-font-weight: bold; -fx-text-fill: #1e293b;"/>
+
+                    <VBox spacing="10">
+                        <HBox alignment="CENTER_LEFT" spacing="10">
+                            <Label text="CPU Usage:" style="-fx-min-width: 120; -fx-text-fill: #64748b;"/>
+                            <ProgressBar fx:id="cpuProgress" progress="0.42" prefWidth="300" style="-fx-accent: #3b82f6;"/>
+                            <Label fx:id="cpuLabel" text="42%" style="-fx-text-fill: #1e293b; -fx-font-weight: bold;"/>
+                        </HBox>
+
+                        <HBox alignment="CENTER_LEFT" spacing="10">
+                            <Label text="Memory Usage:" style="-fx-min-width: 120; -fx-text-fill: #64748b;"/>
+                            <ProgressBar fx:id="memoryProgress" progress="0.68" prefWidth="300" style="-fx-accent: #f59e0b;"/>
+                            <Label fx:id="memoryLabel" text="68% (5.4 GB / 8 GB)" style="-fx-text-fill: #1e293b; -fx-font-weight: bold;"/>
+                        </HBox>
+
+                        <HBox alignment="CENTER_LEFT" spacing="10">
+                            <Label text="Disk Space:" style="-fx-min-width: 120; -fx-text-fill: #64748b;"/>
+                            <ProgressBar fx:id="diskProgress" progress="0.55" prefWidth="300" style="-fx-accent: #10b981;"/>
+                            <Label fx:id="diskLabel" text="55% (275 GB / 500 GB)" style="-fx-text-fill: #1e293b; -fx-font-weight: bold;"/>
+                        </HBox>
+                    </VBox>
+                </VBox>
+
+                <Separator/>
+
+                <!-- Maintenance Actions -->
+                <VBox spacing="15">
+                    <Label text="Maintenance Actions" style="-fx-font-size: 18; -fx-font-weight: bold; -fx-text-fill: #1e293b;"/>
+
+                    <HBox spacing="15">
+                        <Button text="🧹 Clear Cache" onAction="#clearCache"
+                                style="-fx-background-color: #3b82f6; -fx-text-fill: white; -fx-padding: 10 20; -fx-background-radius: 6;"/>
+                        <Button text="🗄️ Optimize Database" onAction="#optimizeDatabase"
+                                style="-fx-background-color: #10b981; -fx-text-fill: white; -fx-padding: 10 20; -fx-background-radius: 6;"/>
+                        <Button text="📊 Generate Diagnostics" onAction="#generateDiagnostics"
+                                style="-fx-background-color: #f59e0b; -fx-text-fill: white; -fx-padding: 10 20; -fx-background-radius: 6;"/>
+                        <Button text="🔄 Restart System" onAction="#restartSystem"
+                                style="-fx-background-color: #ef4444; -fx-text-fill: white; -fx-padding: 10 20; -fx-background-radius: 6;"/>
+                    </HBox>
+                </VBox>
+
+            </VBox>
+        </ScrollPane>
+    </HBox>
+
+</VBox>

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.ensah.qoe.Controller.UserManagementController"
+      spacing="20" style="-fx-padding: 30; -fx-background-color: #f8fafc;">
+
+    <!-- Header -->
+    <HBox alignment="CENTER_LEFT" spacing="15">
+        <Label text="👥" style="-fx-font-size: 32;"/>
+        <VBox>
+            <Label text="User Management" style="-fx-font-size: 28; -fx-font-weight: bold; -fx-text-fill: #1e293b;"/>
+            <Label text="Manage system users and permissions" style="-fx-text-fill: #64748b; -fx-font-size: 14;"/>
+        </VBox>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button text="➕ Add New User" onAction="#showAddUserDialog"
+                style="-fx-background-color: #10b981; -fx-text-fill: white; -fx-padding: 10 20; -fx-background-radius: 6; -fx-font-weight: bold;"/>
+    </HBox>
+
+    <!-- Statistics Cards -->
+    <HBox spacing="20">
+        <VBox spacing="10" style="-fx-background-color: white; -fx-padding: 20; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);" HBox.hgrow="ALWAYS">
+            <Label text="Total Users" style="-fx-font-size: 14; -fx-text-fill: #64748b; -fx-font-weight: bold;"/>
+            <Label fx:id="totalUsersLabel" text="0" style="-fx-font-size: 32; -fx-font-weight: bold; -fx-text-fill: #1e293b;"/>
+            <Label text="All system users" style="-fx-text-fill: #64748b; -fx-font-size: 12;"/>
+        </VBox>
+
+        <VBox spacing="10" style="-fx-background-color: white; -fx-padding: 20; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);" HBox.hgrow="ALWAYS">
+            <Label text="Active Users" style="-fx-font-size: 14; -fx-text-fill: #64748b; -fx-font-weight: bold;"/>
+            <Label fx:id="activeUsersLabel" text="0" style="-fx-font-size: 32; -fx-font-weight: bold; -fx-text-fill: #10b981;"/>
+            <Label text="Currently registered" style="-fx-text-fill: #64748b; -fx-font-size: 12;"/>
+        </VBox>
+
+        <VBox spacing="10" style="-fx-background-color: white; -fx-padding: 20; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);" HBox.hgrow="ALWAYS">
+            <Label text="Administrators" style="-fx-font-size: 14; -fx-text-fill: #64748b; -fx-font-weight: bold;"/>
+            <Label fx:id="adminUsersLabel" text="0" style="-fx-font-size: 32; -fx-font-weight: bold; -fx-text-fill: #3b82f6;"/>
+            <Label text="Users with admin role" style="-fx-text-fill: #64748b; -fx-font-size: 12;"/>
+        </VBox>
+
+        <VBox spacing="10" style="-fx-background-color: white; -fx-padding: 20; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);" HBox.hgrow="ALWAYS">
+            <Label text="Client Users" style="-fx-font-size: 14; -fx-text-fill: #64748b; -fx-font-weight: bold;"/>
+            <Label fx:id="clientUsersLabel" text="0" style="-fx-font-size: 32; -fx-font-weight: bold; -fx-text-fill: #f59e0b;"/>
+            <Label text="Users with client role" style="-fx-text-fill: #64748b; -fx-font-size: 12;"/>
+        </VBox>
+    </HBox>
+
+    <!-- Filters and Search -->
+    <HBox spacing="15" alignment="CENTER_LEFT" style="-fx-background-color: white; -fx-padding: 20; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);">
+        <TextField fx:id="searchField" promptText="🔍 Search by username or email..." prefWidth="300"
+                   style="-fx-background-radius: 6; -fx-padding: 10;"/>
+
+        <Label text="Role:" style="-fx-text-fill: #64748b; -fx-padding: 0 10 0 20;"/>
+        <ComboBox fx:id="roleFilter" prefWidth="150"/>
+
+        <Region HBox.hgrow="ALWAYS"/>
+
+        <Button text="🔄 Reset Filters" onAction="#resetFilters"
+                style="-fx-background-color: #e5e7eb; -fx-text-fill: #374151; -fx-padding: 8 16; -fx-background-radius: 6;"/>
+        <Button text="📥 Export" onAction="#exportUsers"
+                style="-fx-background-color: #3b82f6; -fx-text-fill: white; -fx-padding: 8 16; -fx-background-radius: 6;"/>
+    </HBox>
+
+    <!-- Users Table -->
+    <VBox spacing="15" style="-fx-background-color: white; -fx-padding: 20; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);" VBox.vgrow="ALWAYS">
+        <HBox alignment="CENTER_LEFT">
+            <Label text="User List" style="-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #1e293b;"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="userCountLabel" text="Showing 0-0 of 0 users" style="-fx-text-fill: #64748b; -fx-font-size: 12;"/>
+        </HBox>
+
+        <TableView fx:id="usersTable" VBox.vgrow="ALWAYS">
+            <columns>
+                <TableColumn text="Avatar" prefWidth="80" fx:id="avatarColumn"/>
+                <TableColumn text="ID" prefWidth="60" fx:id="idColumn"/>
+                <TableColumn text="Username" prefWidth="150" fx:id="usernameColumn"/>
+                <TableColumn text="Email" prefWidth="200" fx:id="emailColumn"/>
+                <TableColumn text="Role" prefWidth="100" fx:id="roleColumn"/>
+                <TableColumn text="Date Created" prefWidth="120" fx:id="dateCreationColumn"/>
+                <TableColumn text="Actions" prefWidth="150" fx:id="actionsColumn"/>
+            </columns>
+        </TableView>
+
+        <!-- Pagination -->
+        <HBox spacing="10" alignment="CENTER">
+            <Button text="⏮ First" onAction="#goToFirstPage"
+                    style="-fx-background-color: #e5e7eb; -fx-padding: 6 12; -fx-background-radius: 4;"/>
+            <Button text="◀ Previous" onAction="#goToPreviousPage"
+                    style="-fx-background-color: #e5e7eb; -fx-padding: 6 12; -fx-background-radius: 4;"/>
+            <Label fx:id="pageLabel" text="Page 1 of 1" style="-fx-text-fill: #64748b;"/>
+            <Button text="Next ▶" onAction="#goToNextPage"
+                    style="-fx-background-color: #e5e7eb; -fx-padding: 6 12; -fx-background-radius: 4;"/>
+            <Button text="Last ⏭" onAction="#goToLastPage"
+                    style="-fx-background-color: #e5e7eb; -fx-padding: 6 12; -fx-background-radius: 4;"/>
+        </HBox>
+    </VBox>
+
+</VBox>
