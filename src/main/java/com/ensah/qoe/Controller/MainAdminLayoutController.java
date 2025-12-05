@@ -73,7 +73,20 @@ public class MainAdminLayoutController {
     @FXML private void showUserManagement(){loadView("/fxml/UserManagementView.fxml");}
     @FXML private void showReports(){loadView("/fxml/ReportsView.fxml");}
     @FXML private void showSystemSettings(){loadView("/fxml/SystemSettingView.fxml");}
-
+    @FXML
+    private void openMLDashboard() {
+        try {
+            Parent root = FXMLLoader.load(getClass().getResource("/fxml/ml-dashboard.fxml"));
+            Stage stage = new Stage();
+            stage.setScene(new Scene(root, 1400, 800));
+            stage.setTitle("Dashboard Machine Learning QoE/QoS");
+            stage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert(String.valueOf(Alert.AlertType.ERROR), "Erreur",
+                    "Impossible d'ouvrir le dashboard ML: " + e.getMessage());
+        }
+    }
     @FXML
     private void handleLogout() {
         System.out.println("🚪 Déconnexion de l'administrateur: " +

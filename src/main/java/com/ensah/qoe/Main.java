@@ -1,5 +1,4 @@
 package com.ensah.qoe;
-
 import com.ensah.qoe.Services.ClientCsvImporter;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -16,10 +15,10 @@ public class Main extends Application {
     public void start(Stage primaryStage) {
         try {
             //ClientCsvImporter.importClients();
-            Parent root = FXMLLoader.load(getClass().getResource("/fxml/login.fxml"));
+            Parent root = FXMLLoader.load(getClass().getResource("/fxml/ml-dashboard.fxml"));
 
             Scene scene = new Scene(root, 1200, 650);
-            scene.getStylesheets().add(getClass().getResource("/css/style.css").toExternalForm());
+            scene.getStylesheets().add(getClass().getResource("/css/ml-dashboard.css").toExternalForm());
             primaryStage.getIcons().add(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/logo_red.jpg"))));
 
             // Configuration pour avoir les boutons système par défaut

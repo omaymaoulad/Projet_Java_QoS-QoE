@@ -109,7 +109,7 @@
         <dependency>
             <groupId>nz.ac.waikato.cms.weka</groupId>
             <artifactId>weka-stable</artifactId>
-            <version>3.8.4</version>
+            <version>${weka.version}</version>
         </dependency>
 
         <!-- Utilities -->
