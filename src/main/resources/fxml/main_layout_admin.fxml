@@ -91,7 +91,15 @@
                         onAction="#showReports">
                     <cursor><Cursor fx:constant="HAND"/></cursor>
                 </Button>
-
+                <Button text="🧠 Dashboard ML"
+                        onAction="#openMLDashboard"
+                        style="-fx-background-color: #9b59b6; -fx-text-fill: white; -fx-font-weight: bold;">
+                    <graphic>
+                        <ImageView>
+<!--                            <Image url="@../images/ml-icon.png"/>-->
+                        </ImageView>
+                    </graphic>
+                </Button>
                 <!-- System Settings -->
                 <Button text="⚙️ Settings"
                         style="-fx-background-color: transparent;

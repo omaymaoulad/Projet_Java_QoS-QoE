@@ -6,18 +6,18 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.ensah.qoe</groupId>
-    <artifactId>Java_Project</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <artifactId>QoS-QoE-System</artifactId>
+    <version>1.0.0</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>17</maven.compiler.release>
         <javafx.version>25.0.1</javafx.version>
         <spark.version>3.5.0</spark.version>
+        <weka.version>3.8.6</weka.version>
     </properties>
 
     <dependencies>
-
         <!-- JavaFX -->
         <dependency>
             <groupId>org.openjfx</groupId>
@@ -29,31 +29,37 @@
             <artifactId>javafx-fxml</artifactId>
             <version>${javafx.version}</version>
         </dependency>
-        <!-- AJOUTEZ CETTE DÉPENDANCE POUR WEBVIEW -->
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-web</artifactId>
             <version>${javafx.version}</version>
         </dependency>
-        <!-- Oracle JDBC -->
+
+        <!-- Oracle JDBC (version modifiée pour éviter conflit) -->
         <dependency>
-            <groupId>com</groupId>
-            <artifactId>ojdbc17</artifactId>
-            <version>23</version>
+            <groupId>com.oracle.database.jdbc</groupId>
+            <artifactId>ojdbc11</artifactId>
+            <version>21.11.0.0</version>
         </dependency>
 
-        <!-- Email -->
+        <!-- Email (garder UNE SEULE version) -->
         <dependency>
             <groupId>com.sun.mail</groupId>
             <artifactId>javax.mail</artifactId>
             <version>1.6.2</version>
         </dependency>
+        <!-- REMPLACEZ les deux dépendances mail par : -->
+        <dependency>
+            <groupId>com.sun.mail</groupId>
+            <artifactId>javax.mail</artifactId>
+            <version>1.6.2</version>
+        </dependency>
+        <!-- REMPLACEZ javax.mail par jakarta.mail -->
         <dependency>
             <groupId>com.sun.mail</groupId>
             <artifactId>jakarta.mail</artifactId>
             <version>2.0.1</version>
         </dependency>
-
         <!-- iText PDF -->
         <dependency>
             <groupId>com.itextpdf</groupId>
@@ -61,54 +67,68 @@
             <version>5.5.13.3</version>
         </dependency>
 
-        <!-- Apache Spark (core + sql + catalyst) -->
+        <!-- Apache Spark -->
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-core_2.12</artifactId>
             <version>${spark.version}</version>
         </dependency>
-
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-sql_2.12</artifactId>
             <version>${spark.version}</version>
         </dependency>
-
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-catalyst_2.12</artifactId>
             <version>${spark.version}</version>
         </dependency>
 
-        <!-- Log4j (recommandé pour Spark) -->
+        <!-- Log4j -->
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
             <version>2.19.0</version>
         </dependency>
+
+        <!-- JSON -->
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
             <version>20231013</version>
         </dependency>
+
+        <!-- CSV -->
         <dependency>
             <groupId>com.opencsv</groupId>
             <artifactId>opencsv</artifactId>
             <version>5.8</version>
         </dependency>
 
+        <!-- Machine Learning - Weka -->
+        <dependency>
+            <groupId>nz.ac.waikato.cms.weka</groupId>
+            <artifactId>weka-stable</artifactId>
+            <version>${weka.version}</version>
+        </dependency>
+
+        <!-- Utilities -->
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.15.1</version>
+        </dependency>
     </dependencies>
 
     <repositories>
         <repository>
             <id>central</id>
-            <url>https://repo.maven.apache.org/maven2/</url>
+            <url>https://repo.maven.apache.org/maven2</url>
         </repository>
     </repositories>
 
     <build>
         <plugins>
-
             <!-- Plugin JavaFX -->
             <plugin>
                 <groupId>org.openjfx</groupId>
@@ -120,17 +140,24 @@
                 </configuration>
             </plugin>
 
-            <!-- Compiler en Java 17 -->
+            <!-- Compiler -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.11.0</version>
                 <configuration>
                     <release>17</release>
+                    <!-- Ajouter ces arguments pour JavaFX -->
+                    <compilerArgs>
+                        <arg>--add-exports</arg>
+                        <arg>javafx.base/com.sun.javafx.runtime=ALL-UNNAMED</arg>
+                        <arg>--add-exports</arg>
+                        <arg>javafx.controls/com.sun.javafx.scene.control=ALL-UNNAMED</arg>
+                    </compilerArgs>
                 </configuration>
             </plugin>
 
-            <!-- Créer un JAR exécutable -->
+            <!-- Shade Plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -147,12 +174,20 @@
                                     <mainClass>com.ensah.qoe.Main</mainClass>
                                 </transformer>
                             </transformers>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
-
         </plugins>
     </build>
-
 </project>
