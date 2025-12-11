@@ -1,0 +1,16 @@
+@relation QoS_Anomaly_Data-weka.filters.unsupervised.attribute.Normalize-S1.0-T0.0
+
+@attribute latence numeric
+@attribute jitter numeric
+@attribute perte numeric
+@attribute bande_passante numeric
+@attribute signal_score numeric
+@attribute anomalie {0,1}
+
+@data
+0.152599,0.106002,0,0.30652,0.246843,0
+0.085136,0.333983,0,0.165762,0,0
+0.130995,0.443589,0.010714,0.374849,0,1
+0.202037,0.42235,0,0.18194,0,1
+0.213987,0.298032,0,0.20938,0.091848,0
+0.244384,0.552416,0,0.291416,0,1

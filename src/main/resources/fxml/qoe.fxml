@@ -6,431 +6,487 @@
 <?import javafx.scene.shape.*?>
 <?import javafx.geometry.Insets?>
 
-<ScrollPane xmlns:fx="http://javafx.com/fxml"
-            fx:controller="com.ensah.qoe.Controller.QoEController"
-            fitToWidth="true"
-            vbarPolicy="AS_NEEDED"
-            style="-fx-background: #f8fafc;">
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.ensah.qoe.Controller.QoEController"
+      spacing="0"
+      style="-fx-background-color: #f8fafc;">
 
-    <VBox spacing="24" style="-fx-padding: 24; -fx-background-color: #f8fafc;">
+    <!-- ==================== TOP NAVIGATION BAR ==================== -->
+    <VBox spacing="0"
+          style="-fx-background-color: linear-gradient(to right, #2c3e50, #34495e);
+                 -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 8, 0, 0, 2);">
 
-        <!-- ==================== HEADER MODERNE ==================== -->
-        <VBox spacing="0"
-              style="-fx-background-color: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
-                     -fx-background-radius: 16;
-                     -fx-padding: 32 40;
-                     -fx-effect: dropshadow(gaussian, rgba(245,158,11,0.3), 20, 0, 0, 8);">
+        <!-- Header -->
+        <HBox alignment="CENTER_LEFT" spacing="20"
+              style="-fx-padding: 20 40;">
+            <StackPane>
+                <Circle radius="24" fill="rgba(245, 158, 11, 0.2)"/>
+                <Text text="⭐" style="-fx-font-size: 24;"/>
+            </StackPane>
 
-            <HBox alignment="CENTER_LEFT" spacing="20">
-                <!-- Icon Badge -->
-                <StackPane>
-                    <Circle radius="32" fill="rgba(255,255,255,0.2)"/>
-                    <Circle radius="28" fill="rgba(255,255,255,0.3)"/>
-                    <Text text="⭐" style="-fx-font-size: 32;"/>
-                </StackPane>
+            <VBox spacing="2">
+                <Label text="Quality of Experience"
+                       style="-fx-text-fill: white;
+                              -fx-font-size: 24;
+                              -fx-font-weight: 700;"/>
+                <Label text="Dashboard d'analyse de l'expérience utilisateur"
+                       style="-fx-text-fill: rgba(255,255,255,0.8);
+                              -fx-font-size: 13;"/>
+            </VBox>
 
-                <VBox spacing="4">
-                    <Label text="Quality of Experience"
-                           style="-fx-text-fill: white;
-                                  -fx-font-size: 32;
-                                  -fx-font-weight: 700;
-                                  -fx-font-family: 'Segoe UI', Arial;"/>
-                    <Label text="Dashboard d'analyse de l'expérience utilisateur"
-                           style="-fx-text-fill: rgba(255,255,255,0.9);
-                                  -fx-font-size: 15;"/>
-                </VBox>
-            </HBox>
-        </VBox>
-
-        <!-- ==================== IMPORT & ANALYSE SECTION ==================== -->
-        <HBox spacing="16" alignment="CENTER">
+            <!-- Spacer -->
+            <Region HBox.hgrow="ALWAYS"/>
 
             <!-- Import Button -->
-            <VBox spacing="8" alignment="CENTER"
-                  style="-fx-background-color: white;
-                         -fx-background-radius: 12;
-                         -fx-padding: 24 32;
-                         -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 12, 0, 0, 4);
-                         -fx-min-width: 280;">
-                <Text text="📁" style="-fx-font-size: 28;"/>
-                <Button fx:id="importCsvButton"
-                        text="Importer CSV"
-                        onAction="#importerCsv"
-                        style="-fx-background-color: #f59e0b;
-                               -fx-text-fill: white;
-                               -fx-font-size: 14;
-                               -fx-font-weight: 600;
-                               -fx-background-radius: 8;
-                               -fx-padding: 12 32;
-                               -fx-cursor: hand;
-                               -fx-effect: dropshadow(gaussian, rgba(245,158,11,0.3), 8, 0, 0, 2);"/>
-                <Label text="Données QoE / Telco"
-                       style="-fx-text-fill: #64748b; -fx-font-size: 12;"/>
-            </VBox>
-
-            <!-- Divider -->
-            <Separator orientation="VERTICAL" style="-fx-padding: 0 8;"/>
-
-            <!-- Mode Selection -->
-            <VBox spacing="12" alignment="CENTER"
-                  style="-fx-background-color: white;
-                         -fx-background-radius: 12;
-                         -fx-padding: 24 32;
-                         -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 12, 0, 0, 4);
-                         -fx-pref-width: 400;">
-
-                <Label text="Mode d'analyse"
-                       style="-fx-text-fill: #0f172a;
-                              -fx-font-size: 16;
-                              -fx-font-weight: 600;"/>
-
-                <HBox spacing="12" alignment="CENTER">
-                    <RadioButton fx:id="radioClient"
-                                 text="Par Client"
-                                 onAction="#modeClient"
-                                 style="-fx-font-size: 13; -fx-text-fill: #334155;"/>
-                    <RadioButton fx:id="radioGenre"
-                                 text="Par Genre"
-                                 onAction="#modeGenre"
-                                 style="-fx-font-size: 13; -fx-text-fill: #334155;"/>
-                    <RadioButton fx:id="radioZone"
-                                 text="Par Zone"
-                                 onAction="#modeZone"
-                                 style="-fx-font-size: 13; -fx-text-fill: #334155;"/>
-                </HBox>
-
-                <!-- Selection Boxes -->
-                <HBox fx:id="clientSelectionBox" spacing="12" visible="false" alignment="CENTER">
-                    <Label text="Client :" style="-fx-font-weight: 600; -fx-text-fill: #475569;"/>
-                    <ComboBox fx:id="clientCombo" promptText="Sélectionner..."
-                              style="-fx-pref-width: 220;"/>
-                </HBox>
-
-                <HBox fx:id="genreSelectionBox" spacing="12" visible="false" alignment="CENTER">
-                    <Label text="Genre :" style="-fx-font-weight: 600; -fx-text-fill: #475569;"/>
-                    <ComboBox fx:id="genreCombo" promptText="Sélectionner..."
-                              style="-fx-pref-width: 220;"/>
-                </HBox>
-
-                <HBox fx:id="zoneSelectionBox" spacing="12" visible="false" alignment="CENTER">
-                    <Label text="Zone :" style="-fx-font-weight: 600; -fx-text-fill: #475569;"/>
-                    <ComboBox fx:id="zoneCombo" promptText="Sélectionner..."
-                              style="-fx-pref-width: 220;"/>
-                </HBox>
-            </VBox>
+            <Button fx:id="importCsvButton"
+                    text="📁 Importer CSV"
+                    onAction="#importerCsv"
+                    style="-fx-background-color: #f59e0b;
+                           -fx-text-fill: white;
+                           -fx-font-size: 13;
+                           -fx-font-weight: 600;
+                           -fx-background-radius: 8;
+                           -fx-padding: 12 24;
+                           -fx-cursor: hand;"/>
         </HBox>
 
-        <!-- ==================== QoE GLOBAL CARD ==================== -->
-        <StackPane style="-fx-background-color: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-                          -fx-background-radius: 16;
-                          -fx-padding: 32;
-                          -fx-effect: dropshadow(gaussian, rgba(245,158,11,0.2), 16, 0, 0, 6);
-                          -fx-border-color: #fbbf24;
-                          -fx-border-width: 2;
-                          -fx-border-radius: 16;">
-            <VBox spacing="8" alignment="CENTER">
-                <HBox spacing="12" alignment="CENTER">
-                    <Text text="🎯" style="-fx-font-size: 28;"/>
-                    <Label text="QoE GLOBAL"
-                           style="-fx-text-fill: #78350f;
-                                  -fx-font-size: 20;
+        <!-- Filter Navigation Tabs -->
+        <HBox spacing="0" alignment="CENTER_LEFT"
+              style="-fx-background-color: rgba(0,0,0,0.1);
+                     -fx-padding: 0 40;">
+
+            <ToggleButton fx:id="radioGenre"
+                          text="📊 Par Genre"
+                          onAction="#modeGenre"
+                          style="-fx-background-color: transparent;
+                                 -fx-text-fill: rgba(255,255,255,0.8);
+                                 -fx-font-size: 14;
+                                 -fx-font-weight: 600;
+                                 -fx-padding: 16 40;
+                                 -fx-min-width: 180;
+                                 -fx-background-radius: 0;
+                                 -fx-border-width: 0 0 3 0;
+                                 -fx-border-color: transparent;
+                                 -fx-cursor: hand;">
+                <toggleGroup>
+                    <ToggleGroup fx:id="filterGroup"/>
+                </toggleGroup>
+            </ToggleButton>
+
+            <ToggleButton fx:id="radioClient"
+                          text="👥 Par Client"
+                          onAction="#modeClient"
+                          toggleGroup="$filterGroup"
+                          style="-fx-background-color: transparent;
+                                 -fx-text-fill: rgba(255,255,255,0.8);
+                                 -fx-font-size: 14;
+                                 -fx-font-weight: 600;
+                                 -fx-padding: 16 40;
+                                 -fx-min-width: 180;
+                                 -fx-background-radius: 0;
+                                 -fx-border-width: 0 0 3 0;
+                                 -fx-border-color: transparent;
+                                 -fx-cursor: hand;"/>
+
+            <ToggleButton fx:id="radioZone"
+                          text="🗺️ Par Zone"
+                          onAction="#modeZone"
+                          toggleGroup="$filterGroup"
+                          style="-fx-background-color: transparent;
+                                 -fx-text-fill: rgba(255,255,255,0.8);
+                                 -fx-font-size: 14;
+                                 -fx-font-weight: 600;
+                                 -fx-padding: 16 40;
+                                 -fx-min-width: 180;
+                                 -fx-background-radius: 0;
+                                 -fx-border-width: 0 0 3 0;
+                                 -fx-border-color: transparent;
+                                 -fx-cursor: hand;"/>
+
+            <!-- Spacer -->
+            <Region HBox.hgrow="ALWAYS"/>
+
+            <!-- Filter Selection Area -->
+            <HBox fx:id="genreSelectionBox" spacing="12" visible="true" alignment="CENTER"
+                  style="-fx-padding: 8 0;">
+                <Label text="Genre:"
+                       style="-fx-text-fill: rgba(255,255,255,0.9); -fx-font-weight: 600; -fx-font-size: 13;"/>
+                <ComboBox fx:id="genreCombo"
+                          promptText="Sélectionner un genre..."
+                          style="-fx-pref-width: 200; -fx-background-radius: 6;"/>
+            </HBox>
+
+            <HBox fx:id="clientSelectionBox" spacing="12" visible="false" alignment="CENTER"
+                  style="-fx-padding: 8 0;">
+                <Label text="Client:"
+                       style="-fx-text-fill: rgba(255,255,255,0.9); -fx-font-weight: 600; -fx-font-size: 13;"/>
+                <ComboBox fx:id="clientCombo"
+                          promptText="Sélectionner un client..."
+                          style="-fx-pref-width: 220; -fx-background-radius: 6;"/>
+            </HBox>
+
+            <HBox fx:id="zoneSelectionBox" spacing="12" visible="false" alignment="CENTER"
+                  style="-fx-padding: 8 0;">
+                <Label text="Zone:"
+                       style="-fx-text-fill: rgba(255,255,255,0.9); -fx-font-weight: 600; -fx-font-size: 13;"/>
+                <ComboBox fx:id="zoneCombo"
+                          promptText="Sélectionner une zone..."
+                          style="-fx-pref-width: 200; -fx-background-radius: 6;"/>
+            </HBox>
+        </HBox>
+    </VBox>
+
+    <!-- ==================== MAIN CONTENT WITH SCROLL ==================== -->
+    <ScrollPane fitToWidth="true"
+                vbarPolicy="AS_NEEDED"
+                style="-fx-background: transparent; -fx-background-color: transparent;">
+
+        <VBox spacing="24" style="-fx-padding: 32 40;">
+
+            <!-- ==================== QOE GLOBAL CARD ==================== -->
+            <HBox spacing="24" alignment="CENTER">
+
+                <!-- QoE Global Principal -->
+                <StackPane style="-fx-background-color: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+                                  -fx-background-radius: 20;
+                                  -fx-padding: 40;
+                                  -fx-pref-width: 400;
+                                  -fx-effect: dropshadow(gaussian, rgba(245,158,11,0.4), 20, 0, 0, 8);">
+                    <VBox spacing="12" alignment="CENTER">
+                        <HBox spacing="12" alignment="CENTER">
+                            <Text text="🎯" style="-fx-font-size: 32;"/>
+                            <Label text="QoE GLOBAL"
+                                   style="-fx-text-fill: #78350f;
+                                          -fx-font-size: 20;
+                                          -fx-font-weight: 700;
+                                          -fx-letter-spacing: 2;"/>
+                        </HBox>
+
+                        <Label fx:id="overallQoeLabel"
+                               text="—"
+                               style="-fx-text-fill: #92400e;
+                                      -fx-font-size: 56;
+                                      -fx-font-weight: 700;
+                                      -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 4, 0, 0, 2);"/>
+
+                        <Label text="Score moyen de qualité"
+                               style="-fx-text-fill: #78350f;
+                                      -fx-font-size: 14;
+                                      -fx-font-weight: 600;"/>
+                    </VBox>
+                </StackPane>
+
+                <!-- Quick Stats -->
+                <GridPane hgap="16" vgap="16" HBox.hgrow="ALWAYS">
+
+                    <!-- Buffering -->
+                    <VBox GridPane.columnIndex="0" GridPane.rowIndex="0"
+                          spacing="8" alignment="CENTER"
+                          style="-fx-background-color: white;
+                                 -fx-background-radius: 16;
+                                 -fx-padding: 20;
+                                 -fx-pref-width: 180;
+                                 -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 12, 0, 0, 4);">
+                        <Text text="⏳" style="-fx-font-size: 28;"/>
+                        <Label text="Jitter Moyen"
+                               style="-fx-font-size: 12;
+                                      -fx-text-fill: #64748b;
+                                      -fx-font-weight: 600;"/>
+                        <Label fx:id="bufferingLabel"
+                               text="—"
+                               style="-fx-font-size: 20;
+                                      -fx-font-weight: 700;
+                                      -fx-text-fill: #f59e0b;"/>
+                    </VBox>
+
+                    <!-- Loading Time -->
+                    <VBox GridPane.columnIndex="1" GridPane.rowIndex="0"
+                          spacing="8" alignment="CENTER"
+                          style="-fx-background-color: white;
+                                 -fx-background-radius: 16;
+                                 -fx-padding: 20;
+                                 -fx-pref-width: 180;
+                                 -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 12, 0, 0, 4);">
+                        <Text text="⏱️" style="-fx-font-size: 28;"/>
+                        <Label text="Latence Moy."
+                               style="-fx-font-size: 12;
+                                      -fx-text-fill: #64748b;
+                                      -fx-font-weight: 600;"/>
+                        <Label fx:id="loadingTimeLabel"
+                               text="—"
+                               style="-fx-font-size: 20;
+                                      -fx-font-weight: 700;
+                                      -fx-text-fill: #3b82f6;"/>
+                    </VBox>
+
+                    <!-- Failure Rate -->
+                    <VBox GridPane.columnIndex="0" GridPane.rowIndex="1"
+                          spacing="8" alignment="CENTER"
+                          style="-fx-background-color: white;
+                                 -fx-background-radius: 16;
+                                 -fx-padding: 20;
+                                 -fx-pref-width: 180;
+                                 -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 12, 0, 0, 4);">
+                        <Text text="❌" style="-fx-font-size: 28;"/>
+                        <Label text="Perte Moy."
+                               style="-fx-font-size: 12;
+                                      -fx-text-fill: #64748b;
+                                      -fx-font-weight: 600;"/>
+                        <Label fx:id="failureRateLabel"
+                               text="—"
+                               style="-fx-font-size: 20;
+                                      -fx-font-weight: 700;
+                                      -fx-text-fill: #ef4444;"/>
+                    </VBox>
+
+                    <!-- Streaming -->
+                    <VBox GridPane.columnIndex="1" GridPane.rowIndex="1"
+                          spacing="8" alignment="CENTER"
+                          style="-fx-background-color: white;
+                                 -fx-background-radius: 16;
+                                 -fx-padding: 20;
+                                 -fx-pref-width: 180;
+                                 -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 12, 0, 0, 4);">
+                        <Text text="📶" style="-fx-font-size: 28;"/>
+                        <Label text="Bande Passante"
+                               style="-fx-font-size: 12;
+                                      -fx-text-fill: #64748b;
+                                      -fx-font-weight: 600;"/>
+                        <Label fx:id="streamingQualityLabel"
+                               text="—"
+                               style="-fx-font-size: 20;
+                                      -fx-font-weight: 700;
+                                      -fx-text-fill: #10b981;"/>
+                    </VBox>
+                </GridPane>
+            </HBox>
+
+            <!-- ==================== MÉTRIQUES SUBJECTIVES ==================== -->
+            <VBox spacing="20"
+                  style="-fx-background-color: white;
+                         -fx-background-radius: 20;
+                         -fx-padding: 32;
+                         -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 16, 0, 0, 4);">
+
+                <HBox alignment="CENTER_LEFT" spacing="12">
+                    <StackPane>
+                        <Circle radius="18" fill="#fbbf24" opacity="0.2"/>
+                        <Text text="💭" style="-fx-font-size: 20;"/>
+                    </StackPane>
+                    <Label text="MÉTRIQUES SUBJECTIVES"
+                           style="-fx-text-fill: #0f172a;
+                                  -fx-font-size: 18;
                                   -fx-font-weight: 700;
                                   -fx-letter-spacing: 1;"/>
                 </HBox>
 
-                <Label fx:id="overallQoeLabel"
-                       text="—"
-                       style="-fx-text-fill: #d97706;
-                              -fx-font-size: 48;
-                              -fx-font-weight: 700;"/>
+                <GridPane hgap="20" vgap="20">
+                    <columnConstraints>
+                        <ColumnConstraints percentWidth="33.33"/>
+                        <ColumnConstraints percentWidth="33.33"/>
+                        <ColumnConstraints percentWidth="33.33"/>
+                    </columnConstraints>
 
-                <Label text="Score moyen de qualité"
-                       style="-fx-text-fill: #92400e; -fx-font-size: 13;"/>
+                    <!-- Satisfaction -->
+                    <VBox GridPane.columnIndex="0" GridPane.rowIndex="0"
+                          spacing="16"
+                          style="-fx-background-color: #fffbeb;
+                                 -fx-background-radius: 16;
+                                 -fx-padding: 24;
+                                 -fx-border-color: #fbbf24;
+                                 -fx-border-width: 2;
+                                 -fx-border-radius: 16;">
+                        <HBox spacing="12" alignment="CENTER_LEFT">
+                            <StackPane>
+                                <Circle radius="24" fill="#fbbf24" opacity="0.2"/>
+                                <Text text="😊" style="-fx-font-size: 24;"/>
+                            </StackPane>
+                            <Label text="Satisfaction"
+                                   style="-fx-font-size: 15;
+                                          -fx-font-weight: 700;
+                                          -fx-text-fill: #78350f;"/>
+                        </HBox>
+
+                        <Label fx:id="satisfactionLabel"
+                               text="—"
+                               style="-fx-font-size: 32;
+                                      -fx-font-weight: 700;
+                                      -fx-text-fill: #f59e0b;"/>
+                    </VBox>
+
+                    <!-- Qualité Vidéo -->
+                    <VBox GridPane.columnIndex="1" GridPane.rowIndex="0"
+                          spacing="16"
+                          style="-fx-background-color: #fef2f2;
+                                 -fx-background-radius: 16;
+                                 -fx-padding: 24;
+                                 -fx-border-color: #ef4444;
+                                 -fx-border-width: 2;
+                                 -fx-border-radius: 16;">
+                        <HBox spacing="12" alignment="CENTER_LEFT">
+                            <StackPane>
+                                <Circle radius="24" fill="#ef4444" opacity="0.2"/>
+                                <Text text="📹" style="-fx-font-size: 24;"/>
+                            </StackPane>
+                            <Label text="Qualité Vidéo"
+                                   style="-fx-font-size: 15;
+                                          -fx-font-weight: 700;
+                                          -fx-text-fill: #7f1d1d;"/>
+                        </HBox>
+
+                        <Label fx:id="videoQualityLabel"
+                               text="—"
+                               style="-fx-font-size: 32;
+                                      -fx-font-weight: 700;
+                                      -fx-text-fill: #ef4444;"/>
+                    </VBox>
+
+                    <!-- Qualité Audio -->
+                    <VBox GridPane.columnIndex="2" GridPane.rowIndex="0"
+                          spacing="16"
+                          style="-fx-background-color: #faf5ff;
+                                 -fx-background-radius: 16;
+                                 -fx-padding: 24;
+                                 -fx-border-color: #8b5cf6;
+                                 -fx-border-width: 2;
+                                 -fx-border-radius: 16;">
+                        <HBox spacing="12" alignment="CENTER_LEFT">
+                            <StackPane>
+                                <Circle radius="24" fill="#8b5cf6" opacity="0.2"/>
+                                <Text text="🎵" style="-fx-font-size: 24;"/>
+                            </StackPane>
+                            <Label text="Qualité Audio"
+                                   style="-fx-font-size: 15;
+                                          -fx-font-weight: 700;
+                                          -fx-text-fill: #581c87;"/>
+                        </HBox>
+
+                        <Label fx:id="audioQualityLabel"
+                               text="—"
+                               style="-fx-font-size: 32;
+                                      -fx-font-weight: 700;
+                                      -fx-text-fill: #8b5cf6;"/>
+                    </VBox>
+
+                    <!-- Interactivité -->
+                    <VBox GridPane.columnIndex="0" GridPane.rowIndex="1"
+                          GridPane.columnSpan="1"
+                          spacing="16"
+                          style="-fx-background-color: #eff6ff;
+                                 -fx-background-radius: 16;
+                                 -fx-padding: 24;
+                                 -fx-border-color: #3b82f6;
+                                 -fx-border-width: 2;
+                                 -fx-border-radius: 16;">
+                        <HBox spacing="12" alignment="CENTER_LEFT">
+                            <StackPane>
+                                <Circle radius="24" fill="#3b82f6" opacity="0.2"/>
+                                <Text text="⚡" style="-fx-font-size: 24;"/>
+                            </StackPane>
+                            <Label text="Interactivité"
+                                   style="-fx-font-size: 15;
+                                          -fx-font-weight: 700;
+                                          -fx-text-fill: #1e3a8a;"/>
+                        </HBox>
+
+                        <Label fx:id="interactivityLabel"
+                               text="—"
+                               style="-fx-font-size: 32;
+                                      -fx-font-weight: 700;
+                                      -fx-text-fill: #3b82f6;"/>
+                    </VBox>
+
+                    <!-- Fiabilité -->
+                    <VBox GridPane.columnIndex="1" GridPane.rowIndex="1"
+                          GridPane.columnSpan="2"
+                          spacing="16"
+                          style="-fx-background-color: #f0fdf4;
+                                 -fx-background-radius: 16;
+                                 -fx-padding: 24;
+                                 -fx-border-color: #10b981;
+                                 -fx-border-width: 2;
+                                 -fx-border-radius: 16;">
+                        <HBox spacing="12" alignment="CENTER_LEFT">
+                            <StackPane>
+                                <Circle radius="24" fill="#10b981" opacity="0.2"/>
+                                <Text text="🛡️" style="-fx-font-size: 24;"/>
+                            </StackPane>
+                            <Label text="Fiabilité"
+                                   style="-fx-font-size: 15;
+                                          -fx-font-weight: 700;
+                                          -fx-text-fill: #064e3b;"/>
+                        </HBox>
+
+                        <Label fx:id="reliabilityLabel"
+                               text="—"
+                               style="-fx-font-size: 32;
+                                      -fx-font-weight: 700;
+                                      -fx-text-fill: #10b981;"/>
+                    </VBox>
+                </GridPane>
             </VBox>
-        </StackPane>
 
-        <!-- ==================== DYNAMIC CONTENT AREA ==================== -->
-        <!-- TABLE VIEW -->
-        <VBox fx:id="tableContainer"
-              visible="false"
-              managed="false"
-              spacing="16"
-              style="-fx-background-color: white;
-                     -fx-background-radius: 16;
-                     -fx-padding: 24;
-                     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 12, 0, 0, 4);">
+            <!-- ==================== DYNAMIC CONTENT AREA ==================== -->
 
-            <HBox alignment="CENTER_LEFT" spacing="12">
-                <Text text="👥" style="-fx-font-size: 24;"/>
-                <Label text="Liste des Clients"
-                       style="-fx-font-size: 20;
-                              -fx-font-weight: 600;
-                              -fx-text-fill: #0f172a;"/>
-            </HBox>
+            <!-- TABLE VIEW (Clients) -->
+            <VBox fx:id="tableContainer"
+                  visible="false"
+                  managed="false"
+                  spacing="20"
+                  style="-fx-background-color: white;
+                         -fx-background-radius: 20;
+                         -fx-padding: 32;
+                         -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 16, 0, 0, 4);">
 
-            <TableView fx:id="clientTable"
-                       style="-fx-background-color: transparent;
-                             -fx-background-radius: 8;"/>
-        </VBox>
-
-        <!-- GRAPH VIEW -->
-        <VBox fx:id="graphContainer"
-              visible="true"
-              managed="true"
-              spacing="16"
-              style="-fx-background-color: white;
-                     -fx-background-radius: 16;
-                     -fx-padding: 24;
-                     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 12, 0, 0, 4);">
-
-            <HBox alignment="CENTER_LEFT" spacing="12">
-                <Text text="📊" style="-fx-font-size: 24;"/>
-                <Label text="Analyse par Genre"
-                       style="-fx-font-size: 20;
-                              -fx-font-weight: 600;
-                              -fx-text-fill: #0f172a;"/>
-            </HBox>
-        </VBox>
-
-        <!-- ==================== MÉTRIQUES SUBJECTIVES ==================== -->
-        <VBox spacing="16">
-            <HBox alignment="CENTER_LEFT" spacing="12">
-                <Text text="💭" style="-fx-font-size: 22;"/>
-                <Label text="MÉTRIQUES SUBJECTIVES"
-                       style="-fx-text-fill: #0f172a;
-                              -fx-font-size: 18;
-                              -fx-font-weight: 700;
-                              -fx-letter-spacing: 0.5;"/>
-            </HBox>
-
-            <GridPane hgap="16" vgap="16">
-                <columnConstraints>
-                    <ColumnConstraints percentWidth="50"/>
-                    <ColumnConstraints percentWidth="50"/>
-                </columnConstraints>
-
-                <!-- Satisfaction -->
-                <VBox GridPane.columnIndex="0" GridPane.rowIndex="0"
-                      spacing="12"
-                      style="-fx-background-color: white;
-                             -fx-background-radius: 12;
-                             -fx-padding: 20;
-                             -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 10, 0, 0, 3);
-                             -fx-border-color: #fbbf24;
-                             -fx-border-width: 0 0 0 4;
-                             -fx-border-radius: 12;">
-                    <HBox alignment="CENTER_LEFT" spacing="10">
-                        <Text text="😊" style="-fx-font-size: 22;"/>
-                        <Label text="Satisfaction"
-                               style="-fx-font-size: 14;
-                                      -fx-font-weight: 600;
-                                      -fx-text-fill: #475569;"/>
-                    </HBox>
-                    <Label fx:id="satisfactionLabel"
-                           text="—"
-                           style="-fx-font-size: 24;
-                                  -fx-font-weight: 700;
-                                  -fx-text-fill: #f59e0b;"/>
-                </VBox>
-
-                <!-- Qualité Vidéo -->
-                <VBox GridPane.columnIndex="1" GridPane.rowIndex="0"
-                      spacing="12"
-                      style="-fx-background-color: white;
-                             -fx-background-radius: 12;
-                             -fx-padding: 20;
-                             -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 10, 0, 0, 3);
-                             -fx-border-color: #ef4444;
-                             -fx-border-width: 0 0 0 4;
-                             -fx-border-radius: 12;">
-                    <HBox alignment="CENTER_LEFT" spacing="10">
-                        <Text text="📹" style="-fx-font-size: 22;"/>
-                        <Label text="Qualité Vidéo"
-                               style="-fx-font-size: 14;
-                                      -fx-font-weight: 600;
-                                      -fx-text-fill: #475569;"/>
-                    </HBox>
-                    <Label fx:id="videoQualityLabel"
-                           text="—"
-                           style="-fx-font-size: 24;
-                                  -fx-font-weight: 700;
-                                  -fx-text-fill: #ef4444;"/>
-                </VBox>
-
-                <!-- Qualité Audio -->
-                <VBox GridPane.columnIndex="0" GridPane.rowIndex="1"
-                      spacing="12"
-                      style="-fx-background-color: white;
-                             -fx-background-radius: 12;
-                             -fx-padding: 20;
-                             -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 10, 0, 0, 3);
-                             -fx-border-color: #8b5cf6;
-                             -fx-border-width: 0 0 0 4;
-                             -fx-border-radius: 12;">
-                    <HBox alignment="CENTER_LEFT" spacing="10">
-                        <Text text="🎵" style="-fx-font-size: 22;"/>
-                        <Label text="Qualité Audio"
-                               style="-fx-font-size: 14;
-                                      -fx-font-weight: 600;
-                                      -fx-text-fill: #475569;"/>
-                    </HBox>
-                    <Label fx:id="audioQualityLabel"
-                           text="—"
-                           style="-fx-font-size: 24;
-                                  -fx-font-weight: 700;
-                                  -fx-text-fill: #8b5cf6;"/>
-                </VBox>
-
-                <!-- Interactivité -->
-                <VBox GridPane.columnIndex="1" GridPane.rowIndex="1"
-                      spacing="12"
-                      style="-fx-background-color: white;
-                             -fx-background-radius: 12;
-                             -fx-padding: 20;
-                             -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 10, 0, 0, 3);
-                             -fx-border-color: #3b82f6;
-                             -fx-border-width: 0 0 0 4;
-                             -fx-border-radius: 12;">
-                    <HBox alignment="CENTER_LEFT" spacing="10">
-                        <Text text="⚡" style="-fx-font-size: 22;"/>
-                        <Label text="Interactivité"
-                               style="-fx-font-size: 14;
-                                      -fx-font-weight: 600;
-                                      -fx-text-fill: #475569;"/>
-                    </HBox>
-                    <Label fx:id="interactivityLabel"
-                           text="—"
-                           style="-fx-font-size: 24;
-                                  -fx-font-weight: 700;
-                                  -fx-text-fill: #3b82f6;"/>
-                </VBox>
-
-                <!-- Fiabilité -->
-                <VBox GridPane.columnIndex="0" GridPane.rowIndex="2"
-                      GridPane.columnSpan="2"
-                      spacing="12"
-                      style="-fx-background-color: white;
-                             -fx-background-radius: 12;
-                             -fx-padding: 20;
-                             -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 10, 0, 0, 3);
-                             -fx-border-color: #10b981;
-                             -fx-border-width: 0 0 0 4;
-                             -fx-border-radius: 12;">
-                    <HBox alignment="CENTER_LEFT" spacing="10">
-                        <Text text="🛡️" style="-fx-font-size: 22;"/>
-                        <Label text="Fiabilité"
-                               style="-fx-font-size: 14;
-                                      -fx-font-weight: 600;
-                                      -fx-text-fill: #475569;"/>
-                    </HBox>
-                    <Label fx:id="reliabilityLabel"
-                           text="—"
-                           style="-fx-font-size: 24;
-                                  -fx-font-weight: 700;
-                                  -fx-text-fill: #10b981;"/>
-                </VBox>
-            </GridPane>
-        </VBox>
-
-        <!-- ==================== MÉTRIQUES OBJECTIVES ==================== -->
-        <VBox spacing="16">
-            <HBox alignment="CENTER_LEFT" spacing="12">
-                <Text text="📈" style="-fx-font-size: 22;"/>
-                <Label text="MÉTRIQUES OBJECTIVES"
-                       style="-fx-text-fill: #0f172a;
-                              -fx-font-size: 18;
-                              -fx-font-weight: 700;
-                              -fx-letter-spacing: 0.5;"/>
-            </HBox>
-
-            <GridPane hgap="16" vgap="16">
-                <columnConstraints>
-                    <ColumnConstraints percentWidth="25"/>
-                    <ColumnConstraints percentWidth="25"/>
-                    <ColumnConstraints percentWidth="25"/>
-                    <ColumnConstraints percentWidth="25"/>
-                </columnConstraints>
-
-                <!-- Buffering -->
-                <VBox GridPane.columnIndex="0" spacing="10"
-                      style="-fx-background-color: white;
-                             -fx-background-radius: 12;
-                             -fx-padding: 16;
-                             -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 10, 0, 0, 3);">
-                    <Text text="⏳" style="-fx-font-size: 20;"/>
-                    <Label text="Buffering"
-                           style="-fx-font-size: 12;
-                                  -fx-text-fill: #64748b;
-                                  -fx-font-weight: 500;"/>
-                    <Label fx:id="bufferingLabel"
-                           text="—"
+                <HBox alignment="CENTER_LEFT" spacing="12">
+                    <StackPane>
+                        <Circle radius="18" fill="#3b82f6" opacity="0.2"/>
+                        <Text text="👥" style="-fx-font-size: 20;"/>
+                    </StackPane>
+                    <Label text="LISTE DES CLIENTS"
                            style="-fx-font-size: 18;
                                   -fx-font-weight: 700;
-                                  -fx-text-fill: #0f172a;"/>
-                </VBox>
+                                  -fx-text-fill: #0f172a;
+                                  -fx-letter-spacing: 1;"/>
 
-                <!-- Loading Time -->
-                <VBox GridPane.columnIndex="1" spacing="10"
-                      style="-fx-background-color: white;
-                             -fx-background-radius: 12;
-                             -fx-padding: 16;
-                             -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 10, 0, 0, 3);">
-                    <Text text="⏱️" style="-fx-font-size: 20;"/>
-                    <Label text="Loading Time"
-                           style="-fx-font-size: 12;
+                    <Region HBox.hgrow="ALWAYS"/>
+
+                    <Label fx:id="clientCountLabel"
+                           text="0 clients"
+                           style="-fx-font-size: 13;
                                   -fx-text-fill: #64748b;
-                                  -fx-font-weight: 500;"/>
-                    <Label fx:id="loadingTimeLabel"
-                           text="—"
+                                  -fx-font-weight: 600;"/>
+                </HBox>
+
+                <TableView fx:id="clientTable"
+                           style="-fx-background-color: transparent;
+                                  -fx-background-radius: 12;"/>
+            </VBox>
+
+            <!-- GRAPH VIEW (Genres) -->
+            <VBox fx:id="graphContainer"
+                  visible="true"
+                  managed="true"
+                  spacing="20"
+                  style="-fx-background-color: white;
+                         -fx-background-radius: 20;
+                         -fx-padding: 32;
+                         -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 16, 0, 0, 4);">
+
+                <HBox alignment="CENTER_LEFT" spacing="12">
+                    <StackPane>
+                        <Circle radius="18" fill="#8b5cf6" opacity="0.2"/>
+                        <Text text="📊" style="-fx-font-size: 20;"/>
+                    </StackPane>
+                    <Label text="ANALYSE PAR GENRE"
                            style="-fx-font-size: 18;
                                   -fx-font-weight: 700;
-                                  -fx-text-fill: #0f172a;"/>
-                </VBox>
+                                  -fx-text-fill: #0f172a;
+                                  -fx-letter-spacing: 1;"/>
+                </HBox>
+            </VBox>
 
-                <!-- Failure Rate -->
-                <VBox GridPane.columnIndex="2" spacing="10"
-                      style="-fx-background-color: white;
-                             -fx-background-radius: 12;
-                             -fx-padding: 16;
-                             -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 10, 0, 0, 3);">
-                    <Text text="❌" style="-fx-font-size: 20;"/>
-                    <Label text="Failure Rate"
-                           style="-fx-font-size: 12;
-                                  -fx-text-fill: #64748b;
-                                  -fx-font-weight: 500;"/>
-                    <Label fx:id="failureRateLabel"
-                           text="—"
-                           style="-fx-font-size: 18;
-                                  -fx-font-weight: 700;
-                                  -fx-text-fill: #0f172a;"/>
-                </VBox>
-
-                <!-- Streaming Quality -->
-                <VBox GridPane.columnIndex="3" spacing="10"
-                      style="-fx-background-color: white;
-                             -fx-background-radius: 12;
-                             -fx-padding: 16;
-                             -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 10, 0, 0, 3);">
-                    <Text text="📶" style="-fx-font-size: 20;"/>
-                    <Label text="Streaming"
-                           style="-fx-font-size: 12;
-                                  -fx-text-fill: #64748b;
-                                  -fx-font-weight: 500;"/>
-                    <Label fx:id="streamingQualityLabel"
-                           text="—"
-                           style="-fx-font-size: 18;
-                                  -fx-font-weight: 700;
-                                  -fx-text-fill: #0f172a;"/>
-                </VBox>
-            </GridPane>
         </VBox>
+    </ScrollPane>
 
-        <!-- ==================== FOOTER ==================== -->
-        <HBox alignment="CENTER" style="-fx-padding: 24 0 0 0;">
-            <Label text="QoE Analysis System • v2.0 • © 2025"
-                   style="-fx-text-fill: #94a3b8;
-                          -fx-font-size: 12;"/>
-        </HBox>
-
-    </VBox>
-</ScrollPane>
+</VBox>

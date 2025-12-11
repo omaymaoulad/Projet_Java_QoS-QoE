@@ -6,132 +6,259 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.Cursor?>
+<?import javafx.scene.effect.*?>
 
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.ensah.qoe.Controller.MainAdminLayoutController"
-            prefHeight="800.0" prefWidth="1200.0">
+            prefHeight="600.0" prefWidth="1200.0">
 
-    <!--  Menu latéral professionnel -->
+    <!--  Menu latéral professionnel avec ScrollPane -->
     <left>
-        <VBox spacing="0" prefWidth="250" style="-fx-background-color: #2c3e50;">
+        <VBox spacing="0" prefWidth="280" style="-fx-background-color: linear-gradient(to bottom, #2c3e50, #1a252f); -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 15, 0, 2, 0);">
 
-            <!-- Logo et titre -->
-            <VBox alignment="CENTER" spacing="10" style="-fx-padding: 30 0 30 0; -fx-background-color: #34495e;">
-                <Rectangle width="40" height="40" arcWidth="10" arcHeight="10"
-                           fill="linear-gradient(to bottom right, #f59e0b, #ea580c)"/>
-                <Label text="QoE System" style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 20;"/>
-                <Label text="Admin Dashboard" style="-fx-text-fill: #bdc3c7; -fx-font-size: 12;"/>
+            <!-- Logo et titre avec dégradé (toujours visible) -->
+            <VBox alignment="CENTER" spacing="12" style="-fx-padding: 35 0 35 0; -fx-background-color: linear-gradient(to right, #34495e, #2c3e50);">
+                <StackPane>
+                    <Rectangle width="60" height="60" arcWidth="15" arcHeight="15"
+                               fill="linear-gradient(to bottom right, #f59e0b, #ea580c)"
+                               style="-fx-effect: dropshadow(gaussian, rgba(245, 158, 11, 0.6), 20, 0.3, 0, 0);"/>
+                    <Label text="Q" style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 32; -fx-font-family: 'Arial Black';"/>
+                </StackPane>
+                <Label text="QoE System" style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 22; -fx-letter-spacing: 1;"/>
+                <HBox spacing="8" alignment="CENTER">
+                    <Circle radius="3" fill="#f59e0b"/>
+                    <Label text="Admin Dashboard" style="-fx-text-fill: #bdc3c7; -fx-font-size: 13; -fx-font-weight: 500;"/>
+                </HBox>
             </VBox>
 
-            <!-- Menu navigation -->
-            <VBox spacing="2" style="-fx-padding: 20 0 0 0;">
-                <!-- Dashboard -->
-                <Button text="📊 Dashboard"
-                        style="-fx-background-color: transparent;
-                               -fx-text-fill: #ecf0f1;
-                               -fx-font-size: 14;
-                               -fx-alignment: center-left;
-                               -fx-padding: 12 20;"
-                        onAction="#loadAdminDashboardView">
-                    <cursor><Cursor fx:constant="HAND"/></cursor>
-                </Button>
+            <!-- Séparateur avec effet gradient -->
+            <Region prefHeight="2" style="-fx-background-color: linear-gradient(to right, transparent, rgba(255,255,255,0.1), transparent);"/>
 
-                <!-- QoE Management -->
-                <Button text="📈 QoE Analysis"
-                        style="-fx-background-color: transparent;
-                               -fx-text-fill: #ecf0f1;
-                               -fx-font-size: 14;
-                               -fx-alignment: center-left;
-                               -fx-padding: 12 20;"
-                        onAction="#loadQoEView">
-                    <cursor><Cursor fx:constant="HAND"/></cursor>
-                </Button>
+            <!-- ScrollPane pour le menu navigation -->
+            <ScrollPane fx:id="menuScrollPane"
+                        fitToWidth="true"
+                        VBox.vgrow="ALWAYS"
+                        style="-fx-background: transparent;
+                               -fx-background-color: transparent;
+                               -fx-border-color: transparent;">
+                <VBox spacing="4" style="-fx-padding: 25 15 25 15;">
 
-                <!-- QoS Management -->
-                <Button text="⚡ QoS Metrics"
-                        style="-fx-background-color: transparent;
-                               -fx-text-fill: #ecf0f1;
-                               -fx-font-size: 14;
-                               -fx-alignment: center-left;
-                               -fx-padding: 12 20;"
-                        onAction="#loadQoSView">
-                    <cursor><Cursor fx:constant="HAND"/></cursor>
-                </Button>
+                    <!-- Dashboard -->
+                    <Button text="📊  Dashboard"
+                            fx:id="dashboardBtn"
+                            onMouseEntered="#handleMenuHover"
+                            onMouseExited="#handleMenuExit"
+                            style="-fx-background-color: rgba(52, 152, 219, 0.15);
+                                   -fx-background-radius: 10;
+                                   -fx-text-fill: #ecf0f1;
+                                   -fx-font-size: 14;
+                                   -fx-font-weight: 600;
+                                   -fx-alignment: center-left;
+                                   -fx-padding: 15 20;
+                                   -fx-border-color: rgba(52, 152, 219, 0.3);
+                                   -fx-border-width: 1;
+                                   -fx-border-radius: 10;
+                                   -fx-cursor: hand;"
+                            onAction="#loadAdminDashboardView">
+                        <cursor><Cursor fx:constant="HAND"/></cursor>
+                    </Button>
 
-                <!-- Network Monitoring -->
-                <Button text="🌐 Network Monitor"
-                        style="-fx-background-color: transparent;
-                               -fx-text-fill: #ecf0f1;
-                               -fx-font-size: 14;
-                               -fx-alignment: center-left;
-                               -fx-padding: 12 20;"
-                        onAction="#showNetworkMonitor">
-                    <cursor><Cursor fx:constant="HAND"/></cursor>
-                </Button>
+                    <!-- QoE Analysis -->
+                    <Button text="📈  QoE Analysis"
+                            onMouseEntered="#handleMenuHover"
+                            onMouseExited="#handleMenuExit"
+                            style="-fx-background-color: transparent;
+                                   -fx-background-radius: 10;
+                                   -fx-text-fill: #ecf0f1;
+                                   -fx-font-size: 14;
+                                   -fx-font-weight: 500;
+                                   -fx-alignment: center-left;
+                                   -fx-padding: 15 20;
+                                   -fx-cursor: hand;"
+                            onAction="#loadQoEView">
+                        <cursor><Cursor fx:constant="HAND"/></cursor>
+                    </Button>
 
-                <!-- User Management -->
-                <Button text="👥 User Management"
-                        style="-fx-background-color: transparent;
-                               -fx-text-fill: #ecf0f1;
-                               -fx-font-size: 14;
-                               -fx-alignment: center-left;
-                               -fx-padding: 12 20;"
-                        onAction="#showUserManagement">
-                    <cursor><Cursor fx:constant="HAND"/></cursor>
-                </Button>
+                    <!-- QoS Metrics -->
+                    <Button text="⚡  QoS Metrics"
+                            onMouseEntered="#handleMenuHover"
+                            onMouseExited="#handleMenuExit"
+                            style="-fx-background-color: transparent;
+                                   -fx-background-radius: 10;
+                                   -fx-text-fill: #ecf0f1;
+                                   -fx-font-size: 14;
+                                   -fx-font-weight: 500;
+                                   -fx-alignment: center-left;
+                                   -fx-padding: 15 20;
+                                   -fx-cursor: hand;"
+                            onAction="#loadQoSView">
+                        <cursor><Cursor fx:constant="HAND"/></cursor>
+                    </Button>
 
-                <!-- Reports -->
-                <Button text="📋 Reports"
-                        style="-fx-background-color: transparent;
-                               -fx-text-fill: #ecf0f1;
-                               -fx-font-size: 14;
-                               -fx-alignment: center-left;
-                               -fx-padding: 12 20;"
-                        onAction="#showReports">
-                    <cursor><Cursor fx:constant="HAND"/></cursor>
-                </Button>
-                <Button text="🧠 Dashboard ML"
-                        onAction="#openMLDashboard"
-                        style="-fx-background-color: #9b59b6; -fx-text-fill: white; -fx-font-weight: bold;">
-                    <graphic>
-                        <ImageView>
-<!--                            <Image url="@../images/ml-icon.png"/>-->
-                        </ImageView>
-                    </graphic>
-                </Button>
-                <!-- System Settings -->
-                <Button text="⚙️ Settings"
-                        style="-fx-background-color: transparent;
-                               -fx-text-fill: #ecf0f1;
-                               -fx-font-size: 14;
-                               -fx-alignment: center-left;
-                               -fx-padding: 12 20;"
-                        onAction="#showSystemSettings">
-                    <cursor><Cursor fx:constant="HAND"/></cursor>
-                </Button>
-            </VBox>
+                    <!-- Network Monitor -->
+                    <Button text="🌐  Network Monitor"
+                            onMouseEntered="#handleMenuHover"
+                            onMouseExited="#handleMenuExit"
+                            style="-fx-background-color: transparent;
+                                   -fx-background-radius: 10;
+                                   -fx-text-fill: #ecf0f1;
+                                   -fx-font-size: 14;
+                                   -fx-font-weight: 500;
+                                   -fx-alignment: center-left;
+                                   -fx-padding: 15 20;
+                                   -fx-cursor: hand;"
+                            onAction="#showNetworkMonitor">
+                        <cursor><Cursor fx:constant="HAND"/></cursor>
+                    </Button>
 
-            <!-- Espace flexible -->
-            <VBox VBox.vgrow="ALWAYS"/>
+                    <!-- User Management -->
+                    <Button text="👥  User Management"
+                            onMouseEntered="#handleMenuHover"
+                            onMouseExited="#handleMenuExit"
+                            style="-fx-background-color: transparent;
+                                   -fx-background-radius: 10;
+                                   -fx-text-fill: #ecf0f1;
+                                   -fx-font-size: 14;
+                                   -fx-font-weight: 500;
+                                   -fx-alignment: center-left;
+                                   -fx-padding: 15 20;
+                                   -fx-cursor: hand;"
+                            onAction="#showUserManagement">
+                        <cursor><Cursor fx:constant="HAND"/></cursor>
+                    </Button>
 
-            <!-- User section -->
-            <VBox spacing="10" style="-fx-padding: 20; -fx-border-color: #34495e; -fx-border-width: 1 0 0 0;">
-                <HBox spacing="10" alignment="CENTER_LEFT">
-                    <Circle radius="16" fill="#3498db"/>
-                    <VBox>
+                    <!-- Reports -->
+                    <Button text="📋  Reports"
+                            onMouseEntered="#handleMenuHover"
+                            onMouseExited="#handleMenuExit"
+                            style="-fx-background-color: transparent;
+                                   -fx-background-radius: 10;
+                                   -fx-text-fill: #ecf0f1;
+                                   -fx-font-size: 14;
+                                   -fx-font-weight: 500;
+                                   -fx-alignment: center-left;
+                                   -fx-padding: 15 20;
+                                   -fx-cursor: hand;"
+                            onAction="#showReports">
+                        <cursor><Cursor fx:constant="HAND"/></cursor>
+                    </Button>
+
+                    <!-- ML Predictions avec sous-menu -->
+                    <VBox spacing="4">
+                        <!-- Bouton parent avec indicateur -->
+                        <HBox>
+                            <Button text="🧠  Prédictions ML"
+                                    fx:id="menuPredictionsBtn"
+                                    onMouseEntered="#handleMenuHover"
+                                    onMouseExited="#handleMenuExit"
+                                    onAction="#togglePredictionsSubmenu"
+                                    style="-fx-background-color: transparent;
+                                           -fx-background-radius: 10;
+                                           -fx-text-fill: #ecf0f1;
+                                           -fx-font-size: 14;
+                                           -fx-font-weight: 500;
+                                           -fx-alignment: center-left;
+                                           -fx-padding: 15 20;
+                                           -fx-cursor: hand;"
+                                    HBox.hgrow="ALWAYS">
+                                <cursor><Cursor fx:constant="HAND"/></cursor>
+                            </Button>
+                            <Label fx:id="submenuIndicator" text="›"
+                                   style="-fx-text-fill: #bdc3c7; -fx-font-size: 18; -fx-padding: 15 15 0 0; -fx-font-weight: bold;"/>
+                        </HBox>
+
+                        <!-- Sous-menu avec style amélioré -->
+                        <VBox fx:id="predictionsSubmenu"
+                              spacing="4"
+                              visible="false"
+                              managed="false"
+                              style="-fx-padding: 5 5 5 20; -fx-background-color: rgba(0,0,0,0.2); -fx-background-radius: 10; -fx-border-color: rgba(255,255,255,0.05); -fx-border-width: 1; -fx-border-radius: 10;">
+
+                            <Button text="🔮  Prédiction MOS"
+                                    onMouseEntered="#handleSubmenuHover"
+                                    onMouseExited="#handleSubmenuExit"
+                                    style="-fx-background-color: transparent;
+                                           -fx-background-radius: 8;
+                                           -fx-text-fill: #bdc3c7;
+                                           -fx-font-size: 13;
+                                           -fx-font-weight: 500;
+                                           -fx-alignment: center-left;
+                                           -fx-padding: 12 15;
+                                           -fx-cursor: hand;"
+                                    onAction="#openMLDashboard">
+                                <cursor><Cursor fx:constant="HAND"/></cursor>
+                            </Button>
+
+                            <Button text="🚨  Prédiction Anomalies"
+                                    onMouseEntered="#handleSubmenuHover"
+                                    onMouseExited="#handleSubmenuExit"
+                                    style="-fx-background-color: transparent;
+                                           -fx-background-radius: 8;
+                                           -fx-text-fill: #bdc3c7;
+                                           -fx-font-size: 13;
+                                           -fx-font-weight: 500;
+                                           -fx-alignment: center-left;
+                                           -fx-padding: 12 15;
+                                           -fx-cursor: hand;"
+                                    onAction="#openMLDashboardAnomalies">
+                                <cursor><Cursor fx:constant="HAND"/></cursor>
+                            </Button>
+                        </VBox>
+                    </VBox>
+
+                    <!-- Settings -->
+                    <Button text="⚙️  Settings"
+                            onMouseEntered="#handleMenuHover"
+                            onMouseExited="#handleMenuExit"
+                            style="-fx-background-color: transparent;
+                                   -fx-background-radius: 10;
+                                   -fx-text-fill: #ecf0f1;
+                                   -fx-font-size: 14;
+                                   -fx-font-weight: 500;
+                                   -fx-alignment: center-left;
+                                   -fx-padding: 15 20;
+                                   -fx-cursor: hand;"
+                            onAction="#showSystemSettings">
+                        <cursor><Cursor fx:constant="HAND"/></cursor>
+                    </Button>
+                </VBox>
+            </ScrollPane>
+
+            <!-- Séparateur avant user section -->
+            <Region prefHeight="2" style="-fx-background-color: linear-gradient(to right, transparent, rgba(255,255,255,0.1), transparent);"/>
+
+            <!-- User section avec design moderne (toujours visible) -->
+            <VBox spacing="15" style="-fx-padding: 25 15 25 15; -fx-background-color: rgba(0,0,0,0.2);">
+                <HBox spacing="15" alignment="CENTER_LEFT"
+                      style="-fx-background-color: rgba(255,255,255,0.05); -fx-background-radius: 12; -fx-padding: 12;">
+                    <StackPane>
+                        <Circle radius="22" fill="linear-gradient(to bottom right, #3498db, #2980b9)"
+                                style="-fx-effect: dropshadow(gaussian, rgba(52, 152, 219, 0.5), 10, 0.5, 0, 0);"/>
+                        <Label text="A" style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 18;"/>
+                    </StackPane>
+                    <VBox spacing="2">
                         <Label fx:id="usernameLabel" text="Administrator"
-                               style="-fx-text-fill: white; -fx-font-weight: bold;"/>
-                        <Label text="Admin Role"
-                               style="-fx-text-fill: #bdc3c7; -fx-font-size: 11;"/>
+                               style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14;"/>
+                        <HBox spacing="6" alignment="CENTER_LEFT">
+                            <Circle radius="3" fill="#2ecc71"/>
+                            <Label text="Admin Role"
+                                   style="-fx-text-fill: #95a5a6; -fx-font-size: 11; -fx-font-weight: 500;"/>
+                        </HBox>
                     </VBox>
                 </HBox>
-                <Button text="🚪 Logout"
-                        style="-fx-background-color: #e74c3c;
+
+                <Button text="🚪  Logout"
+                        onMouseEntered="#handleLogoutHover"
+                        onMouseExited="#handleLogoutExit"
+                        style="-fx-background-color: linear-gradient(to right, #e74c3c, #c0392b);
                                -fx-text-fill: white;
-                               -fx-background-radius: 4;
+                               -fx-background-radius: 10;
                                -fx-font-weight: bold;
-                               -fx-padding: 8;"
+                               -fx-font-size: 13;
+                               -fx-padding: 12;
+                               -fx-cursor: hand;
+                               -fx-effect: dropshadow(gaussian, rgba(231, 76, 60, 0.4), 10, 0.3, 0, 2);"
                         onAction="#handleLogout">
                     <cursor><Cursor fx:constant="HAND"/></cursor>
                 </Button>
@@ -139,8 +266,10 @@
         </VBox>
     </left>
 
-    <!-- ✅ Zone centrale dynamique -->
+    <!-- Zone centrale dynamique avec effet d'ombre -->
     <center>
-        <AnchorPane fx:id="contentArea" style="-fx-background-color: #f8fafc;"/>
+        <AnchorPane fx:id="contentArea"
+                    style="-fx-background-color: #f8fafc;
+                           -fx-effect: innershadow(gaussian, rgba(0,0,0,0.05), 10, 0, 0, 0);"/>
     </center>
 </BorderPane>

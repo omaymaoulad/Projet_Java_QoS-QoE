@@ -10,7 +10,7 @@
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.ensah.qoe.Controller.LoginController"
             minWidth="600.0" minHeight="500.0"
-            prefHeight="750.0" prefWidth="1200.0"
+            prefHeight="650.0" prefWidth="1200.0"
             styleClass="root-container"
             stylesheets="@../css/style.css">
 
