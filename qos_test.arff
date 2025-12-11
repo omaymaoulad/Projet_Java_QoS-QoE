@@ -1,0 +1,18 @@
+@relation QoS_QoE_Data-weka.filters.unsupervised.attribute.Normalize-S1.0-T0.0
+
+@attribute latence numeric
+@attribute jitter numeric
+@attribute perte numeric
+@attribute bande_passante numeric
+@attribute signal_score numeric
+@attribute mos numeric
+
+@data
+0.242572,0.593823,0,0.199413,0.04388,1.02
+0.213987,0.298032,0,0.20938,0.39107,2.34
+0.130995,0.443589,0.010714,0.374849,0.253272,1.54
+0.131569,0,0,0.11342,1,4.13
+0.029667,0.113309,0,1,0,3.61
+0.152599,0.106002,0,0.30652,0.494996,3.59
+0.190196,0.355709,0.051786,0.407458,0.064665,1.97
+0.424529,0.427514,0.096429,0.091578,0.048499,1.45
