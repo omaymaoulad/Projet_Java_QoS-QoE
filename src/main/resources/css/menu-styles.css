@@ -1,33 +1,56 @@
-/* Effet hover pour les boutons du menu */
-.menu-button {
+/* Style pour la ScrollPane du menu */
+#menuScrollPane {
     -fx-background-color: transparent;
-    -fx-text-fill: #ecf0f1;
-    -fx-font-size: 15px;
-    -fx-font-weight: 600;
-    -fx-alignment: center-left;
-    -fx-padding: 14 18;
-    -fx-border-radius: 8px;
-    -fx-background-radius: 8px;
-    -fx-cursor: hand;
+    -fx-background: transparent;
+    -fx-border-color: transparent;
 }
 
-.menu-button:hover {
-    -fx-background-color: rgba(52, 152, 219, 0.15);
-    -fx-text-fill: #3498db;
-    -fx-effect: dropshadow(gaussian, rgba(52, 152, 219, 0.2), 8, 0, 0, 2);
+#menuScrollPane .viewport {
+    -fx-background-color: transparent;
 }
 
-.menu-button:pressed {
-    -fx-background-color: rgba(52, 152, 219, 0.25);
-    -fx-scale-x: 0.98;
-    -fx-scale-y: 0.98;
+#menuScrollPane .scroll-bar:vertical {
+    -fx-background-color: transparent;
+    -fx-pref-width: 8px;
 }
 
-/* Effet pour le bouton actif */
-.menu-button.active {
-    -fx-background-color: rgba(52, 152, 219, 0.3);
-    -fx-text-fill: #3498db;
-    -fx-border-color: #3498db;
-    -fx-border-width: 0 0 0 3px;
-    -fx-font-weight: 700;
+#menuScrollPane .scroll-bar:vertical .track {
+    -fx-background-color: rgba(0, 0, 0, 0.1);
+    -fx-background-radius: 4px;
+    -fx-border-color: transparent;
+}
+
+#menuScrollPane .scroll-bar:vertical .thumb {
+    -fx-background-color: rgba(52, 152, 219, 0.5);
+    -fx-background-radius: 4px;
+    -fx-background-insets: 0;
+}
+
+#menuScrollPane .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: rgba(52, 152, 219, 0.7);
+}
+
+#menuScrollPane .scroll-bar:vertical .thumb:pressed {
+    -fx-background-color: rgba(52, 152, 219, 0.9);
+}
+
+#menuScrollPane .scroll-bar:vertical .increment-button,
+#menuScrollPane .scroll-bar:vertical .decrement-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 0;
+    -fx-padding: 0;
+    -fx-pref-height: 0;
+}
+
+#menuScrollPane .scroll-bar:vertical .increment-arrow,
+#menuScrollPane .scroll-bar:vertical .decrement-arrow {
+    -fx-shape: "";
+    -fx-padding: 0;
+}
+
+/* Cache la scrollbar horizontale */
+#menuScrollPane .scroll-bar:horizontal {
+    -fx-pref-height: 0;
+    -fx-max-height: 0;
+    -fx-min-height: 0;
 }

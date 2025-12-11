@@ -1,0 +1,297 @@
+/* ============================================================================
+   STYLES CSS POUR LES GRAPHIQUES - ANOMALY DASHBOARD
+   ============================================================================
+
+   Instructions:
+   1. Placer ce fichier dans: /resources/css/chart-styles.css
+   2. Charger dans le contrôleur:
+
+   @FXML
+   public void initialize() {
+       Scene scene = distributionChart.getScene();
+       if (scene != null) {
+           scene.getStylesheets().add(
+               getClass().getResource("/css/chart-styles.css").toExternalForm()
+           );
+       }
+   }
+
+   ============================================================================
+*/
+
+/* ==================== STYLES DES AXES ==================== */
+
+.axis {
+    -fx-tick-label-font-size: 10px;
+    -fx-tick-label-fill: #7f8c8d;
+}
+
+.axis-label {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+}
+
+/* Axes spécifiques par type */
+.chart-category-axis {
+    -fx-tick-label-font-size: 10px;
+}
+
+.chart-number-axis {
+    -fx-tick-label-font-size: 10px;
+}
+
+/* ==================== STYLES DES GRAPHIQUES ==================== */
+
+.chart {
+    -fx-background-color: transparent;
+    -fx-padding: 10px;
+}
+
+.chart-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+}
+
+.chart-content {
+    -fx-padding: 5px;
+}
+
+/* ==================== BAR CHART ==================== */
+
+.chart-bar {
+    -fx-bar-fill: #e74c3c;
+}
+
+.default-color0.chart-bar {
+    -fx-bar-fill: #e74c3c;
+}
+
+.default-color1.chart-bar {
+    -fx-bar-fill: #f39c12;
+}
+
+.default-color2.chart-bar {
+    -fx-bar-fill: #3498db;
+}
+
+/* Hover effect */
+.chart-bar:hover {
+    -fx-opacity: 0.8;
+}
+
+/* ==================== LINE CHART ==================== */
+
+.chart-series-line {
+    -fx-stroke-width: 2px;
+}
+
+.default-color0.chart-series-line {
+    -fx-stroke: #3498db;
+}
+
+.default-color1.chart-series-line {
+    -fx-stroke: #e67e22;
+}
+
+.chart-line-symbol {
+    -fx-background-color: #3498db, white;
+    -fx-background-insets: 0, 2;
+    -fx-background-radius: 5px;
+    -fx-padding: 5px;
+}
+
+/* ==================== PIE CHART ==================== */
+
+.chart-pie {
+    -fx-border-width: 0;
+}
+
+.chart-pie-label {
+    -fx-font-size: 11px;
+    -fx-fill: #2c3e50;
+    -fx-font-weight: bold;
+}
+
+.chart-pie-label-line {
+    -fx-stroke: #95a5a6;
+    -fx-stroke-width: 1;
+}
+
+/* Couleurs personnalisées pour le pie chart */
+.default-color0.chart-pie {
+    -fx-pie-color: #27ae60;
+}
+
+.default-color1.chart-pie {
+    -fx-pie-color: #e74c3c;
+}
+
+.default-color2.chart-pie {
+    -fx-pie-color: #f39c12;
+}
+
+.default-color3.chart-pie {
+    -fx-pie-color: #3498db;
+}
+
+/* ==================== SCATTER CHART ==================== */
+
+.chart-symbol {
+    -fx-background-color: #3498db, white;
+    -fx-background-insets: 0, 2;
+    -fx-background-radius: 5px;
+    -fx-padding: 4px;
+}
+
+.default-color0.chart-symbol {
+    -fx-background-color: #e74c3c, white;
+}
+
+.default-color1.chart-symbol {
+    -fx-background-color: #27ae60, white;
+}
+
+/* ==================== LÉGENDE ==================== */
+
+.chart-legend {
+    -fx-background-color: #f8f9fa;
+    -fx-background-radius: 5px;
+    -fx-padding: 10px;
+    -fx-border-color: #ecf0f1;
+    -fx-border-width: 1;
+    -fx-border-radius: 5px;
+}
+
+.chart-legend-item {
+    -fx-font-size: 11px;
+    -fx-text-fill: #2c3e50;
+}
+
+.chart-legend-item-symbol {
+    -fx-padding: 4px;
+}
+
+/* ==================== GRILLE ==================== */
+
+.chart-vertical-grid-lines {
+    -fx-stroke: #ecf0f1;
+    -fx-stroke-width: 1;
+}
+
+.chart-horizontal-grid-lines {
+    -fx-stroke: #ecf0f1;
+    -fx-stroke-width: 1;
+}
+
+.chart-alternative-row-fill {
+    -fx-fill: #f8f9fa;
+    -fx-stroke: transparent;
+}
+
+/* ==================== TOOLTIPS (si activés) ==================== */
+
+.chart-tooltip {
+    -fx-background-color: #2c3e50;
+    -fx-text-fill: white;
+    -fx-background-radius: 5px;
+    -fx-font-size: 11px;
+    -fx-padding: 8px;
+}
+
+/* ==================== ZOOM & INTERACTIONS ==================== */
+
+.chart-plot-background {
+    -fx-background-color: white;
+}
+
+.chart:hover {
+    -fx-cursor: crosshair;
+}
+
+/* ==================== STYLES SPÉCIFIQUES PAR GRAPHIQUE ==================== */
+
+/* Distribution Chart */
+#distributionChart .axis {
+    -fx-tick-label-font-size: 10px;
+}
+
+#distributionChart .chart-bar {
+    -fx-bar-fill: linear-gradient(to top, #e74c3c, #c0392b);
+}
+
+/* Performance Chart */
+#performanceChart .axis {
+    -fx-tick-label-font-size: 10px;
+}
+
+#performanceChart .default-color0.chart-series-line {
+    -fx-stroke: #3498db;
+    -fx-stroke-width: 2.5px;
+}
+
+#performanceChart .default-color1.chart-series-line {
+    -fx-stroke: #e67e22;
+    -fx-stroke-width: 2.5px;
+}
+
+/* Anomaly Pie Chart */
+#anomalyPieChart .chart-pie-label {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+/* Correlation Chart */
+#correlationChart .axis {
+    -fx-tick-label-font-size: 9px;
+}
+
+#correlationChart .chart-symbol {
+    -fx-padding: 3px;
+}
+
+/* ==================== RESPONSIVE ==================== */
+
+@media (max-width: 1024px) {
+    .axis {
+        -fx-tick-label-font-size: 9px;
+    }
+
+    .axis-label {
+        -fx-font-size: 11px;
+    }
+}
+
+@media (min-width: 1600px) {
+    .axis {
+        -fx-tick-label-font-size: 11px;
+    }
+
+    .axis-label {
+        -fx-font-size: 13px;
+    }
+}
+
+/* ==================== ANIMATIONS ==================== */
+
+@keyframes fadeIn {
+    from { -fx-opacity: 0; }
+    to { -fx-opacity: 1; }
+}
+
+.chart {
+    -fx-animation: fadeIn 0.5s ease-in;
+}
+
+/* ==================== PRINT STYLES ==================== */
+
+@media print {
+    .chart {
+        -fx-background-color: white;
+    }
+
+    .axis {
+        -fx-tick-label-fill: black;
+    }
+}

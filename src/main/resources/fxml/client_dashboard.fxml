@@ -7,7 +7,7 @@
 <BorderPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.ensah.qoe.Controller.ClientDashboardController"
             stylesheets="@../css/client-dashboard.css"
-            prefWidth="1400" prefHeight="900">
+            prefWidth="1200" prefHeight="650">
 
     <!-- Header -->
     <top>

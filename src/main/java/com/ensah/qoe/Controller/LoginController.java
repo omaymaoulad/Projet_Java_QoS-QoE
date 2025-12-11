@@ -266,7 +266,7 @@ public class LoginController implements Initializable {
 
             // Switch scene
             Stage stage = (Stage) loginButton.getScene().getWindow();
-            Scene scene = new Scene(dashboard, 1200, 800);
+            Scene scene = new Scene(dashboard, 1366, 700);
 
             // Optionnel: ajouter CSS si disponible
             try {

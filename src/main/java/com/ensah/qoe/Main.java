@@ -15,9 +15,9 @@ public class Main extends Application {
     public void start(Stage primaryStage) {
         try {
             //ClientCsvImporter.importClients();
-            Parent root = FXMLLoader.load(getClass().getResource("/fxml/ml-dashboard.fxml"));
+            Parent root = FXMLLoader.load(getClass().getResource("/fxml/Login.fxml"));
 
-            Scene scene = new Scene(root, 1200, 650);
+            Scene scene = new Scene(root, 1366, 700);
             scene.getStylesheets().add(getClass().getResource("/css/ml-dashboard.css").toExternalForm());
             primaryStage.getIcons().add(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/logo_red.jpg"))));
 
@@ -40,6 +40,9 @@ public class Main extends Application {
     }
 
     public static void main(String[] args) {
+        System.setProperty("com.github.fommil.netlib.BLAS", "com.github.fommil.netlib.F2jBLAS");
+        System.setProperty("com.github.fommil.netlib.LAPACK", "com.github.fommil.netlib.F2jLAPACK");
+        System.setProperty("com.github.fommil.netlib.ARPACK", "com.github.fommil.netlib.F2jARPACK");
         launch(args);
     }
 }
