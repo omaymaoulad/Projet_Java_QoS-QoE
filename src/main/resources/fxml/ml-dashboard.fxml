@@ -1,416 +1,362 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.chart.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.Font?>
+<?import javafx.scene.chart.*?>
+<?import javafx.scene.text.*?>
 
-<BorderPane xmlns="http://javafx.com/javafx/17"
-            xmlns:fx="http://javafx.com/fxml/1"
+<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.ensah.qoe.Controller.MLDashboardController"
-            style="-fx-background-color: #f8f9fa;">
+            stylesheets="@../css/ml-dashboard.css">
 
-    <!-- Top: Header avec titre et boutons -->
+    <!-- HEADER -->
     <top>
-        <VBox spacing="10" style="-fx-background-color: #2c3e50; -fx-padding: 20;">
-            <HBox spacing="20" alignment="CENTER_LEFT">
-                <Label text="🧠 Dashboard Machine Learning QoE/QoS"
-                       style="-fx-text-fill: white; -fx-font-weight: bold;">
-                    <font>
-                        <Font size="24"/>
-                    </font>
-                </Label>
-
-                <HBox spacing="10" alignment="CENTER_RIGHT" HBox.hgrow="ALWAYS">
-                    <Button fx:id="backBtn" text="← Retour"
-                            style="-fx-background-color: #7f8c8d; -fx-text-fill: white;"
-                            onAction="#goBack"/>
-                    <Button fx:id="refreshBtn" text="🔄 Actualiser"
-                            style="-fx-background-color: #3498db; -fx-text-fill: white;"
-                            onAction="#refreshData"/>
-                    <Button fx:id="exportBtn" text="📤 Exporter"
-                            style="-fx-background-color: #27ae60; -fx-text-fill: white;"
-                            onAction="#exportResults"/>
-                </HBox>
+        <VBox styleClass="header-container">
+            <HBox alignment="CENTER_LEFT" spacing="20" styleClass="header-main">
+                <Label text="🤖 QoE Machine Learning Dashboard" styleClass="header-title"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label fx:id="statusLabel" text="Initialisation..." styleClass="status-label"/>
+                <Button text="🔄 Actualiser" onAction="#refreshData" styleClass="btn-refresh"/>
+                <Button text="← Retour" onAction="#goBack" styleClass="btn-back"/>
             </HBox>
 
-            <Label fx:id="statusLabel" text="Prêt"
-                   style="-fx-text-fill: #ecf0f1; -fx-font-size: 14;"/>
+            <!-- Stats Cards -->
+            <HBox spacing="15" styleClass="stats-container">
+                <VBox styleClass="stat-card">
+                    <Label text="Dataset" styleClass="stat-label"/>
+                    <Label fx:id="datasetSizeLabel" text="0" styleClass="stat-value"/>
+                    <Label text="instances" styleClass="stat-unit"/>
+                </VBox>
+
+                <VBox styleClass="stat-card">
+                    <Label text="Modèle" styleClass="stat-label"/>
+                    <Label fx:id="modelTypeLabel" text="-" styleClass="stat-value"/>
+                    <Label text="algorithme" styleClass="stat-unit"/>
+                </VBox>
+
+                <VBox styleClass="stat-card">
+                    <Label text="Précision" styleClass="stat-label"/>
+                    <Label fx:id="accuracyLabel" text="0.00" styleClass="stat-value"/>
+                    <Label text="R² score" styleClass="stat-unit"/>
+                </VBox>
+
+                <VBox styleClass="stat-card">
+                    <Label text="Prédictions" styleClass="stat-label"/>
+                    <Label fx:id="predictionsCountLabel" text="0" styleClass="stat-value"/>
+                    <Label text="effectuées" styleClass="stat-unit"/>
+                </VBox>
+            </HBox>
         </VBox>
     </top>
 
-    <!-- Center: Contenu principal -->
+    <!-- MAIN CONTENT -->
     <center>
-        <TabPane tabClosingPolicy="UNAVAILABLE">
+        <TabPane tabClosingPolicy="UNAVAILABLE" styleClass="main-tabs">
 
-            <!-- Tab 1: Vue d'ensemble -->
+            <!-- TAB 1: VUE D'ENSEMBLE -->
             <Tab text="📊 Vue d'ensemble">
-                <ScrollPane fitToWidth="true">
-                    <VBox spacing="20" style="-fx-padding: 20;">
+                <ScrollPane fitToWidth="true" fitToHeight="true">
+                    <VBox spacing="20" styleClass="content-container">
 
-                        <!-- Cartes de statistiques -->
-                        <GridPane hgap="20" vgap="20">
-                            <columnConstraints>
-                                <ColumnConstraints prefWidth="200"/>
-                                <ColumnConstraints prefWidth="200"/>
-                                <ColumnConstraints prefWidth="200"/>
-                                <ColumnConstraints prefWidth="200"/>
-                            </columnConstraints>
+                        <!-- Performance Metrics -->
+                        <VBox styleClass="section-card">
+                            <Label text="📈 Métriques de Performance" styleClass="section-title"/>
+                            <HBox spacing="20" alignment="CENTER">
+                                <LineChart fx:id="performanceChart"
+                                           title="Évolution des Performances"
+                                           prefHeight="250" prefWidth="500"
+                                           styleClass="chart-container">
+                                    <xAxis><CategoryAxis label="Métrique"/></xAxis>
+                                    <yAxis><NumberAxis label="Score"/></yAxis>
+                                </LineChart>
 
-                            <!-- Carte 1 -->
-                            <VBox style="-fx-background-color: white; -fx-padding: 20; -fx-border-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 0);"
-                                  GridPane.columnIndex="0">
-                                <Label text="Dataset" style="-fx-font-weight: bold;"/>
-                                <Label fx:id="datasetSizeLabel" text="Chargement..."
-                                       style="-fx-font-size: 24; -fx-text-fill: #3498db;"/>
-                                <Label text="instances"/>
-                            </VBox>
-
-                            <!-- Carte 2 -->
-                            <VBox style="-fx-background-color: white; -fx-padding: 20; -fx-border-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 0);"
-                                  GridPane.columnIndex="1">
-                                <Label text="Modèle" style="-fx-font-weight: bold;"/>
-                                <Label fx:id="modelTypeLabel" text="Chargement..."
-                                       style="-fx-font-size: 24; -fx-text-fill: #2ecc71;"/>
-                                <Label text="Random Forest"/>
-                            </VBox>
-
-                            <!-- Carte 3 -->
-                            <VBox style="-fx-background-color: white; -fx-padding: 20; -fx-border-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 0);"
-                                  GridPane.columnIndex="2">
-                                <Label text="Précision" style="-fx-font-weight: bold;"/>
-                                <Label fx:id="accuracyLabel" text="Chargement..."
-                                       style="-fx-font-size: 24; -fx-text-fill: #e74c3c;"/>
-                                <Label text="R² Score"/>
-                            </VBox>
-
-                            <!-- Carte 4 -->
-                            <VBox style="-fx-background-color: white; -fx-padding: 20; -fx-border-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 0);"
-                                  GridPane.columnIndex="3">
-                                <Label text="Prédictions" style="-fx-font-weight: bold;"/>
-                                <Label fx:id="predictionsCountLabel" text="Chargement..."
-                                       style="-fx-font-size: 24; -fx-text-fill: #9b59b6;"/>
-                                <Label text="MOS prédits"/>
-                            </VBox>
-                        </GridPane>
-
-                        <!-- Graphiques -->
-                        <VBox spacing="10">
-                            <Label text="Performance du Modèle" style="-fx-font-weight: bold; -fx-font-size: 18;"/>
-                            <LineChart fx:id="performanceChart" prefHeight="300">
-                                <xAxis>
-                                    <CategoryAxis label="Métriques"/>
-                                </xAxis>
-                                <yAxis>
-                                    <NumberAxis label="Valeur"/>
-                                </yAxis>
-                            </LineChart>
+                                <VBox spacing="15" styleClass="metrics-grid">
+                                    <HBox spacing="10" styleClass="metric-row">
+                                        <Label text="MAE:" styleClass="metric-label"/>
+                                        <Label fx:id="maeLabel" text="0.00" styleClass="metric-value"/>
+                                    </HBox>
+                                    <HBox spacing="10" styleClass="metric-row">
+                                        <Label text="RMSE:" styleClass="metric-label"/>
+                                        <Label fx:id="rmseLabel" text="0.00" styleClass="metric-value"/>
+                                    </HBox>
+                                    <HBox spacing="10" styleClass="metric-row">
+                                        <Label text="R²:" styleClass="metric-label"/>
+                                        <Label fx:id="r2Label" text="0.00" styleClass="metric-value"/>
+                                    </HBox>
+                                    <HBox spacing="10" styleClass="metric-row">
+                                        <Label text="Corrélation:" styleClass="metric-label"/>
+                                        <Label fx:id="correlationLabel" text="0.00" styleClass="metric-value"/>
+                                    </HBox>
+                                </VBox>
+                            </HBox>
                         </VBox>
 
-                        <!-- Dernières prédictions -->
-                        <VBox spacing="10">
-                            <Label text="📋 Dernières Prédictions" style="-fx-font-weight: bold; -fx-font-size: 18;"/>
-                            <TableView fx:id="recentPredictionsTable" prefHeight="200">
-                                <columns>
-                                    <TableColumn text="ID" prefWidth="60"/>
-                                    <TableColumn text="Latence" prefWidth="80"/>
-                                    <TableColumn text="Jitter" prefWidth="80"/>
-                                    <TableColumn text="Perte" prefWidth="80"/>
-                                    <TableColumn text="MOS Prédit" prefWidth="100"/>
-                                    <TableColumn text="Catégorie" prefWidth="120"/>
-                                    <TableColumn text="Date" prefWidth="120"/>
-                                </columns>
-                            </TableView>
+                        <!-- Recent Predictions Table -->
+                        <VBox styleClass="section-card">
+                            <Label text="🔮 Prédictions Récentes" styleClass="section-title"/>
+                            <TableView fx:id="recentPredictionsTable"
+                                       prefHeight="300"
+                                       styleClass="predictions-table"/>
                         </VBox>
+
                     </VBox>
                 </ScrollPane>
             </Tab>
 
-            <!-- Tab 2: Entraînement du modèle -->
+            <!-- TAB 2: ENTRAÎNEMENT -->
             <Tab text="🎓 Entraînement">
-                <VBox spacing="20" style="-fx-padding: 20;">
-                    <Label text="Configuration de l'entraînement" style="-fx-font-weight: bold; -fx-font-size: 18;"/>
+                <ScrollPane fitToWidth="true" fitToHeight="true">
+                    <VBox spacing="20" styleClass="content-container">
 
-                    <GridPane hgap="15" vgap="15">
-                        <columnConstraints>
-                            <ColumnConstraints prefWidth="150"/>
-                            <ColumnConstraints prefWidth="250"/>
-                        </columnConstraints>
+                        <!-- Training Configuration -->
+                        <VBox styleClass="section-card">
+                            <Label text="⚙️ Configuration de l'Entraînement" styleClass="section-title"/>
 
-                        <Label text="Modèle:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-                        <ComboBox fx:id="modelTypeCombo" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+                            <GridPane hgap="15" vgap="15" styleClass="config-grid">
+                                <Label text="Type de Modèle:" GridPane.rowIndex="0" GridPane.columnIndex="0" styleClass="label-bold"/>
+                                <ComboBox fx:id="modelTypeCombo" prefWidth="250" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
 
-                        <Label text="Ratio Train/Test:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-                        <Slider fx:id="trainRatioSlider" min="0.5" max="0.9" value="0.8"
-                                showTickLabels="true" showTickMarks="true"
-                                majorTickUnit="0.1" minorTickCount="0"
-                                GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+                                <Label text="Validation:" GridPane.rowIndex="1" GridPane.columnIndex="0" styleClass="label-bold"/>
+                                <ComboBox fx:id="validationCombo" prefWidth="250" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
 
-                        <Label text="Validation:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
-                        <ComboBox fx:id="validationCombo" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
-                    </GridPane>
+                                <Label text="Ratio Train/Test:" GridPane.rowIndex="2" GridPane.columnIndex="0" styleClass="label-bold"/>
+                                <HBox spacing="10" alignment="CENTER_LEFT" GridPane.rowIndex="2" GridPane.columnIndex="1">
+                                    <Slider fx:id="trainRatioSlider" min="0.5" max="0.95" value="0.8"
+                                            showTickLabels="true" showTickMarks="true" prefWidth="200"/>
+                                    <Label text="80%" styleClass="slider-value"/>
+                                </HBox>
+                            </GridPane>
 
-                    <HBox spacing="20">
-                        <Button fx:id="trainBtn" text="🚀 Lancer l'entraînement"
-                                style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 20;"
-                                onAction="#trainModel"/>
-
-                        <ProgressBar fx:id="trainingProgressBar" prefWidth="400"/>
-                        <Label fx:id="trainingProgressLabel" text="0%"/>
-                    </HBox>
-
-                    <!-- Résultats d'entraînement -->
-                    <VBox spacing="10">
-                        <Label text="📊 Résultats de l'entraînement" style="-fx-font-weight: bold;"/>
-                        <TextArea fx:id="trainingResultsArea" prefHeight="200" editable="false"
-                                  style="-fx-font-family: 'Monospaced'; -fx-font-size: 12;"/>
-                    </VBox>
-
-                    <!-- Importances des features -->
-                    <VBox spacing="10">
-                        <Label text="🎯 Importance des Features" style="-fx-font-weight: bold;"/>
-                        <BarChart fx:id="featureImportanceChart" prefHeight="200">
-                            <xAxis>
-                                <CategoryAxis label="Features"/>
-                            </xAxis>
-                            <yAxis>
-                                <NumberAxis label="Importance"/>
-                            </yAxis>
-                        </BarChart>
-                    </VBox>
-                </VBox>
-            </Tab>
-
-            <!-- Tab 3: Prédiction manuelle -->
-            <Tab text="🔮 Prédiction">
-                <VBox spacing="20" style="-fx-padding: 20;">
-                    <Label text="Prédire le MOS à partir des paramètres QoS"
-                           style="-fx-font-weight: bold; -fx-font-size: 18;"/>
-
-                    <GridPane hgap="15" vgap="15">
-                        <columnConstraints>
-                            <ColumnConstraints prefWidth="150"/>
-                            <ColumnConstraints prefWidth="200"/>
-                            <ColumnConstraints prefWidth="100"/>
-                        </columnConstraints>
-
-                        <!-- Paramètres d'entrée -->
-                        <Label text="Latence (ms):" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-                        <TextField fx:id="latenceField" text="50" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
-                        <Slider fx:id="latenceSlider" min="0" max="500" value="50"
-                                GridPane.rowIndex="0" GridPane.columnIndex="2"/>
-
-                        <Label text="Jitter (ms):" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-                        <TextField fx:id="jitterField" text="10" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
-                        <Slider fx:id="jitterSlider" min="0" max="100" value="10"
-                                GridPane.rowIndex="1" GridPane.columnIndex="2"/>
-
-                        <Label text="Perte (%):" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
-                        <TextField fx:id="perteField" text="1.0" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
-                        <Slider fx:id="perteSlider" min="0" max="20" value="1.0"
-                                GridPane.rowIndex="2" GridPane.columnIndex="2"/>
-
-                        <Label text="Bande passante (Mbps):" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
-                        <TextField fx:id="bandePassanteField" text="50" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
-                        <Slider fx:id="bandePassanteSlider" min="1" max="100" value="50"
-                                GridPane.rowIndex="3" GridPane.columnIndex="2"/>
-
-                        <Label text="Score signal (%):" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
-                        <TextField fx:id="signalField" text="80" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
-                        <Slider fx:id="signalSlider" min="0" max="100" value="80"
-                                GridPane.rowIndex="4" GridPane.columnIndex="2"/>
-                    </GridPane>
-
-                    <!-- Bouton de prédiction -->
-                    <Button fx:id="predictBtn" text="🔮 Prédire le MOS"
-                            style="-fx-background-color: #9b59b6; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 15 30;"
-                            onAction="#predictManual"/>
-
-                    <!-- Résultat de prédiction -->
-                    <VBox spacing="10" style="-fx-background-color: #ecf0f1; -fx-padding: 20; -fx-border-radius: 8;">
-                        <Label text="Résultat de la prédiction" style="-fx-font-weight: bold;"/>
-
-                        <HBox spacing="30" alignment="CENTER">
-                            <VBox spacing="5" alignment="CENTER">
-                                <Label text="MOS Prédit"/>
-                                <Label fx:id="predictedMOSLabel" text="--"
-                                       style="-fx-font-size: 48; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
-                            </VBox>
-
-                            <VBox spacing="5" alignment="CENTER">
-                                <Label text="Catégorie QoE"/>
-                                <Label fx:id="qoeCategoryLabel" text="--"
-                                       style="-fx-font-size: 24; -fx-font-weight: bold; -fx-text-fill: #27ae60;"/>
-                            </VBox>
-                        </HBox>
-
-                        <!-- Indicateur visuel -->
-                        <VBox spacing="5">
-                            <Label text="Qualité estimée:"/>
-                            <ProgressBar fx:id="qualityIndicator" prefWidth="600"
-                                         style="-fx-accent: #27ae60;"/>
-                            <HBox spacing="5">
-                                <Label text="Mauvais" style="-fx-text-fill: #e74c3c;"/>
-                                <Region HBox.hgrow="ALWAYS"/>
-                                <Label text="Excellent" style="-fx-text-fill: #27ae60;"/>
+                            <HBox spacing="15" alignment="CENTER" styleClass="button-group">
+                                <Button fx:id="trainBtn" text="🚀 Entraîner le Modèle"
+                                        onAction="#trainModel" styleClass="btn-primary"/>
+                                <Button text="💾 Sauvegarder Modèle" styleClass="btn-secondary"/>
+                                <Button text="📂 Charger Modèle" styleClass="btn-secondary"/>
                             </HBox>
                         </VBox>
-                    </VBox>
 
-                    <!-- Historique des prédictions -->
-                    <VBox spacing="10">
-                        <Label text="📋 Historique des prédictions" style="-fx-font-weight: bold;"/>
-                        <TableView fx:id="predictionHistoryTable" prefHeight="200">
-                            <columns>
-                                <TableColumn text="Heure"/>
-                                <TableColumn text="Latence"/>
-                                <TableColumn text="Jitter"/>
-                                <TableColumn text="Perte"/>
-                                <TableColumn text="MOS"/>
-                                <TableColumn text="Catégorie"/>
-                            </columns>
-                        </TableView>
+                        <!-- Training Progress -->
+                        <VBox styleClass="section-card">
+                            <Label text="⏳ Progression de l'Entraînement" styleClass="section-title"/>
+                            <VBox spacing="10">
+                                <HBox spacing="10" alignment="CENTER_LEFT">
+                                    <ProgressBar fx:id="trainingProgressBar" prefWidth="500" prefHeight="25"/>
+                                    <Label fx:id="trainingProgressLabel" text="En attente..." styleClass="progress-label"/>
+                                </HBox>
+                            </VBox>
+                        </VBox>
+
+                        <!-- Training Results -->
+                        <VBox styleClass="section-card">
+                            <HBox alignment="CENTER_LEFT" spacing="10">
+                                <Label text="📄 Résultats de l'Entraînement" styleClass="section-title"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Button text="🗑️ Effacer" onAction="#clearTestOutput" styleClass="btn-small"/>
+                                <Button text="💾 Sauvegarder Log" onAction="#saveTestLog" styleClass="btn-small"/>
+                            </HBox>
+                            <TextArea fx:id="trainingResultsArea"
+                                      prefHeight="300"
+                                      editable="false"
+                                      wrapText="true"
+                                      styleClass="console-output"/>
+                        </VBox>
+
+                        <!-- Feature Importance -->
+                        <VBox styleClass="section-card">
+                            <Label text="🎯 Importance des Features" styleClass="section-title"/>
+                            <BarChart fx:id="featureImportanceChart"
+                                      title="Impact des Variables sur la Qualité"
+                                      prefHeight="300"
+                                      styleClass="chart-container">
+                                <xAxis><CategoryAxis label="Feature"/></xAxis>
+                                <yAxis><NumberAxis label="Importance (%)" upperBound="100"/></yAxis>
+                            </BarChart>
+                        </VBox>
+
                     </VBox>
-                </VBox>
+                </ScrollPane>
             </Tab>
 
-            <!-- Tab 4: Tests et évaluations -->
-            <Tab text="🧪 Tests">
-                <VBox spacing="20" style="-fx-padding: 20;">
-                    <Label text="Tests et Évaluations du Modèle"
-                           style="-fx-font-weight: bold; -fx-font-size: 18;"/>
+            <!-- TAB 3: PRÉDICTION -->
+            <Tab text="🔮 Prédiction">
+                <ScrollPane fitToWidth="true" fitToHeight="true">
+                    <VBox spacing="20" styleClass="content-container">
 
-                    <!-- Boutons de test -->
-                    <HBox spacing="15">
-                        <Button fx:id="quickTestBtn" text="🧪 Test rapide"
-                                style="-fx-background-color: #f39c12; -fx-text-fill: white;"
-                                onAction="#runQuickTest"/>
-                        <Button fx:id="evaluateBtn" text="📊 Évaluer"
-                                style="-fx-background-color: #16a085; -fx-text-fill: white;"
-                                onAction="#evaluateModel"/>
-                        <Button fx:id="predictMissingBtn" text="🔮 Prédire MOS manquants"
-                                style="-fx-background-color: #8e44ad; -fx-text-fill: white;"
-                                onAction="#predictMissingMOS"/>
-                        <Button fx:id="fullTestBtn" text="🚀 Tous les tests"
-                                style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold;"
-                                onAction="#runAllTests"/>
-                    </HBox>
+                        <!-- Manual Prediction -->
+                        <VBox styleClass="section-card">
+                            <Label text="🎛️ Prédiction Manuelle" styleClass="section-title"/>
 
-                    <!-- Sortie des tests -->
-                    <VBox spacing="10">
-                        <Label text="📝 Sortie des tests" style="-fx-font-weight: bold;"/>
-                        <TextArea fx:id="testOutputArea" prefHeight="300" editable="false"
-                                  style="-fx-font-family: 'Monospaced'; -fx-font-size: 12;"/>
+                            <GridPane hgap="20" vgap="15" styleClass="prediction-grid">
+                                <!-- Latence -->
+                                <Label text="Latence (ms):" GridPane.rowIndex="0" GridPane.columnIndex="0" styleClass="input-label"/>
+                                <HBox spacing="10" GridPane.rowIndex="0" GridPane.columnIndex="1">
+                                    <Slider fx:id="latenceSlider" prefWidth="300"/>
+                                    <TextField fx:id="latenceField" prefWidth="80" styleClass="input-field"/>
+                                </HBox>
 
-                        <HBox spacing="10">
-                            <Button fx:id="clearTestBtn" text="🗑️ Effacer"
-                                    onAction="#clearTestOutput"/>
-                            <Button fx:id="saveTestBtn" text="💾 Sauvegarder log"
-                                    onAction="#saveTestLog"/>
+                                <!-- Jitter -->
+                                <Label text="Jitter (ms):" GridPane.rowIndex="1" GridPane.columnIndex="0" styleClass="input-label"/>
+                                <HBox spacing="10" GridPane.rowIndex="1" GridPane.columnIndex="1">
+                                    <Slider fx:id="jitterSlider" prefWidth="300"/>
+                                    <TextField fx:id="jitterField" prefWidth="80" styleClass="input-field"/>
+                                </HBox>
+
+                                <!-- Perte -->
+                                <Label text="Perte (%):" GridPane.rowIndex="2" GridPane.columnIndex="0" styleClass="input-label"/>
+                                <HBox spacing="10" GridPane.rowIndex="2" GridPane.columnIndex="1">
+                                    <Slider fx:id="perteSlider" prefWidth="300"/>
+                                    <TextField fx:id="perteField" prefWidth="80" styleClass="input-field"/>
+                                </HBox>
+
+                                <!-- Bande Passante -->
+                                <Label text="Bande Passante (Mbps):" GridPane.rowIndex="3" GridPane.columnIndex="0" styleClass="input-label"/>
+                                <HBox spacing="10" GridPane.rowIndex="3" GridPane.columnIndex="1">
+                                    <Slider fx:id="bandePassanteSlider" prefWidth="300"/>
+                                    <TextField fx:id="bandePassanteField" prefWidth="80" styleClass="input-field"/>
+                                </HBox>
+
+                                <!-- Signal -->
+                                <Label text="Signal Score:" GridPane.rowIndex="4" GridPane.columnIndex="0" styleClass="input-label"/>
+                                <HBox spacing="10" GridPane.rowIndex="4" GridPane.columnIndex="1">
+                                    <Slider fx:id="signalSlider" prefWidth="300"/>
+                                    <TextField fx:id="signalField" prefWidth="80" styleClass="input-field"/>
+                                </HBox>
+                            </GridPane>
+
+                            <Button fx:id="predictBtn" text="🔮 Prédire le MOS"
+                                    onAction="#predictManual" styleClass="btn-predict"/>
+                        </VBox>
+
+                        <!-- Prediction Result -->
+                        <HBox spacing="20" styleClass="result-container">
+                            <VBox styleClass="result-card-large" alignment="CENTER">
+                                <Label text="MOS Prédit" styleClass="result-label"/>
+                                <Label fx:id="predictedMOSLabel" text="--" styleClass="result-mos"/>
+                                <Label fx:id="qoeCategoryLabel" text="En attente" styleClass="result-category"/>
+                            </VBox>
+
+                            <VBox styleClass="result-card-large" alignment="CENTER" spacing="10">
+                                <Label text="Indicateur de Qualité" styleClass="result-label"/>
+                                <ProgressBar fx:id="qualityIndicator"
+                                             prefWidth="300" prefHeight="40"
+                                             styleClass="quality-bar"/>
+                                <HBox spacing="5">
+                                    <Label text="Mauvais" styleClass="quality-text-low"/>
+                                    <Region HBox.hgrow="ALWAYS"/>
+                                    <Label text="Excellent" styleClass="quality-text-high"/>
+                                </HBox>
+                            </VBox>
                         </HBox>
-                    </VBox>
 
-                    <!-- Métriques de performance -->
-                    <VBox spacing="10">
-                        <Label text="📈 Métriques de Performance" style="-fx-font-weight: bold;"/>
-                        <GridPane hgap="20" vgap="10">
-                            <columnConstraints>
-                                <ColumnConstraints prefWidth="150"/>
-                                <ColumnConstraints prefWidth="100"/>
-                                <ColumnConstraints prefWidth="150"/>
-                                <ColumnConstraints prefWidth="100"/>
-                            </columnConstraints>
-
-                            <Label text="MAE:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-                            <Label fx:id="maeLabel" text="--" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
-
-                            <Label text="RMSE:" GridPane.rowIndex="0" GridPane.columnIndex="2"/>
-                            <Label fx:id="rmseLabel" text="--" GridPane.rowIndex="0" GridPane.columnIndex="3"/>
-
-                            <Label text="R²:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-                            <Label fx:id="r2Label" text="--" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
-
-                            <Label text="Corrélation:" GridPane.rowIndex="1" GridPane.columnIndex="2"/>
-                            <Label fx:id="correlationLabel" text="--" GridPane.rowIndex="1" GridPane.columnIndex="3"/>
-                        </GridPane>
-                    </VBox>
-                </VBox>
-            </Tab>
-
-            <!-- Tab 5: Visualisation des données -->
-            <Tab text="📈 Visualisation">
-                <VBox spacing="20" style="-fx-padding: 20;">
-                    <Label text="Visualisation des Données et Prédictions"
-                           style="-fx-font-weight: bold; -fx-font-size: 18;"/>
-
-                    <!-- Graphique de distribution MOS -->
-                    <VBox spacing="10">
-                        <Label text="Distribution des MOS" style="-fx-font-weight: bold;"/>
-                        <BarChart fx:id="mosDistributionChart" prefHeight="250">
-                            <xAxis>
-                                <CategoryAxis label="Catégorie MOS"/>
-                            </xAxis>
-                            <yAxis>
-                                <NumberAxis label="Nombre"/>
-                            </yAxis>
-                        </BarChart>
-                    </VBox>
-
-                    <!-- Scatter plot MOS vs Features -->
-                    <HBox spacing="20">
-                        <VBox spacing="10">
-                            <Label text="MOS vs Latence" style="-fx-font-weight: bold;"/>
-                            <ScatterChart fx:id="mosVsLatenceChart" prefWidth="350" prefHeight="250">
-                                <xAxis>
-                                    <NumberAxis label="Latence (ms)"/>
-                                </xAxis>
-                                <yAxis>
-                                    <NumberAxis label="MOS"/>
-                                </yAxis>
-                            </ScatterChart>
+                        <!-- Prediction History -->
+                        <VBox styleClass="section-card">
+                            <Label text="📜 Historique des Prédictions" styleClass="section-title"/>
+                            <TableView fx:id="predictionHistoryTable"
+                                       prefHeight="250"
+                                       styleClass="predictions-table"/>
                         </VBox>
 
-                        <VBox spacing="10">
-                            <Label text="MOS vs Perte" style="-fx-font-weight: bold;"/>
-                            <ScatterChart fx:id="mosVsPerteChart" prefWidth="350" prefHeight="250">
-                                <xAxis>
-                                    <NumberAxis label="Perte (%)"/>
-                                </xAxis>
-                                <yAxis>
-                                    <NumberAxis label="MOS"/>
-                                </yAxis>
-                            </ScatterChart>
-                        </VBox>
-                    </HBox>
-
-                    <!-- Matrice de corrélation -->
-                    <VBox spacing="10">
-                        <Label text="📊 Matrice de Corrélation" style="-fx-font-weight: bold;"/>
-                        <TableView fx:id="correlationMatrixTable" prefHeight="200">
-                            <columns>
-                                <TableColumn text="Feature"/>
-                                <TableColumn text="Latence"/>
-                                <TableColumn text="Jitter"/>
-                                <TableColumn text="Perte"/>
-                                <TableColumn text="Bande passante"/>
-                                <TableColumn text="Signal"/>
-                                <TableColumn text="MOS"/>
-                            </columns>
-                        </TableView>
                     </VBox>
-                </VBox>
+                </ScrollPane>
             </Tab>
+
+            <!-- TAB 4: TESTS -->
+            <Tab text="🧪 Tests">
+                <ScrollPane fitToWidth="true" fitToHeight="true">
+                    <VBox spacing="20" styleClass="content-container">
+
+                        <!-- Test Actions -->
+                        <VBox styleClass="section-card">
+                            <Label text="🎮 Actions de Test" styleClass="section-title"/>
+                            <HBox spacing="15" alignment="CENTER" styleClass="test-buttons">
+                                <Button fx:id="quickTestBtn" text="⚡ Test Rapide"
+                                        onAction="#runQuickTest" styleClass="btn-test"/>
+                                <Button fx:id="evaluateBtn" text="📊 Évaluer Modèle"
+                                        onAction="#evaluateModel" styleClass="btn-test"/>
+                                <Button fx:id="predictMissingBtn" text="🔮 Prédire MOS Manquants"
+                                        onAction="#predictMissingMOS" styleClass="btn-test"/>
+                                <Button fx:id="fullTestBtn" text="🚀 Suite Complète"
+                                        onAction="#runAllTests" styleClass="btn-test-full"/>
+                            </HBox>
+                        </VBox>
+
+                        <!-- Test Output -->
+                        <VBox styleClass="section-card">
+                            <HBox alignment="CENTER_LEFT" spacing="10">
+                                <Label text="💻 Console de Sortie" styleClass="section-title"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Button text="🗑️ Effacer" onAction="#clearTestOutput" styleClass="btn-small"/>
+                                <Button text="💾 Exporter" onAction="#saveTestLog" styleClass="btn-small"/>
+                            </HBox>
+                            <TextArea fx:id="testOutputArea"
+                                      prefHeight="400"
+                                      editable="false"
+                                      wrapText="true"
+                                      styleClass="console-output"/>
+                        </VBox>
+
+                    </VBox>
+                </ScrollPane>
+            </Tab>
+
+            <!-- TAB 5: VISUALISATIONS -->
+            <Tab text="📈 Visualisations">
+                <ScrollPane fitToWidth="true" fitToHeight="true">
+                    <VBox spacing="20" styleClass="content-container">
+
+                        <!-- MOS Distribution -->
+                        <VBox styleClass="section-card">
+                            <Label text="📊 Distribution des Scores MOS" styleClass="section-title"/>
+                            <BarChart fx:id="mosDistributionChart"
+                                      title="Répartition par Catégorie QoE"
+                                      prefHeight="300"
+                                      styleClass="chart-container">
+                                <xAxis><CategoryAxis label="Catégorie"/></xAxis>
+                                <yAxis><NumberAxis label="Nombre d'instances"/></yAxis>
+                            </BarChart>
+                        </VBox>
+
+                        <!-- Scatter Plots -->
+                        <HBox spacing="20">
+                            <VBox styleClass="section-card" HBox.hgrow="ALWAYS">
+                                <Label text="📉 MOS vs Latence" styleClass="section-title"/>
+                                <ScatterChart fx:id="mosVsLatenceChart"
+                                              prefHeight="300"
+                                              styleClass="chart-container">
+                                    <xAxis><NumberAxis label="Latence (ms)"/></xAxis>
+                                    <yAxis><NumberAxis label="MOS" lowerBound="1" upperBound="5"/></yAxis>
+                                </ScatterChart>
+                            </VBox>
+
+                            <VBox styleClass="section-card" HBox.hgrow="ALWAYS">
+                                <Label text="📉 MOS vs Perte" styleClass="section-title"/>
+                                <ScatterChart fx:id="mosVsPerteChart"
+                                              prefHeight="300"
+                                              styleClass="chart-container">
+                                    <xAxis><NumberAxis label="Perte (%)"/></xAxis>
+                                    <yAxis><NumberAxis label="MOS" lowerBound="1" upperBound="5"/></yAxis>
+                                </ScatterChart>
+                            </VBox>
+                        </HBox>
+
+                    </VBox>
+                </ScrollPane>
+            </Tab>
+
         </TabPane>
     </center>
 
-    <!-- Bottom: Footer -->
+    <!-- FOOTER -->
     <bottom>
-        <HBox spacing="20" alignment="CENTER" style="-fx-background-color: #ecf0f1; -fx-padding: 10;">
-            <Label fx:id="modelInfoLabel" text="Modèle: Non entraîné"/>
+        <HBox styleClass="footer-container" alignment="CENTER_LEFT" spacing="30">
+            <Label fx:id="modelInfoLabel" text="Modèle: Non entraîné" styleClass="footer-text"/>
             <Separator orientation="VERTICAL"/>
-            <Label fx:id="dataInfoLabel" text="Données: Chargement..."/>
+            <Label fx:id="dataInfoLabel" text="Données: 0 instances" styleClass="footer-text"/>
             <Separator orientation="VERTICAL"/>
-            <Label fx:id="lastUpdateLabel" text="Dernière mise à jour: --"/>
+            <Label fx:id="lastUpdateLabel" text="Dernière mise à jour: --" styleClass="footer-text"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label text="QoE ML System v1.0" styleClass="footer-text-version"/>
         </HBox>
     </bottom>
 
