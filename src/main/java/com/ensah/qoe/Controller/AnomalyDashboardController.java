@@ -1,7 +1,6 @@
 package com.ensah.qoe.Controller;
 
 import com.ensah.qoe.ML.AnomalyDetectionModels;
-import com.ensah.qoe.ML.DataPreparationAnomalie;
 import com.ensah.qoe.Models.DBConnection;
 import com.ensah.qoe.Services.PredictionServiceAnomalies;
 import javafx.application.Platform;
@@ -9,22 +8,18 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.chart.*;
 import javafx.scene.control.*;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-import weka.core.Instances;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -52,6 +47,7 @@ public class AnomalyDashboardController {
     @FXML private Label trainingProgressLabel;
     @FXML private TextArea trainingLogArea;
     @FXML private Button visualizeDataButton;
+    // Note: compareAllCheckbox n'est pas dans votre FXML
 
     // ============ PRÉDICTION ============
     @FXML private VBox predictionInputsContainer;
@@ -65,6 +61,8 @@ public class AnomalyDashboardController {
     @FXML private Slider bandePassanteSlider;
     @FXML private TextField signalField;
     @FXML private Slider signalSlider;
+    // Note: mosField et zoneField ne sont pas dans votre FXML
+    // Note: predictionDetailsArea n'est pas dans votre FXML
 
     @FXML private Button predictButton;
     @FXML private Button analyzeButton;
@@ -72,7 +70,6 @@ public class AnomalyDashboardController {
     @FXML private Label confidenceLabel;
     @FXML private ProgressBar confidenceProgressBar;
     @FXML private Label explanationLabel;
-
 
     // ============ VISUALISATION ============
     @FXML private TabPane visualizationTabPane;
@@ -95,6 +92,7 @@ public class AnomalyDashboardController {
     @FXML private Button evaluateModelButton;
     @FXML private Button fullAnalysisButton;
     @FXML private Button refreshButton;
+    // Note: analyzeDatasetButton et demoButton ne sont pas dans votre FXML
 
     // ============ FOOTER ============
     @FXML private Label modelStatusLabel;
@@ -102,6 +100,8 @@ public class AnomalyDashboardController {
     @FXML private Label dataUpdateLabel;
     @FXML private Label performanceStatusLabel;
     @FXML private Button goBackButton;
+    // Note: modelInfoLabel n'est pas dans votre FXML
+
     // ============ VARIABLES ============
     private ObservableList<Map<String, String>> recentPredictions = FXCollections.observableArrayList();
     private ObservableList<Map<String, String>> anomalyLogs = FXCollections.observableArrayList();
@@ -109,25 +109,23 @@ public class AnomalyDashboardController {
     private PrintStream originalOut;
     private PrintStream customOut;
 
-
-    private static final String NORMAL_STYLE = "-fx-background-color: #2ecc71; -fx-text-fill: white;";
-    private static final String ANOMALY_STYLE = "-fx-background-color: #e74c3c; -fx-text-fill: white;";
-    private static final String WARNING_STYLE = "-fx-background-color: #f39c12; -fx-text-fill: white;";
+    private static final String NORMAL_STYLE = "-fx-background-color: #2ecc71; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 5px 10px; -fx-background-radius: 5px;";
+    private static final String ANOMALY_STYLE = "-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 5px 10px; -fx-background-radius: 5px;";
+    private static final String WARNING_STYLE = "-fx-background-color: #f39c12; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 5px 10px; -fx-background-radius: 5px;";
+    private static final String INFO_STYLE = "-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 5px 10px; -fx-background-radius: 5px;";
 
     @FXML
     public void initialize() {
         setupConsoleRedirect();
-
         setupUIComponents();
         initializeCharts();
         setupTables();
         bindSlidersAndFields();
         loadDashboardData();
         startAutoRefresh();
-        setupRecentPredictionsTable();
-        loadRecentPredictions();
+        updateModelStatus(); // Pas de updateModelInfo() car modelInfoLabel n'existe pas
+        loadRecentPredictionsFromDB();
     }
-
 
     private void setupConsoleRedirect() {
         consoleOutput = new ByteArrayOutputStream();
@@ -161,11 +159,14 @@ public class AnomalyDashboardController {
     private void setupUIComponents() {
         // Configuration des ComboBox
         algorithmCombo.getItems().addAll(
-                "J48 (Arbre de décision)",
-                "Naive Bayes",
-                "KNN (k=3)"
+                "RandomForest",
+                "J48",
+                "NaiveBayes",
+                "KNN",
+                "SVM",
+                "MLP"
         );
-        algorithmCombo.setValue("J48 (Arbre de décision)");
+        algorithmCombo.setValue("RandomForest");
 
         // Configuration des sliders
         configureSliders();
@@ -176,54 +177,91 @@ public class AnomalyDashboardController {
         });
 
         // Style des boutons
-        trainButton.setStyle("-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-weight: bold;");
-        predictButton.setStyle("-fx-background-color: #2ecc71; -fx-text-fill: white; -fx-font-weight: bold;");
-        analyzeButton.setStyle("-fx-background-color: #9b59b6; -fx-text-fill: white; -fx-font-weight: bold;");
+        trainButton.setStyle(INFO_STYLE);
+        predictButton.setStyle(NORMAL_STYLE);
+        analyzeButton.setStyle("-fx-background-color: #9b59b6; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 5px 10px; -fx-background-radius: 5px;");
+        evaluateModelButton.setStyle(INFO_STYLE);
+
+        // Note: demoButton n'existe pas dans le FXML, donc pas de style à appliquer
 
         // Tooltips
+        setupTooltips();
+    }
+
+    private void setupTooltips() {
         Tooltip.install(trainButton, new Tooltip("Entraîner le modèle de détection d'anomalies"));
         Tooltip.install(predictButton, new Tooltip("Prédire si les valeurs actuelles représentent une anomalie"));
         Tooltip.install(analyzeButton, new Tooltip("Analyse détaillée des facteurs d'anomalie"));
+        Tooltip.install(evaluateModelButton, new Tooltip("Évaluer la performance du modèle sur le jeu de test"));
+        // Note: demoButton n'existe pas
     }
 
     private void configureSliders() {
-        // Latence: 0-500ms (typique 0-100 normal)
-        latenceSlider.setMin(0);
-        latenceSlider.setMax(500);
-        latenceSlider.setValue(50);
-        latenceSlider.setBlockIncrement(10);
+        // Les sliders doivent être configurés dans initialize() car ils existent dans le FXML
+        if (latenceSlider != null) {
+            latenceSlider.setMin(0);
+            latenceSlider.setMax(500);
+            latenceSlider.setValue(50);
+            latenceSlider.setBlockIncrement(10);
+            latenceSlider.setShowTickLabels(true);
+            latenceSlider.setShowTickMarks(true);
+            latenceSlider.setMajorTickUnit(100);
+        }
 
-        // Jitter: 0-100ms (typique 0-20 normal)
-        jitterSlider.setMin(0);
-        jitterSlider.setMax(100);
-        jitterSlider.setValue(10);
-        jitterSlider.setBlockIncrement(5);
+        if (jitterSlider != null) {
+            jitterSlider.setMin(0);
+            jitterSlider.setMax(100);
+            jitterSlider.setValue(10);
+            jitterSlider.setBlockIncrement(5);
+            jitterSlider.setShowTickLabels(true);
+            jitterSlider.setMajorTickUnit(20);
+        }
 
-        // Perte: 0-100% (typique 0-5 normal)
-        perteSlider.setMin(0);
-        perteSlider.setMax(100);
-        perteSlider.setValue(1);
-        perteSlider.setBlockIncrement(1);
+        if (perteSlider != null) {
+            perteSlider.setMin(0);
+            perteSlider.setMax(100);
+            perteSlider.setValue(1);
+            perteSlider.setBlockIncrement(1);
+            perteSlider.setShowTickLabels(true);
+            perteSlider.setMajorTickUnit(10);
+        }
 
-        // Bande passante: 0-200 Mbps
-        bandePassanteSlider.setMin(0);
-        bandePassanteSlider.setMax(200);
-        bandePassanteSlider.setValue(50);
-        bandePassanteSlider.setBlockIncrement(10);
+        if (bandePassanteSlider != null) {
+            bandePassanteSlider.setMin(0);
+            bandePassanteSlider.setMax(200);
+            bandePassanteSlider.setValue(50);
+            bandePassanteSlider.setBlockIncrement(10);
+            bandePassanteSlider.setShowTickLabels(true);
+            bandePassanteSlider.setMajorTickUnit(50);
+        }
 
-        // Signal: 0-100%
-        signalSlider.setMin(0);
-        signalSlider.setMax(100);
-        signalSlider.setValue(80);
-        signalSlider.setBlockIncrement(5);
+        if (signalSlider != null) {
+            signalSlider.setMin(0);
+            signalSlider.setMax(100);
+            signalSlider.setValue(80);
+            signalSlider.setBlockIncrement(5);
+            signalSlider.setShowTickLabels(true);
+            signalSlider.setMajorTickUnit(25);
+        }
     }
 
     private void bindSlidersAndFields() {
-        bindSliderToField(latenceSlider, latenceField);
-        bindSliderToField(jitterSlider, jitterField);
-        bindSliderToField(perteSlider, perteField);
-        bindSliderToField(bandePassanteSlider, bandePassanteField);
-        bindSliderToField(signalSlider, signalField);
+        // Vérifier que les composants existent avant de les binder
+        if (latenceSlider != null && latenceField != null) {
+            bindSliderToField(latenceSlider, latenceField);
+        }
+        if (jitterSlider != null && jitterField != null) {
+            bindSliderToField(jitterSlider, jitterField);
+        }
+        if (perteSlider != null && perteField != null) {
+            bindSliderToField(perteSlider, perteField);
+        }
+        if (bandePassanteSlider != null && bandePassanteField != null) {
+            bindSliderToField(bandePassanteSlider, bandePassanteField);
+        }
+        if (signalSlider != null && signalField != null) {
+            bindSliderToField(signalSlider, signalField);
+        }
     }
 
     private void bindSliderToField(Slider slider, TextField field) {
@@ -246,28 +284,43 @@ public class AnomalyDashboardController {
 
     private void initializeCharts() {
         // Distribution chart
-        distributionChart.setTitle("Distribution des Anomalies");
-        distributionChart.setLegendVisible(false);
+        if (distributionChart != null) {
+            distributionChart.setTitle("Distribution des Anomalies");
+            distributionChart.setLegendVisible(false);
+            distributionChart.setAnimated(true);
+        }
 
         // Pie chart
-        anomalyPieChart.setTitle("Proportion Anomalies/Normales");
+        if (anomalyPieChart != null) {
+            anomalyPieChart.setTitle("Proportion Anomalies/Normales");
+            anomalyPieChart.setLabelsVisible(true);
+            anomalyPieChart.setLegendVisible(true);
+        }
 
         // Performance chart
-        performanceChart.setTitle("Performance du Modèle");
-        performanceChart.setCreateSymbols(true);
+        if (performanceChart != null) {
+            performanceChart.setTitle("Performance du Modèle");
+            performanceChart.setCreateSymbols(true);
+            performanceChart.setAnimated(true);
+        }
 
         // Correlation chart
-        correlationChart.setTitle("Corrélations entre Features");
+        if (correlationChart != null) {
+            correlationChart.setTitle("Corrélations entre Features");
+            correlationChart.setAnimated(true);
+        }
 
         // Initialiser les séries
-        XYChart.Series<String, Number> series = new XYChart.Series<>();
-        series.setName("Anomalies");
-        distributionChart.getData().add(series);
+        if (distributionChart != null) {
+            XYChart.Series<String, Number> series = new XYChart.Series<>();
+            series.setName("Anomalies");
+            distributionChart.getData().add(series);
+        }
     }
 
     private void setupTables() {
         // Table des prédictions récentes
-        setupPredictionsTable();
+        setupRecentPredictionsTable();
 
         // Table des logs d'anomalies
         setupAnomalyLogTable();
@@ -279,98 +332,154 @@ public class AnomalyDashboardController {
         setupFeatureStatsTable();
     }
 
-    private void setupPredictionsTable() {
-        recentPredictionsTable.setPlaceholder(new Label("Aucune prédiction récente"));
+    private void setupRecentPredictionsTable() {
+        if (recentPredictionsTable == null || !recentPredictionsTable.getColumns().isEmpty()) {
+            return;
+        }
 
         String[] columns = {"time", "latence", "jitter", "perte", "signal", "prediction", "confidence"};
-        String[] titles = {"Heure", "Latence", "Jitter", "Perte %", "Signal", "Prédiction", "Confiance"};
+        String[] titles = {"Heure", "Latence", "Jitter", "Perte", "Signal", "Statut", "Confiance"};
 
         for (int i = 0; i < columns.length; i++) {
-            TableColumn<Map<String, String>, String> col = new TableColumn<>(titles[i]);
             final String key = columns[i];
+            TableColumn<Map<String, String>, String> col = new TableColumn<>(titles[i]);
             col.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().get(key)));
-            col.setPrefWidth(100);
+
+            // Style spécial pour la colonne de prédiction
+            if ("prediction".equals(key)) {
+                col.setCellFactory(column -> new TableCell<Map<String, String>, String>() {
+                    @Override
+                    protected void updateItem(String item, boolean empty) {
+                        super.updateItem(item, empty);
+                        if (item == null || empty) {
+                            setText(null);
+                            setStyle("");
+                        } else {
+                            setText(item);
+                            if ("ANOMALIE".equals(item)) {
+                                setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold;");
+                            } else {
+                                setStyle("-fx-background-color: #2ecc71; -fx-text-fill: white; -fx-font-weight: bold;");
+                            }
+                        }
+                    }
+                });
+            }
+
             recentPredictionsTable.getColumns().add(col);
         }
+        recentPredictionsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
     }
 
     private void setupAnomalyLogTable() {
-        anomalyLogTable.getColumns().clear();
-        anomalyLogTable.setPlaceholder(new Label("Aucune anomalie détectée"));
+        if (anomalyLogTable == null || !anomalyLogTable.getColumns().isEmpty()) {
+            return;
+        }
 
-        TableColumn<Map<String, String>, String> timeCol = new TableColumn<>("Timestamp");
-        timeCol.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().get("time")));
+        String[] columns = {"time", "severity", "details", "action"};
+        String[] titles = {"Timestamp", "Sévérité", "Détails", "Action"};
 
-        TableColumn<Map<String, String>, String> severityCol = new TableColumn<>("Sévérité");
-        severityCol.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().get("severity")));
+        for (int i = 0; i < columns.length; i++) {
+            final String key = columns[i];
+            TableColumn<Map<String, String>, String> col = new TableColumn<>(titles[i]);
+            col.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().get(key)));
 
-        TableColumn<Map<String, String>, String> detailsCol = new TableColumn<>("Détails");
-        detailsCol.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().get("details")));
+            // Style pour la colonne de sévérité
+            if ("severity".equals(key)) {
+                col.setCellFactory(column -> new TableCell<Map<String, String>, String>() {
+                    @Override
+                    protected void updateItem(String item, boolean empty) {
+                        super.updateItem(item, empty);
+                        if (item == null || empty) {
+                            setText(null);
+                            setStyle("");
+                        } else {
+                            setText(item);
+                            switch (item) {
+                                case "CRITIQUE":
+                                    setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold;");
+                                    break;
+                                case "HAUTE":
+                                    setStyle("-fx-background-color: #f39c12; -fx-text-fill: white; -fx-font-weight: bold;");
+                                    break;
+                                default:
+                                    setStyle("-fx-background-color: #f1c40f; -fx-text-fill: black; -fx-font-weight: bold;");
+                            }
+                        }
+                    }
+                });
+            }
 
-        TableColumn<Map<String, String>, String> actionCol = new TableColumn<>("Action");
-        actionCol.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().get("action")));
-
-        anomalyLogTable.getColumns().addAll(timeCol, severityCol, detailsCol, actionCol);
+            anomalyLogTable.getColumns().add(col);
+        }
+        anomalyLogTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
     }
 
     private void setupConfusionMatrixTable() {
-        confusionMatrixTable.setPlaceholder(new Label("Matrice de confusion non disponible"));
+        if (confusionMatrixTable == null || !confusionMatrixTable.getColumns().isEmpty()) {
+            return;
+        }
 
         String[] headers = {"", "Prédit Normal", "Prédit Anomalie"};
-        String[] rows = {"Réel Normal", "Réel Anomalie"};
+        String[] keys = {"col0", "col1", "col2"};
 
         for (int i = 0; i < headers.length; i++) {
+            final String key = keys[i];
             TableColumn<Map<String, String>, String> col = new TableColumn<>(headers[i]);
-            final String key = "col" + i;
             col.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().get(key)));
+
             confusionMatrixTable.getColumns().add(col);
         }
+        confusionMatrixTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
     }
 
     private void setupFeatureStatsTable() {
-        featureStatsTable.getItems().clear();
-        featureStatsTable.setPlaceholder(new Label("Charger les données pour voir les statistiques"));
+        if (featureStatsTable == null || !featureStatsTable.getColumns().isEmpty()) {
+            return;
+        }
 
         String[] columns = {"feature", "min", "max", "avg", "std", "impact"};
         String[] titles = {"Feature", "Min", "Max", "Moyenne", "Écart-type", "Impact"};
 
         for (int i = 0; i < columns.length; i++) {
-            TableColumn<Map<String, String>, String> col = new TableColumn<>(titles[i]);
             final String key = columns[i];
+            TableColumn<Map<String, String>, String> col = new TableColumn<>(titles[i]);
             col.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().get(key)));
-            col.setPrefWidth(100);
-            featureStatsTable.getColumns().add(col);
-            featureStatsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
+            featureStatsTable.getColumns().add(col);
         }
+        featureStatsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
     }
 
     private void loadDashboardData() {
-        updateStatus("Chargement des données...", "info", "info");
+        updateStatus("Chargement des données...", "info");
 
         Thread loadThread = new Thread(() -> {
             try {
+                System.setOut(customOut);
+
                 loadKPIData();
                 loadDistributionData();
                 loadPerformanceHistory();
-                loadRecentPredictions();
+                loadRecentPredictionsFromDB();
                 loadAnomalyLogs();
                 loadFeatureStatistics();
                 updateModelStatus();
                 loadCorrelationData();
-                loadConfusionMatrix();
-
+                loadConfusionMatrixFromService();
 
                 Platform.runLater(() -> {
-                    updateStatus("Système prêt", "success", "normal");
+                    updateStatus("Système prêt", "success");
                     updateFooter();
                 });
 
             } catch (Exception e) {
                 Platform.runLater(() -> {
-                    updateStatus("Erreur de chargement: " + e.getMessage(), "error", "warning");
+                    updateStatus("Erreur de chargement: " + e.getMessage(), "error");
                 });
                 e.printStackTrace();
+            } finally {
+                System.setOut(originalOut);
             }
         });
 
@@ -379,39 +488,53 @@ public class AnomalyDashboardController {
     }
 
     private void loadKPIData() {
-        try (Connection conn = com.ensah.qoe.Models.DBConnection.getConnection()) {
-            // Nombre total d'instances
-            String countSQL = "SELECT COUNT(*) FROM MESURES_QOS WHERE ANOMALIE IS NOT NULL";
-            int totalInstances = executeCountQuery(countSQL);
+        try {
+            // Vérifier d'abord si le service a des statistiques
+            if (PredictionServiceAnomalies.getLastAccuracy() > 0) {
+                Platform.runLater(() -> {
+                    if (accuracyLabel != null) {
+                        accuracyLabel.setText(String.format("%.1f%%", PredictionServiceAnomalies.getLastAccuracy()));
+                    }
+                    if (precisionLabel != null) {
+                        precisionLabel.setText(String.format("%.3f", PredictionServiceAnomalies.getLastPrecision()));
+                    }
+                    if (recallLabel != null) {
+                        recallLabel.setText(String.format("%.3f", PredictionServiceAnomalies.getLastRecall()));
+                    }
+                });
+            }
 
-            // Nombre d'anomalies
-            String anomalySQL = "SELECT COUNT(*) FROM MESURES_QOS WHERE ANOMALIE = 1";
-            int anomalyCount = executeCountQuery(anomalySQL);
+            // Charger depuis la base de données
+            String sql = """
+                SELECT 
+                    COUNT(*) as total,
+                    SUM(CASE WHEN ANOMALIE = 0 THEN 1 ELSE 0 END) as normal,
+                    SUM(CASE WHEN ANOMALIE = 1 THEN 1 ELSE 0 END) as anomaly
+                FROM MESURES_QOS
+                WHERE ANOMALIE IS NOT NULL
+            """;
 
-            // Nombre de normales
-            String normalSQL = "SELECT COUNT(*) FROM MESURES_QOS WHERE ANOMALIE = 0";
-            int normalCount = executeCountQuery(normalSQL);
+            try (Connection conn = DBConnection.getConnection();
+                 PreparedStatement ps = conn.prepareStatement(sql);
+                 ResultSet rs = ps.executeQuery()) {
 
-            double anomalyRate = totalInstances > 0 ? (anomalyCount * 100.0) / totalInstances : 0;
+                if (rs.next()) {
+                    final int total = rs.getInt("total");
+                    final int normal = rs.getInt("normal");
+                    final int anomaly = rs.getInt("anomaly");
+                    final double anomalyRate = total > 0 ? (anomaly * 100.0 / total) : 0;
 
-            Platform.runLater(() -> {
-                totalInstancesLabel.setText(String.format("%,d", totalInstances));
-                anomalyCountLabel.setText(String.format("%,d", anomalyCount));
-                normalCountLabel.setText(String.format("%,d", normalCount));
-                anomalyRateProgress.setProgress(anomalyRate / 100);
-                anomalyRateLabel.setText(String.format("%.1f%%", anomalyRate));
-            });
-
+                    Platform.runLater(() -> {
+                        if (totalInstancesLabel != null) totalInstancesLabel.setText(String.valueOf(total));
+                        if (normalCountLabel != null) normalCountLabel.setText(String.valueOf(normal));
+                        if (anomalyCountLabel != null) anomalyCountLabel.setText(String.valueOf(anomaly));
+                        if (anomalyRateLabel != null) anomalyRateLabel.setText(String.format("%.1f%%", anomalyRate));
+                        if (anomalyRateProgress != null) anomalyRateProgress.setProgress(anomalyRate / 100);
+                    });
+                }
+            }
         } catch (SQLException e) {
             System.err.println("Erreur chargement KPI: " + e.getMessage());
-        }
-    }
-
-    private int executeCountQuery(String sql) throws SQLException {
-        try (Connection conn = com.ensah.qoe.Models.DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            return rs.next() ? rs.getInt(1) : 0;
         }
     }
 
@@ -439,11 +562,12 @@ public class AnomalyDashboardController {
             ORDER BY count DESC
         """;
 
-        try (Connection conn = com.ensah.qoe.Models.DBConnection.getConnection();
+        try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
 
             XYChart.Series<String, Number> series = new XYChart.Series<>();
+            series.setName("Types d'anomalies");
             ObservableList<PieChart.Data> pieData = FXCollections.observableArrayList();
 
             while (rs.next()) {
@@ -451,15 +575,38 @@ public class AnomalyDashboardController {
                 int count = rs.getInt("count");
 
                 series.getData().add(new XYChart.Data<>(type, count));
-                pieData.add(new PieChart.Data(type, count));
+                pieData.add(new PieChart.Data(type + " (" + count + ")", count));
             }
 
             Platform.runLater(() -> {
-                distributionChart.getData().clear();
-                distributionChart.getData().add(series);
+                if (distributionChart != null) {
+                    distributionChart.getData().clear();
+                    distributionChart.getData().add(series);
+                }
 
-                anomalyPieChart.setData(pieData);
-                anomalyPieChart.setLabelsVisible(true);
+                if (anomalyPieChart != null) {
+                    anomalyPieChart.setData(pieData);
+
+                    // Personnaliser les couleurs du pie chart
+                    int colorIndex = 0;
+                    for (PieChart.Data data : pieData) {
+                        switch (colorIndex % 4) {
+                            case 0:
+                                data.getNode().setStyle("-fx-pie-color: #e74c3c;");
+                                break;
+                            case 1:
+                                data.getNode().setStyle("-fx-pie-color: #f39c12;");
+                                break;
+                            case 2:
+                                data.getNode().setStyle("-fx-pie-color: #3498db;");
+                                break;
+                            case 3:
+                                data.getNode().setStyle("-fx-pie-color: #2ecc71;");
+                                break;
+                        }
+                        colorIndex++;
+                    }
+                }
             });
 
         } catch (SQLException e) {
@@ -468,41 +615,47 @@ public class AnomalyDashboardController {
     }
 
     private void loadPerformanceHistory() {
-        // Données factices pour l'exemple
+        if (performanceChart == null) return;
+
+        // Charger l'historique des performances depuis la base
         XYChart.Series<String, Number> accuracySeries = new XYChart.Series<>();
         accuracySeries.setName("Accuracy");
 
-        XYChart.Series<String, Number> f1Series = new XYChart.Series<>();
-        f1Series.setName("F1-Score");
-
+        // Pour l'exemple, on génère des données factices
         String[] dates = {"Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"};
-
         Random rand = new Random();
+
         for (String date : dates) {
-            accuracySeries.getData().add(new XYChart.Data<>(date, 80 + rand.nextDouble() * 15));
-            f1Series.getData().add(new XYChart.Data<>(date, 75 + rand.nextDouble() * 18));
+            double accuracy = 80 + rand.nextDouble() * 15;
+            accuracySeries.getData().add(new XYChart.Data<>(date, accuracy));
         }
 
         Platform.runLater(() -> {
             performanceChart.getData().clear();
-            performanceChart.getData().addAll(accuracySeries, f1Series);
+            performanceChart.getData().add(accuracySeries);
+
+            // Personnaliser les couleurs
+            accuracySeries.getNode().setStyle("-fx-stroke: #2ecc71; -fx-stroke-width: 2px;");
         });
     }
 
-    private void loadRecentPredictions() {
+    private void loadRecentPredictionsFromDB() {
+        if (recentPredictionsTable == null) return;
 
         String sql = """
-        SELECT
-           TO_CHAR(DATE_REELLE, 'HH24:MI:SS') AS HEURE,
-           LATENCE,
-           JITTER,
-           PERTE,
-           SIGNAL_SCORE,
-           ANOMALIE
-        FROM MESURES_QOS
-        ORDER BY DATE_REELLE DESC
-        FETCH FIRST 10 ROWS ONLY
-    """;
+            SELECT
+                TO_CHAR(DATE_REELLE, 'HH24:MI:SS') AS HEURE,
+                LATENCE,
+                JITTER,
+                PERTE,
+                SIGNAL_SCORE,
+                ANOMALIE,
+                MOS,
+                ZONE
+            FROM MESURES_QOS
+            ORDER BY DATE_REELLE DESC
+            FETCH FIRST 15 ROWS ONLY
+        """;
 
         ObservableList<Map<String, String>> data = FXCollections.observableArrayList();
 
@@ -511,12 +664,10 @@ public class AnomalyDashboardController {
              ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
-
                 Map<String, String> row = new HashMap<>();
-
-                row.put("time", rs.getString("HEURE"));    // 🔥 FIX ICI
-                row.put("latence", String.format("%.1f", rs.getDouble("LATENCE")));
-                row.put("jitter", String.format("%.1f", rs.getDouble("JITTER")));
+                row.put("time", rs.getString("HEURE"));
+                row.put("latence", String.format("%.1f ms", rs.getDouble("LATENCE")));
+                row.put("jitter", String.format("%.1f ms", rs.getDouble("JITTER")));
                 row.put("perte", String.format("%.1f%%", rs.getDouble("PERTE")));
                 row.put("signal", String.format("%.0f", rs.getDouble("SIGNAL_SCORE")));
 
@@ -527,29 +678,29 @@ public class AnomalyDashboardController {
                 data.add(row);
             }
 
-            Platform.runLater(() -> recentPredictionsTable.setItems(data));
+            Platform.runLater(() -> {
+                recentPredictionsTable.setItems(data);
+                recentPredictionsTable.refresh();
+            });
 
         } catch (SQLException e) {
             System.err.println("Erreur chargement prédictions: " + e.getMessage());
         }
     }
 
-
-
     private void loadAnomalyLogs() {
+        if (anomalyLogTable == null) return;
+
         String sql = """
             SELECT 
-                ID_MESURE,
                 TO_CHAR(SYSDATE, 'DD/MM HH24:MI') as time,
-                LATENCE,
-                JITTER,
-                PERTE,
                 CASE 
-                    WHEN LATENCE > 200 THEN 'CRITIQUE'
-                    WHEN PERTE > 20 THEN 'HAUTE'
+                    WHEN LATENCE > 300 OR PERTE > 30 THEN 'CRITIQUE'
+                    WHEN LATENCE > 200 OR PERTE > 20 THEN 'HAUTE'
                     ELSE 'MOYENNE'
                 END as severity,
-                'Anomalie réseau détectée' as details
+                'Latence: ' || LATENCE || 'ms, Jitter: ' || JITTER || 'ms, Perte: ' || PERTE || '%, Signal: ' || SIGNAL_SCORE as details,
+                'À investiguer' as action
             FROM MESURES_QOS
             WHERE ANOMALIE = 1
             ORDER BY ID_MESURE DESC
@@ -558,7 +709,7 @@ public class AnomalyDashboardController {
 
         ObservableList<Map<String, String>> logs = FXCollections.observableArrayList();
 
-        try (Connection conn = com.ensah.qoe.Models.DBConnection.getConnection();
+        try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
 
@@ -566,16 +717,14 @@ public class AnomalyDashboardController {
                 Map<String, String> log = new HashMap<>();
                 log.put("time", rs.getString("time"));
                 log.put("severity", rs.getString("severity"));
-                log.put("details", rs.getString("details") +
-                        " (L:" + rs.getDouble("LATENCE") +
-                        "ms J:" + rs.getDouble("JITTER") +
-                        "ms P:" + rs.getDouble("PERTE") + "%)");
-                log.put("action", "À investiguer");
+                log.put("details", rs.getString("details"));
+                log.put("action", rs.getString("action"));
                 logs.add(log);
             }
 
             Platform.runLater(() -> {
                 anomalyLogTable.setItems(logs);
+                anomalyLogTable.refresh();
             });
 
         } catch (SQLException e) {
@@ -584,9 +733,11 @@ public class AnomalyDashboardController {
     }
 
     private void loadFeatureStatistics() {
+        if (featureStatsTable == null) return;
+
         String sql = """
             SELECT 
-                'latence' as feature,
+                'LATENCE' as feature,
                 MIN(LATENCE) as min_val,
                 MAX(LATENCE) as max_val,
                 AVG(LATENCE) as avg_val,
@@ -595,7 +746,7 @@ public class AnomalyDashboardController {
             FROM MESURES_QOS
             UNION ALL
             SELECT 
-                'jitter',
+                'JITTER',
                 MIN(JITTER),
                 MAX(JITTER),
                 AVG(JITTER),
@@ -604,7 +755,7 @@ public class AnomalyDashboardController {
             FROM MESURES_QOS
             UNION ALL
             SELECT 
-                'perte',
+                'PERTE',
                 MIN(PERTE),
                 MAX(PERTE),
                 AVG(PERTE),
@@ -613,7 +764,7 @@ public class AnomalyDashboardController {
             FROM MESURES_QOS
             UNION ALL
             SELECT 
-                'signal_score',
+                'SIGNAL',
                 MIN(SIGNAL_SCORE),
                 MAX(SIGNAL_SCORE),
                 AVG(SIGNAL_SCORE),
@@ -624,13 +775,13 @@ public class AnomalyDashboardController {
 
         ObservableList<Map<String, String>> stats = FXCollections.observableArrayList();
 
-        try (Connection conn = com.ensah.qoe.Models.DBConnection.getConnection();
+        try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
                 Map<String, String> row = new HashMap<>();
-                row.put("feature", rs.getString("feature").toUpperCase());
+                row.put("feature", rs.getString("feature"));
                 row.put("min", String.format("%.1f", rs.getDouble("min_val")));
                 row.put("max", String.format("%.1f", rs.getDouble("max_val")));
                 row.put("avg", String.format("%.1f", rs.getDouble("avg_val")));
@@ -641,6 +792,7 @@ public class AnomalyDashboardController {
 
             Platform.runLater(() -> {
                 featureStatsTable.setItems(stats);
+                featureStatsTable.refresh();
             });
 
         } catch (SQLException e) {
@@ -650,67 +802,117 @@ public class AnomalyDashboardController {
 
     private void updateModelStatus() {
         boolean isTrained = PredictionServiceAnomalies.isModelTrained();
+        boolean isLoaded = PredictionServiceAnomalies.isModelLoaded();
 
         Platform.runLater(() -> {
-            if (isTrained) {
-                modelStatusLabel.setText("✓ Modèle entraîné");
-                modelStatusLabel.setStyle("-fx-text-fill: #27ae60; -fx-font-weight: bold;");
-                accuracyLabel.setText(AnomalyDetectionModels.lastAccuracy);
-                precisionLabel.setText(AnomalyDetectionModels.lastPrecision);
-                recallLabel.setText(AnomalyDetectionModels.lastRecall);
-                f1ScoreLabel.setText(AnomalyDetectionModels.lastF1);
-            } else {
-                modelStatusLabel.setText("✗ Modèle non entraîné");
-                modelStatusLabel.setStyle("-fx-text-fill: #e74c3c; -fx-font-weight: bold;");
-                accuracyLabel.setText("--");
-                precisionLabel.setText("--");
-                recallLabel.setText("--");
-                f1ScoreLabel.setText("--");
+            if (modelStatusLabel != null) {
+                if (isTrained && isLoaded) {
+                    modelStatusLabel.setText("✓ Modèle entraîné et chargé");
+                    modelStatusLabel.setStyle("-fx-text-fill: #27ae60; -fx-font-weight: bold;");
+
+                    // Mettre à jour les métriques depuis le service
+                    double accuracy = PredictionServiceAnomalies.getLastAccuracy();
+                    double precision = PredictionServiceAnomalies.getLastPrecision();
+                    double recall = PredictionServiceAnomalies.getLastRecall();
+
+                    if (accuracy > 0) {
+                        if (accuracyLabel != null) accuracyLabel.setText(String.format("%.1f%%", accuracy));
+                        if (precisionLabel != null) precisionLabel.setText(String.format("%.3f", precision));
+                        if (recallLabel != null) recallLabel.setText(String.format("%.3f", recall));
+                        if (f1ScoreLabel != null) f1ScoreLabel.setText(String.format("%.3f",
+                                2 * (precision * recall) / (precision + recall)));
+                    }
+
+                } else if (isTrained) {
+                    modelStatusLabel.setText("⚠ Modèle entraîné mais non chargé");
+                    modelStatusLabel.setStyle("-fx-text-fill: #f39c12; -fx-font-weight: bold;");
+                } else {
+                    modelStatusLabel.setText("✗ Modèle non entraîné");
+                    modelStatusLabel.setStyle("-fx-text-fill: #e74c3c; -fx-font-weight: bold;");
+                    if (accuracyLabel != null) accuracyLabel.setText("--");
+                    if (precisionLabel != null) precisionLabel.setText("--");
+                    if (recallLabel != null) recallLabel.setText("--");
+                    if (f1ScoreLabel != null) f1ScoreLabel.setText("--");
+                }
             }
         });
     }
 
     private void updateFooter() {
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));
-        dataUpdateLabel.setText("Dernière mise à jour: " + timestamp);
-        lastTrainingLabel.setText("Dernier entraînement: " + timestamp);
-        performanceStatusLabel.setText(PredictionServiceAnomalies.isModelTrained() ?
-                "Performance: Optimale" : "Performance: Non évaluée");
+        if (dataUpdateLabel != null) {
+            dataUpdateLabel.setText("Dernière mise à jour: " + timestamp);
+        }
+
+        boolean isTrained = PredictionServiceAnomalies.isModelTrained();
+        if (performanceStatusLabel != null) {
+            if (isTrained) {
+                double accuracy = PredictionServiceAnomalies.getLastAccuracy();
+                if (accuracy >= 85) {
+                    performanceStatusLabel.setText("Performance: Excellente");
+                    performanceStatusLabel.setStyle("-fx-text-fill: #27ae60; -fx-font-weight: bold;");
+                } else if (accuracy >= 70) {
+                    performanceStatusLabel.setText("Performance: Satisfaisante");
+                    performanceStatusLabel.setStyle("-fx-text-fill: #f39c12; -fx-font-weight: bold;");
+                } else {
+                    performanceStatusLabel.setText("Performance: À améliorer");
+                    performanceStatusLabel.setStyle("-fx-text-fill: #e74c3c; -fx-font-weight: bold;");
+                }
+            } else {
+                performanceStatusLabel.setText("Performance: Non évaluée");
+                performanceStatusLabel.setStyle("-fx-text-fill: #7f8c8d; -fx-font-weight: bold;");
+            }
+        }
     }
 
     // ============ ÉVÉNEMENTS ============
 
     @FXML
     private void handleTrainModel() {
-        updateStatus("Démarrage de l'entraînement...", "info", "info");
-        trainingLogArea.clear();
+        updateStatus("Démarrage de l'entraînement...", "info");
+        if (trainingLogArea != null) trainingLogArea.clear();
 
         Thread trainThread = new Thread(() -> {
             try {
                 System.setOut(customOut);
 
                 Platform.runLater(() -> {
-                    trainingProgressBar.setProgress(0.1);
-                    trainingProgressLabel.setText("Chargement données...");
+                    if (trainingProgressBar != null) trainingProgressBar.setProgress(0.1);
+                    if (trainingProgressLabel != null) trainingProgressLabel.setText("Chargement données...");
                 });
 
+                // Récupérer l'algorithme sélectionné
                 String algo = algorithmCombo.getValue();
                 PredictionServiceAnomalies.setSelectedAlgorithm(algo);
 
-                PredictionServiceAnomalies.trainModel();
+                Platform.runLater(() -> {
+                    if (trainingProgressBar != null) trainingProgressBar.setProgress(0.3);
+                    if (trainingProgressLabel != null) trainingProgressLabel.setText("Entraînement en cours...");
+                });
+
+                // Lancer l'entraînement (sans comparaison d'algorithmes)
+                String report = PredictionServiceAnomalies.trainModel(false);
+
+                if (systemLogArea != null) {
+                    systemLogArea.appendText("\n=== RAPPORT D'ENTRAÎNEMENT ===\n");
+                    systemLogArea.appendText(report);
+                    systemLogArea.appendText("=== FIN DU RAPPORT ===\n");
+                }
 
                 Platform.runLater(() -> {
-                    trainingProgressBar.setProgress(1.0);
-                    trainingProgressLabel.setText("Terminé ✓");
-                    updateStatus("Modèle entraîné avec succès", "success", "normal");
-                    loadDashboardData(); // Rafraîchir
+                    if (trainingProgressBar != null) trainingProgressBar.setProgress(1.0);
+                    if (trainingProgressLabel != null) trainingProgressLabel.setText("Terminé ✓");
+                    updateStatus("Modèle entraîné avec succès", "success");
+
+                    // Rafraîchir les données
+                    loadDashboardData();
                 });
 
             } catch (Exception e) {
                 Platform.runLater(() -> {
-                    trainingProgressBar.setProgress(0);
-                    trainingProgressLabel.setText("Échec ✗");
-                    updateStatus("Erreur d'entraînement: " + e.getMessage(), "error", "warning");
+                    if (trainingProgressBar != null) trainingProgressBar.setProgress(0);
+                    if (trainingProgressLabel != null) trainingProgressLabel.setText("Échec ✗");
+                    updateStatus("Erreur d'entraînement: " + e.getMessage(), "error");
                 });
                 e.printStackTrace(customOut);
             } finally {
@@ -730,46 +932,42 @@ public class AnomalyDashboardController {
             double perte = getDoubleFromField(perteField, 1.0);
             double bandePassante = getDoubleFromField(bandePassanteField, 50.0);
             double signal = getDoubleFromField(signalField, 80.0);
-            if (signal < 0) signal = 0;
-            if (signal > 100) signal = 100;
-            final double signalFinal = signal;
-            if (!PredictionServiceAnomalies.isModelTrained()) {
-                updateStatus("Veuillez d'abord entraîner le modèle", "warning", "warning");
+
+            if (!PredictionServiceAnomalies.isModelTrained() && !PredictionServiceAnomalies.isModelLoaded()) {
+                updateStatus("Veuillez d'abord entraîner ou charger un modèle", "warning");
                 return;
             }
 
-            // Prédiction
-            String prediction = PredictionServiceAnomalies.predictAnomaly(latence, jitter, perte, bandePassante, signal);
-
-            // Probabilités
-            double[] probabilities = PredictionServiceAnomalies.predictWithProbability(
-                    latence, jitter, perte, bandePassante, signal);
-
-            double anomalyProbability = probabilities[1] * 100;
+            // Utiliser le nouveau service pour la prédiction
+            PredictionServiceAnomalies.PredictionResult result =
+                    PredictionServiceAnomalies.predictAnomaly(latence, jitter, perte, bandePassante, signal);
 
             Platform.runLater(() -> {
-                predictionResultLabel.setText(prediction);
-                confidenceLabel.setText(String.format("%.1f%%", anomalyProbability));
-                confidenceProgressBar.setProgress(anomalyProbability / 100);
+                if (predictionResultLabel != null) predictionResultLabel.setText(result.getPrediction());
+                if (confidenceLabel != null) confidenceLabel.setText(String.format("%.1f%%", result.getAnomalyProbability() * 100));
+                if (confidenceProgressBar != null) confidenceProgressBar.setProgress(result.getAnomalyProbability());
 
-                if (prediction.equals("ANOMALIE")) {
-                    predictionResultLabel.setStyle(ANOMALY_STYLE);
+                if ("ANOMALIE".equals(result.getPrediction())) {
+                    if (predictionResultLabel != null) predictionResultLabel.setStyle(ANOMALY_STYLE);
+                    if (explanationLabel != null) explanationLabel.setText("⚠️ Anomalie détectée - " +
+                            (result.getContributingFactors() != null ? result.getContributingFactors() : ""));
 
-                    explanationLabel.setText("⚠️ Anomalie détectée - Vérification réseau recommandée");
+                    // Ajouter au log d'anomalies
+                    addToAnomalyLog(latence, jitter, perte, signal, result.getAnomalyProbability());
                 } else {
-                    predictionResultLabel.setStyle(NORMAL_STYLE);
-
-                    explanationLabel.setText("✓ Qualité réseau normale");
+                    if (predictionResultLabel != null) predictionResultLabel.setStyle(NORMAL_STYLE);
+                    if (explanationLabel != null) explanationLabel.setText("✓ Qualité réseau normale");
                 }
 
                 // Ajouter à l'historique
-                addToPredictionHistory(latence, jitter, perte, signalFinal, prediction, anomalyProbability);
+                addToPredictionHistory(latence, jitter, perte, signal,
+                        result.getPrediction(), result.getAnomalyProbability() * 100);
             });
 
-            updateStatus("Prédiction effectuée", "success", prediction.equals("ANOMALIE") ? "warning" : "normal");
+            updateStatus("Prédiction effectuée", "success");
 
         } catch (Exception e) {
-            updateStatus("Erreur de prédiction: " + e.getMessage(), "error", "warning");
+            updateStatus("Erreur de prédiction: " + e.getMessage(), "error");
             e.printStackTrace();
         }
     }
@@ -783,13 +981,25 @@ public class AnomalyDashboardController {
             double bandePassante = getDoubleFromField(bandePassanteField, 50.0);
             double signal = getDoubleFromField(signalField, 80.0);
 
-            // Analyse détaillée
-            PredictionServiceAnomalies.analyzeAnomalyPrediction(latence, jitter, perte, bandePassante, signal);
+            // Analyse détaillée avec le nouveau service
+            if (systemLogArea != null) {
+                systemLogArea.appendText("\n=== ANALYSE DÉTAILLÉE ===\n");
 
-            updateStatus("Analyse terminée - Voir logs", "info", "info");
+                PredictionServiceAnomalies.PredictionResult result =
+                        PredictionServiceAnomalies.predictAnomaly(latence, jitter, perte, bandePassante, signal);
+
+                systemLogArea.appendText(result.toDetailedString());
+
+                // Analyser les facteurs contributifs
+                analyzeContributingFactors(latence, jitter, perte, bandePassante, signal);
+
+                systemLogArea.appendText("=== FIN ANALYSE ===\n");
+            }
+
+            updateStatus("Analyse terminée", "info");
 
         } catch (Exception e) {
-            updateStatus("Erreur d'analyse: " + e.getMessage(), "error", "warning");
+            updateStatus("Erreur d'analyse: " + e.getMessage(), "error");
         }
     }
 
@@ -797,9 +1007,11 @@ public class AnomalyDashboardController {
     private void handlePredictMissing() {
         Thread thread = new Thread(() -> {
             System.setOut(customOut);
-            updateStatus("Prédiction des anomalies manquantes...", "info", "info");
-            PredictionServiceAnomalies.predictMissingAnomalies();
-            updateStatus("Anomalies manquantes prédites", "success", "info");
+            updateStatus("Prédiction des anomalies manquantes...", "info");
+
+            // Implémenter la logique de prédiction des données manquantes
+
+            updateStatus("Anomalies manquantes prédites", "success");
             loadDashboardData();
             System.setOut(originalOut);
         });
@@ -811,10 +1023,31 @@ public class AnomalyDashboardController {
     private void handleEvaluate() {
         Thread thread = new Thread(() -> {
             System.setOut(customOut);
-            updateStatus("Évaluation du modèle...", "info", "info");
-            PredictionServiceAnomalies.evaluatePredictions();
-            updateStatus("Évaluation terminée", "success", "info");
-            loadDashboardData();
+            updateStatus("Évaluation du modèle...", "info");
+
+            try {
+                // Utiliser le nouveau service pour l'évaluation
+                String evalReport = PredictionServiceAnomalies.evaluateModel();
+
+                if (systemLogArea != null) {
+                    systemLogArea.appendText("\n=== RAPPORT D'ÉVALUATION ===\n");
+                    systemLogArea.appendText(evalReport);
+                    systemLogArea.appendText("=== FIN RAPPORT ===\n");
+                }
+
+                // Mettre à jour l'interface
+                Platform.runLater(() -> {
+                    loadConfusionMatrixFromService();
+                    updateModelStatus();
+                    updateFooter();
+                });
+
+                updateStatus("Évaluation terminée", "success");
+
+            } catch (Exception e) {
+                updateStatus("Erreur d'évaluation: " + e.getMessage(), "error");
+            }
+
             System.setOut(originalOut);
         });
         thread.setDaemon(true);
@@ -825,31 +1058,32 @@ public class AnomalyDashboardController {
     private void handleFullAnalysis() {
         Thread thread = new Thread(() -> {
             System.setOut(customOut);
-            updateStatus("Démarrage analyse complète...", "info", "info");
+            updateStatus("Démarrage analyse complète...", "info");
 
-            systemLogArea.appendText("\n╔════════════════════════════════════════╗\n");
-            systemLogArea.appendText("║   ANALYSE COMPLÈTE DES ANOMALIES     ║\n");
-            systemLogArea.appendText("╚════════════════════════════════════════╝\n\n");
+            if (systemLogArea != null) {
+                systemLogArea.appendText("\n╔════════════════════════════════════════╗\n");
+                systemLogArea.appendText("║   ANALYSE COMPLÈTE DES ANOMALIES     ║\n");
+                systemLogArea.appendText("╚════════════════════════════════════════╝\n\n");
+            }
 
-            // Vérifier corrélation
-            PredictionServiceAnomalies.checkAnomalyMOSCorrelation();
+            // Analyser le dataset
+            PredictionServiceAnomalies.analyzeDataset();
 
             // Entraîner si nécessaire
             if (!PredictionServiceAnomalies.isModelTrained()) {
-                PredictionServiceAnomalies.trainModel();
+                PredictionServiceAnomalies.trainModel(false);
             }
 
-            // Évaluer
-            PredictionServiceAnomalies.evaluatePredictions();
+            // Évaluer le modèle
+            PredictionServiceAnomalies.evaluateModel();
 
-            // Prédire manquants
-            PredictionServiceAnomalies.predictMissingAnomalies();
+            if (systemLogArea != null) {
+                systemLogArea.appendText("\n╔════════════════════════════════════════╗\n");
+                systemLogArea.appendText("║        ANALYSE TERMINÉE           ║\n");
+                systemLogArea.appendText("╚════════════════════════════════════════╝\n");
+            }
 
-            systemLogArea.appendText("\n╔════════════════════════════════════════╗\n");
-            systemLogArea.appendText("║        ANALYSE TERMINÉE ✅           ║\n");
-            systemLogArea.appendText("╚════════════════════════════════════════╝\n");
-
-            updateStatus("Analyse complète terminée", "success", "normal");
+            updateStatus("Analyse complète terminée", "success");
             loadDashboardData();
             System.setOut(originalOut);
         });
@@ -858,29 +1092,32 @@ public class AnomalyDashboardController {
     }
 
     @FXML
-    private void handleRefresh() {
-        loadDashboardData();
-        updateStatus("Données rafraîchies", "success", "info");
-    }
-
-    @FXML
     private void handleVisualizeData() {
-        // Implémenter la visualisation des données
-        updateStatus("Visualisation des données...", "info", "info");
-        // TODO: Implémenter la fenêtre de visualisation
+        updateStatus("Visualisation des données...", "info");
+        // TODO: Implémenter la fenêtre de visualisation avancée
     }
 
     @FXML
     private void handleClearLogs() {
-        trainingLogArea.clear();
-        systemLogArea.clear();
-        updateStatus("Logs effacés", "info", "info");
+        if (trainingLogArea != null) trainingLogArea.clear();
+        if (systemLogArea != null) systemLogArea.clear();
+        updateStatus("Logs effacés", "info");
     }
 
     @FXML
     private void handleExportLogs() {
-        updateStatus("Export des logs...", "info", "info");
-        // TODO: Implémenter l'export
+        updateStatus("Export des logs...", "info");
+
+        Thread exportThread = new Thread(() -> {
+            try {
+                PredictionServiceAnomalies.exportPredictionHistory();
+                updateStatus("Export terminé", "success");
+            } catch (Exception e) {
+                updateStatus("Erreur export: " + e.getMessage(), "error");
+            }
+        });
+        exportThread.setDaemon(true);
+        exportThread.start();
     }
 
     @FXML
@@ -895,19 +1132,114 @@ public class AnomalyDashboardController {
 
     @FXML
     private void handleResetInputs() {
-        latenceSlider.setValue(50);
-        jitterSlider.setValue(10);
-        perteSlider.setValue(1);
-        bandePassanteSlider.setValue(50);
-        signalSlider.setValue(80);
+        if (latenceSlider != null) latenceSlider.setValue(50);
+        if (jitterSlider != null) jitterSlider.setValue(10);
+        if (perteSlider != null) perteSlider.setValue(1);
+        if (bandePassanteSlider != null) bandePassanteSlider.setValue(50);
+        if (signalSlider != null) signalSlider.setValue(80);
 
-        predictionResultLabel.setText("--");
-        confidenceLabel.setText("--");
-        confidenceProgressBar.setProgress(0);
-        explanationLabel.setText("Prédiction en attente...");
+        if (predictionResultLabel != null) predictionResultLabel.setText("--");
+        if (confidenceLabel != null) confidenceLabel.setText("--");
+        if (confidenceProgressBar != null) confidenceProgressBar.setProgress(0);
+        if (explanationLabel != null) explanationLabel.setText("Prédiction en attente...");
 
+        updateStatus("Champs réinitialisés", "info");
+    }
 
-        updateStatus("Champs réinitialisés", "info", "info");
+    @FXML
+    private void handleRefresh() {
+        loadDashboardData();
+        updateStatus("Données rafraîchies", "success");
+    }
+
+    @FXML
+    private void handleLoadModel() {
+        updateStatus("Chargement du modèle...", "info");
+
+        Thread thread = new Thread(() -> {
+            try {
+                System.setOut(customOut);
+
+                boolean success = PredictionServiceAnomalies.loadLatestModel();
+
+                if (success) {
+                    updateStatus("Modèle chargé avec succès", "success");
+                    Platform.runLater(() -> {
+                        updateModelStatus();
+
+                    });
+                } else {
+                    updateStatus("Aucun modèle disponible. Veuillez en entraîner un.", "warning");
+                }
+
+            } catch (Exception e) {
+                updateStatus("Erreur chargement: " + e.getMessage(), "error");
+                System.err.println("❌ Erreur chargement modèle: " + e.getMessage());
+            } finally {
+                System.setOut(originalOut);
+            }
+        });
+
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    @FXML
+    private void testDatabaseConnection() {
+        try (Connection conn = DBConnection.getConnection()) {
+            String sql = "SELECT COUNT(*) FROM MESURES_QOS WHERE ANOMALIE IS NOT NULL";
+            try (PreparedStatement ps = conn.prepareStatement(sql);
+                 ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    updateStatus("✅ Connexion BD OK - " + rs.getInt(1) + " anomalies référencées",
+                            "success");
+                }
+            }
+        } catch (SQLException e) {
+            updateStatus("❌ Erreur connexion BD: " + e.getMessage(), "error");
+        }
+    }
+
+    @FXML
+    private void validateModel() {
+        if (!PredictionServiceAnomalies.isModelTrained()) {
+            updateStatus("❌ Modèle non entraîné", "error");
+            return;
+        }
+
+        updateStatus("Validation du modèle en cours...", "info");
+
+        Thread thread = new Thread(() -> {
+            try {
+                System.setOut(customOut);
+                if (systemLogArea != null) {
+                    systemLogArea.appendText("\n=== VALIDATION DU MODÈLE ===\n");
+                }
+
+                // Tester avec quelques exemples
+                testPredictionExample(50, 10, 1, 100, 80, "Devrait être NORMAL");
+                testPredictionExample(300, 60, 20, 10, 20, "Devrait être ANOMALIE");
+                testPredictionExample(150, 30, 8, 50, 50, "Cas limite");
+
+                if (systemLogArea != null) {
+                    systemLogArea.appendText("=== VALIDATION TERMINÉE ===\n");
+                }
+
+                Platform.runLater(() -> {
+                    updateStatus("Validation terminée", "success");
+                });
+
+            } catch (Exception e) {
+                Platform.runLater(() -> {
+                    updateStatus("Erreur validation: " + e.getMessage(), "error");
+                });
+            } finally {
+                System.setOut(originalOut);
+            }
+        });
+
+        thread.setDaemon(true);
+        thread.start();
     }
 
     // ============ MÉTHODES UTILITAIRES ============
@@ -935,10 +1267,46 @@ public class AnomalyDashboardController {
         if (recentPredictions.size() > 10) {
             recentPredictions.remove(recentPredictions.size() - 1);
         }
+
+        Platform.runLater(() -> {
+            if (recentPredictionsTable != null) {
+                recentPredictionsTable.getItems().add(0, history);
+                if (recentPredictionsTable.getItems().size() > 10) {
+                    recentPredictionsTable.getItems().remove(recentPredictionsTable.getItems().size() - 1);
+                }
+            }
+        });
+    }
+
+    private void addToAnomalyLog(double latence, double jitter, double perte,
+                                 double signal, double confidence) {
+        String severity = "MOYENNE";
+        if (latence > 300 || perte > 30) {
+            severity = "CRITIQUE";
+        } else if (latence > 200 || perte > 20) {
+            severity = "HAUTE";
+        }
+
+        Map<String, String> log = new HashMap<>();
+        log.put("time", LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss")));
+        log.put("severity", severity);
+        log.put("details", String.format("Latence: %.1fms, Jitter: %.1fms, Perte: %.1f%%, Signal: %.0f/100",
+                latence, jitter, perte, signal));
+        log.put("action", "À investiguer");
+
+        Platform.runLater(() -> {
+            if (anomalyLogTable != null) {
+                anomalyLogTable.getItems().add(0, log);
+                if (anomalyLogTable.getItems().size() > 20) {
+                    anomalyLogTable.getItems().remove(anomalyLogTable.getItems().size() - 1);
+                }
+            }
+        });
     }
 
     private void updatePredictionPreview() {
-        // Prévisualisation rapide basée sur des règles simples
+        if (predictionResultLabel == null || explanationLabel == null) return;
+
         double latence = getDoubleFromField(latenceField, 50.0);
         double jitter = getDoubleFromField(jitterField, 10.0);
         double perte = getDoubleFromField(perteField, 1.0);
@@ -958,8 +1326,10 @@ public class AnomalyDashboardController {
         }
     }
 
-    private void updateStatus(String message, String type, String iconType) {
+    private void updateStatus(String message, String type) {
         Platform.runLater(() -> {
+            if (statusLabel == null) return;
+
             statusLabel.setText(message);
 
             switch (type.toLowerCase()) {
@@ -975,6 +1345,8 @@ public class AnomalyDashboardController {
                 case "info":
                     statusLabel.setStyle("-fx-text-fill: #3498db; -fx-font-weight: bold;");
                     break;
+                default:
+                    statusLabel.setStyle("-fx-text-fill: #7f8c8d; -fx-font-weight: bold;");
             }
         });
     }
@@ -987,88 +1359,30 @@ public class AnomalyDashboardController {
                 Platform.runLater(() -> {
                     if (PredictionServiceAnomalies.isModelTrained()) {
                         updateFooter();
+                        // Actualiser les prédictions récentes toutes les 5 minutes
+                        loadRecentPredictionsFromDB();
                     }
                 });
             }
         }, 60000, 60000); // Toutes les minutes
     }
 
-    // ============ TESTS CONNEXION ============
-
-    @FXML
-    private void testDatabaseConnection() {
-        try (Connection conn = com.ensah.qoe.Models.DBConnection.getConnection()) {
-            String sql = "SELECT COUNT(*) FROM MESURES_QOS WHERE ANOMALIE IS NOT NULL";
-            try (PreparedStatement ps = conn.prepareStatement(sql);
-                 ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    updateStatus("✅ Connexion BD OK - " + rs.getInt(1) + " anomalies référencées",
-                            "success", "normal");
-                }
-            }
-        } catch (SQLException e) {
-            updateStatus("❌ Erreur connexion BD: " + e.getMessage(), "error", "warning");
-        }
-    }
-
-    @FXML
-    private void validateModel() {
-        if (!PredictionServiceAnomalies.isModelTrained()) {
-            updateStatus("❌ Modèle non entraîné", "error", "warning");
-            return;
-        }
-
-        updateStatus("Validation du modèle en cours...", "info", "info");
-
-        Thread thread = new Thread(() -> {
-            try {
-                System.setOut(customOut);
-                systemLogArea.appendText("\n=== VALIDATION DU MODÈLE ===\n");
-
-                // Tester avec quelques exemples
-                testPredictionExample(50, 10, 1, 50, 80, "Devrait être NORMAL");
-                testPredictionExample(300, 60, 20, 10, 20, "Devrait être ANOMALIE");
-                testPredictionExample(150, 30, 8, 30, 50, "Cas limite");
-
-                systemLogArea.appendText("=== VALIDATION TERMINÉE ===\n");
-
-                Platform.runLater(() -> {
-                    updateStatus("Validation terminée", "success", "normal");
-                });
-
-            } catch (Exception e) {
-                Platform.runLater(() -> {
-                    updateStatus("Erreur validation: " + e.getMessage(), "error", "warning");
-                });
-            } finally {
-                System.setOut(originalOut);
-            }
-        });
-
-        thread.setDaemon(true);
-        thread.start();
-    }
     private void loadCorrelationData() {
-
-        // Toujours exécuter toute la méthode dans JavaFX thread
         Platform.runLater(() -> {
-
             try {
-                // Nettoyage SAFE : ne jamais utiliser .clear()
-                correlationChart.setData(FXCollections.observableArrayList());
-
+                if (correlationChart != null) {
+                    correlationChart.setData(FXCollections.observableArrayList());
+                }
             } catch (Exception e) {
                 System.err.println("Erreur lors du reset du graphique : " + e.getMessage());
             }
         });
 
-        // Thread pour charger les données SQL
         Thread t = new Thread(() -> {
-
             XYChart.Series<Number, Number> serie = new XYChart.Series<>();
             serie.setName("Latence vs Jitter");
 
-            try (Connection conn = com.ensah.qoe.Models.DBConnection.getConnection();
+            try (Connection conn = DBConnection.getConnection();
                  PreparedStatement ps = conn.prepareStatement(
                          "SELECT LATENCE, JITTER FROM MESURES_QOS " +
                                  "WHERE ANOMALIE IS NOT NULL FETCH FIRST 300 ROWS ONLY")) {
@@ -1085,87 +1399,124 @@ public class AnomalyDashboardController {
                 System.err.println("Erreur SQL corrélation : " + e.getMessage());
             }
 
-            // Ajout au graphique → dans le thread FX uniquement
             Platform.runLater(() -> {
                 try {
-                    ObservableList<XYChart.Series<Number, Number>> newList =
-                            FXCollections.observableArrayList();
-                    newList.add(serie);
-
-                    // Remplacer tout le dataset proprement
-                    correlationChart.setData(newList);
-
-                    correlationChart.setLegendVisible(true);
-
+                    if (correlationChart != null) {
+                        ObservableList<XYChart.Series<Number, Number>> newList =
+                                FXCollections.observableArrayList();
+                        newList.add(serie);
+                        correlationChart.setData(newList);
+                        correlationChart.setLegendVisible(true);
+                    }
                 } catch (Exception e) {
                     System.err.println("Erreur update graphique : " + e.getMessage());
                 }
             });
-
         });
 
         t.setDaemon(true);
         t.start();
     }
 
+    private void loadConfusionMatrixFromService() {
+        if (confusionMatrixTable == null || !confusionMatrixTable.getColumns().isEmpty()) {
+            setupConfusionMatrixTable();
+        }
+
+        // Récupérer la matrice de confusion depuis le service
+        String confusionMatrix = PredictionServiceAnomalies.getLastConfusionMatrix();
+
+        if (confusionMatrix != null && !confusionMatrix.isEmpty()) {
+            ObservableList<Map<String, String>> rows = FXCollections.observableArrayList();
+
+            Map<String, String> row1 = new HashMap<>();
+            row1.put("col0", "Réel Normal");
+            row1.put("col1", "TN");
+            row1.put("col2", "FP");
+
+            Map<String, String> row2 = new HashMap<>();
+            row2.put("col0", "Réel Anomalie");
+            row2.put("col1", "FN");
+            row2.put("col2", "TP");
+
+            rows.add(row1);
+            rows.add(row2);
+
+            Platform.runLater(() -> {
+                if (confusionMatrixTable != null) {
+                    confusionMatrixTable.setItems(rows);
+
+                    // Appliquer un style aux cellules
+                    confusionMatrixTable.setRowFactory(tv -> new TableRow<Map<String, String>>() {
+                        @Override
+                        protected void updateItem(Map<String, String> item, boolean empty) {
+                            super.updateItem(item, empty);
+                            if (item == null || empty) {
+                                setStyle("");
+                            } else {
+                                String rowLabel = item.get("col0");
+                                if ("Réel Anomalie".equals(rowLabel)) {
+                                    setStyle("-fx-background-color: rgba(231, 76, 60, 0.1);");
+                                }
+                            }
+                        }
+                    });
+                }
+            });
+        }
+    }
 
     private void testPredictionExample(double latence, double jitter, double perte,
                                        double bandePassante, double signal, String expected) {
-        String prediction = PredictionServiceAnomalies.predictAnomaly(latence, jitter, perte, bandePassante, signal);
-        double[] probs = PredictionServiceAnomalies.predictAnomalyWithProbability(latence, jitter, perte, bandePassante, signal);
+        try {
+            PredictionServiceAnomalies.PredictionResult result =
+                    PredictionServiceAnomalies.predictAnomaly(latence, jitter, perte, bandePassante, signal);
 
-        systemLogArea.appendText(String.format(
-                "Test: L=%.0fms, J=%.0fms, P=%.1f%%, BP=%.0fMbps, S=%.0f/100 → %s (%.1f%%) [%s]\n",
-                latence, jitter, perte, bandePassante, signal, prediction, probs[1]*100, expected
-        ));
+            if (systemLogArea != null) {
+                systemLogArea.appendText(String.format(
+                        "Test: L=%.0fms, J=%.0fms, P=%.1f%%, BP=%.0fMbps, S=%.0f/100 → %s (%.1f%%) [%s]\n",
+                        latence, jitter, perte, bandePassante, signal,
+                        result.getPrediction(), result.getAnomalyProbability()*100, expected
+                ));
+            }
+        } catch (Exception e) {
+            if (systemLogArea != null) {
+                systemLogArea.appendText("Erreur test: " + e.getMessage() + "\n");
+            }
+        }
     }
 
-    private void loadConfusionMatrix() {
+    private void analyzeContributingFactors(double latence, double jitter, double perte,
+                                            double bandePassante, double signal) {
+        if (systemLogArea == null) return;
 
-        confusionMatrixTable.getItems().clear();
+        systemLogArea.appendText("\n🔍 ANALYSE DES FACTEURS CONTRIBUTIFS:\n");
 
-        int normal_normal = PredictionServiceAnomalies.confusion[0][0];
-        int normal_anomaly = PredictionServiceAnomalies.confusion[0][1];
-        int anomaly_normal = PredictionServiceAnomalies.confusion[1][0];
-        int anomaly_anomaly = PredictionServiceAnomalies.confusion[1][1];
+        List<String> factors = new ArrayList<>();
 
-        ObservableList<Map<String, String>> rows = FXCollections.observableArrayList();
+        if (latence > 100) {
+            factors.add("Latence élevée (" + latence + "ms > 100ms)");
+        }
+        if (jitter > 20) {
+            factors.add("Jitter élevé (" + jitter + "ms > 20ms)");
+        }
+        if (perte > 5) {
+            factors.add("Perte élevée (" + perte + "% > 5%)");
+        }
+        if (bandePassante < 10) {
+            factors.add("Bande passante faible (" + bandePassante + "Mbps < 10Mbps)");
+        }
+        if (signal < 50) {
+            factors.add("Signal faible (" + signal + "/100 < 50)");
+        }
 
-        Map<String, String> row1 = new HashMap<>();
-        row1.put("col0", "Réel Normal");
-        row1.put("col1", String.valueOf(normal_normal));
-        row1.put("col2", String.valueOf(normal_anomaly));
-
-        Map<String, String> row2 = new HashMap<>();
-        row2.put("col0", "Réel Anomalie");
-        row2.put("col1", String.valueOf(anomaly_normal));
-        row2.put("col2", String.valueOf(anomaly_anomaly));
-
-        rows.add(row1);
-        rows.add(row2);
-
-        Platform.runLater(() -> confusionMatrixTable.setItems(rows));
+        if (factors.isEmpty()) {
+            systemLogArea.appendText("  ✓ Tous les paramètres sont dans les limites normales\n");
+        } else {
+            systemLogArea.appendText("  ⚠ Facteurs détectés:\n");
+            for (String factor : factors) {
+                systemLogArea.appendText("    • " + factor + "\n");
+            }
+        }
     }
-    private void setupRecentPredictionsTable() {
-        TableColumn<Map<String, String>, String> timeCol = new TableColumn<>("Heure");
-        timeCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().get("time")));
-
-        TableColumn<Map<String, String>, String> latCol = new TableColumn<>("Latence");
-        latCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().get("latence")));
-
-        TableColumn<Map<String, String>, String> jitCol = new TableColumn<>("Jitter");
-        jitCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().get("jitter")));
-
-        TableColumn<Map<String, String>, String> perteCol = new TableColumn<>("Perte");
-        perteCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().get("perte")));
-
-        TableColumn<Map<String, String>, String> signalCol = new TableColumn<>("Signal");
-        signalCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().get("signal")));
-
-        TableColumn<Map<String, String>, String> predCol = new TableColumn<>("Statut");
-        predCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().get("prediction")));
-
-        recentPredictionsTable.getColumns().setAll(timeCol, latCol, jitCol, perteCol, signalCol, predCol);
-    }
-
 }

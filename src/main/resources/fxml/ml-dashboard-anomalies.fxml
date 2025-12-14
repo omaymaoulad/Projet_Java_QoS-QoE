@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.chart.*?>
 <?import javafx.scene.control.*?>
@@ -12,14 +13,14 @@
             fitToWidth="true"
             fitToHeight="false"
             pannable="true"
-            prefWidth="1200" prefHeight="650">
+            prefWidth="1400" prefHeight="800">
 
     <content>
         <VBox spacing="0">
-            <!-- Top: Header avec titre et boutons -->
-            <VBox spacing="8" style="-fx-background-color: #e74c3c; -fx-padding: 15;">
+            <!-- Header avec titre et boutons -->
+            <VBox spacing="8" style="-fx-background-color: #2c3e50; -fx-padding: 15;">
                 <HBox spacing="15" alignment="CENTER_LEFT">
-                    <Label text="Dashboard Détection d'Anomalies Réseau"
+                    <Label text="Dashboard Détection d'Anomalies QoS"
                            style="-fx-text-fill: white; -fx-font-weight: bold;">
                         <font>
                             <Font size="22"/>
@@ -40,15 +41,13 @@
                        style="-fx-text-fill: #ecf0f1; -fx-font-size: 13; -fx-font-weight: bold;"/>
             </VBox>
 
-            <!-- Center: Contenu principal avec TabPane -->
-            <TabPane fx:id="visualizationTabPane" tabClosingPolicy="UNAVAILABLE" >
+            <!-- TabPane principal -->
+            <TabPane fx:id="visualizationTabPane" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
 
                 <!-- Tab 1: Vue d'ensemble -->
                 <Tab text="📊 Vue d'ensemble">
-                  <ScrollPane fitToWidth="true" pannable="true">
-                    <VBox spacing="15" style="-fx-background-color: transparent;">
+                    <ScrollPane fitToWidth="true" fitToHeight="true">
                         <VBox spacing="15" style="-fx-padding: 15;">
-
                             <!-- KPI Cards -->
                             <GridPane hgap="15" vgap="15">
                                 <columnConstraints>
@@ -62,7 +61,7 @@
                                 <VBox style="-fx-background-color: white; -fx-padding: 15; -fx-border-radius: 8; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 8, 0, 0, 0);"
                                       GridPane.columnIndex="0">
                                     <Label text="Total Instances" style="-fx-font-weight: bold; -fx-text-fill: #7f8c8d; -fx-font-size: 11;"/>
-                                    <Label fx:id="totalInstancesLabel" text="50"
+                                    <Label fx:id="totalInstancesLabel" text="0"
                                            style="-fx-font-size: 28; -fx-text-fill: #3498db; -fx-font-weight: bold;"/>
                                     <Label text="mesures analysées" style="-fx-text-fill: #95a5a6; -fx-font-size: 10;"/>
                                 </VBox>
@@ -71,7 +70,7 @@
                                 <VBox style="-fx-background-color: white; -fx-padding: 15; -fx-border-radius: 8; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 8, 0, 0, 0);"
                                       GridPane.columnIndex="1">
                                     <Label text="Connexions Normales" style="-fx-font-weight: bold; -fx-text-fill: #7f8c8d; -fx-font-size: 11;"/>
-                                    <Label fx:id="normalCountLabel" text="32"
+                                    <Label fx:id="normalCountLabel" text="0"
                                            style="-fx-font-size: 28; -fx-text-fill: #27ae60; -fx-font-weight: bold;"/>
                                     <Label text="connexions saines" style="-fx-text-fill: #95a5a6; -fx-font-size: 10;"/>
                                 </VBox>
@@ -80,7 +79,7 @@
                                 <VBox style="-fx-background-color: white; -fx-padding: 15; -fx-border-radius: 8; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 8, 0, 0, 0);"
                                       GridPane.columnIndex="2">
                                     <Label text="Anomalies Détectées" style="-fx-font-weight: bold; -fx-text-fill: #7f8c8d; -fx-font-size: 11;"/>
-                                    <Label fx:id="anomalyCountLabel" text="18"
+                                    <Label fx:id="anomalyCountLabel" text="0"
                                            style="-fx-font-size: 28; -fx-text-fill: #e74c3c; -fx-font-weight: bold;"/>
                                     <Label text="incidents réseau" style="-fx-text-fill: #95a5a6; -fx-font-size: 10;"/>
                                 </VBox>
@@ -89,9 +88,9 @@
                                 <VBox spacing="5" style="-fx-background-color: white; -fx-padding: 15; -fx-border-radius: 8; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 8, 0, 0, 0);"
                                       GridPane.columnIndex="3">
                                     <Label text="Taux d'Anomalies" style="-fx-font-weight: bold; -fx-text-fill: #7f8c8d; -fx-font-size: 11;"/>
-                                    <Label fx:id="anomalyRateLabel" text="36,0%"
+                                    <Label fx:id="anomalyRateLabel" text="0%"
                                            style="-fx-font-size: 28; -fx-text-fill: #f39c12; -fx-font-weight: bold;"/>
-                                    <ProgressBar fx:id="anomalyRateProgress" prefWidth="120" progress="0.36"
+                                    <ProgressBar fx:id="anomalyRateProgress" prefWidth="120" progress="0"
                                                  style="-fx-accent: #f39c12;"/>
                                 </VBox>
                             </GridPane>
@@ -111,22 +110,22 @@
 
                                     <Label text="Accuracy (Précision):" GridPane.rowIndex="0" GridPane.columnIndex="0"
                                            style="-fx-font-weight: bold; -fx-font-size: 12;"/>
-                                    <Label fx:id="accuracyLabel" text="92.5%" GridPane.rowIndex="0" GridPane.columnIndex="1"
+                                    <Label fx:id="accuracyLabel" text="--" GridPane.rowIndex="0" GridPane.columnIndex="1"
                                            style="-fx-font-size: 16; -fx-text-fill: #3498db; -fx-font-weight: bold;"/>
 
                                     <Label text="Precision:" GridPane.rowIndex="0" GridPane.columnIndex="2"
                                            style="-fx-font-weight: bold; -fx-font-size: 12;"/>
-                                    <Label fx:id="precisionLabel" text="88.3%" GridPane.rowIndex="0" GridPane.columnIndex="3"
+                                    <Label fx:id="precisionLabel" text="--" GridPane.rowIndex="0" GridPane.columnIndex="3"
                                            style="-fx-font-size: 16; -fx-text-fill: #2ecc71; -fx-font-weight: bold;"/>
 
                                     <Label text="Recall (Rappel):" GridPane.rowIndex="1" GridPane.columnIndex="0"
                                            style="-fx-font-weight: bold; -fx-font-size: 12;"/>
-                                    <Label fx:id="recallLabel" text="85.7%" GridPane.rowIndex="1" GridPane.columnIndex="1"
+                                    <Label fx:id="recallLabel" text="--" GridPane.rowIndex="1" GridPane.columnIndex="1"
                                            style="-fx-font-size: 16; -fx-text-fill: #9b59b6; -fx-font-weight: bold;"/>
 
                                     <Label text="F1-Score:" GridPane.rowIndex="1" GridPane.columnIndex="2"
                                            style="-fx-font-weight: bold; -fx-font-size: 12;"/>
-                                    <Label fx:id="f1ScoreLabel" text="87.0%" GridPane.rowIndex="1" GridPane.columnIndex="3"
+                                    <Label fx:id="f1ScoreLabel" text="--" GridPane.rowIndex="1" GridPane.columnIndex="3"
                                            style="-fx-font-size: 16; -fx-text-fill: #e67e22; -fx-font-weight: bold;"/>
                                 </GridPane>
                             </VBox>
@@ -160,13 +159,12 @@
                                 <TableView fx:id="recentPredictionsTable" prefHeight="180"/>
                             </VBox>
                         </VBox>
-                    </VBox>
-                  </ScrollPane>
+                    </ScrollPane>
                 </Tab>
 
                 <!-- Tab 2: Entraînement du modèle -->
                 <Tab text="🎓 Entraînement">
-                    <VBox spacing="15" style="-fx-background-color: transparent;">
+                    <ScrollPane fitToWidth="true" fitToHeight="true">
                         <VBox spacing="15" style="-fx-padding: 15;">
                             <Label text="Configuration et Entraînement du Modèle"
                                    style="-fx-font-weight: bold; -fx-font-size: 17; -fx-text-fill: #2c3e50;"/>
@@ -195,6 +193,11 @@
                                         <Label fx:id="splitRatioLabel" text="80/20"
                                                style="-fx-font-weight: bold; -fx-font-size: 13;"/>
                                     </HBox>
+
+                                    <Label text="Comparaison d'algorithmes:" GridPane.rowIndex="2" GridPane.columnIndex="0"
+                                           style="-fx-font-weight: bold; -fx-font-size: 12;"/>
+                                    <CheckBox fx:id="compareAllCheckbox" text="Comparer tous les algorithmes"
+                                              GridPane.rowIndex="2" GridPane.columnIndex="1"/>
                                 </GridPane>
                             </VBox>
 
@@ -210,6 +213,10 @@
                                             prefWidth="180" prefHeight="30"
                                             style="-fx-background-color: #9b59b6; -fx-text-fill: white; -fx-font-size: 12;"
                                             onAction="#handleVisualizeData"/>
+                                    <Button fx:id="loadModelButton" text="💾 Charger Modèle"
+                                            prefWidth="180" prefHeight="30"
+                                            style="-fx-background-color: #16a085; -fx-text-fill: white; -fx-font-size: 12;"
+                                            onAction="#handleLoadModel"/>
                                 </VBox>
 
                                 <VBox spacing="5" HBox.hgrow="ALWAYS">
@@ -223,8 +230,8 @@
                             <!-- Logs d'entraînement -->
                             <VBox spacing="8" style="-fx-background-color: white; -fx-padding: 12; -fx-border-radius: 8; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 8, 0, 0, 0);">
                                 <Label text="📝 Journal d'Entraînement" style="-fx-font-weight: bold; -fx-font-size: 14;"/>
-                                <TextArea fx:id="trainingLogArea" prefHeight="220" editable="false"
-                                          style="-fx-font-family: 'Courier New'; -fx-font-size: 11; -fx-control-inner-background: #2c3e50; -fx-text-fill: #ecf0f1;"/>
+                                <TextArea fx:id="trainingLogArea" prefHeight="200" editable="false"
+                                          style="-fx-font-family: 'Courier New'; -fx-font-size: 11;"/>
                             </VBox>
 
                             <!-- Performance chart -->
@@ -240,12 +247,12 @@
                                 </LineChart>
                             </VBox>
                         </VBox>
-                    </VBox>
+                    </ScrollPane>
                 </Tab>
 
                 <!-- Tab 3: Prédiction manuelle -->
                 <Tab text="🔮 Prédiction">
-                    <VBox spacing="15" style="-fx-background-color: transparent;">
+                    <ScrollPane fitToWidth="true" fitToHeight="true">
                         <VBox spacing="15" style="-fx-padding: 15;">
                             <Label text="Prédiction d'Anomalies en Temps Réel"
                                    style="-fx-font-weight: bold; -fx-font-size: 17; -fx-text-fill: #2c3e50;"/>
@@ -256,9 +263,9 @@
 
                                 <GridPane hgap="12" vgap="15">
                                     <columnConstraints>
-                                        <ColumnConstraints prefWidth="160"/>
+                                        <ColumnConstraints prefWidth="180"/>
                                         <ColumnConstraints prefWidth="100"/>
-                                        <ColumnConstraints prefWidth="250"/>
+                                        <ColumnConstraints prefWidth="300"/>
                                     </columnConstraints>
 
                                     <!-- Latence -->
@@ -266,35 +273,57 @@
                                            style="-fx-font-weight: bold; -fx-font-size: 12;"/>
                                     <TextField fx:id="latenceField" text="50" GridPane.rowIndex="0" GridPane.columnIndex="1"
                                                style="-fx-font-size: 12;"/>
-                                    <Slider fx:id="latenceSlider" GridPane.rowIndex="0" GridPane.columnIndex="2"/>
+                                    <Slider fx:id="latenceSlider" min="0" max="500" value="50" showTickMarks="true"
+                                            showTickLabels="true" GridPane.rowIndex="0" GridPane.columnIndex="2"
+                                            majorTickUnit="100" minorTickCount="4"/>
 
                                     <!-- Jitter -->
                                     <Label text="Jitter (ms):" GridPane.rowIndex="1" GridPane.columnIndex="0"
                                            style="-fx-font-weight: bold; -fx-font-size: 12;"/>
                                     <TextField fx:id="jitterField" text="10" GridPane.rowIndex="1" GridPane.columnIndex="1"
                                                style="-fx-font-size: 12;"/>
-                                    <Slider fx:id="jitterSlider" GridPane.rowIndex="1" GridPane.columnIndex="2"/>
+                                    <Slider fx:id="jitterSlider" min="0" max="100" value="10" showTickMarks="true"
+                                            showTickLabels="true" GridPane.rowIndex="1" GridPane.columnIndex="2"
+                                            majorTickUnit="20" minorTickCount="4"/>
 
                                     <!-- Perte -->
                                     <Label text="Perte de Paquets (%):" GridPane.rowIndex="2" GridPane.columnIndex="0"
                                            style="-fx-font-weight: bold; -fx-font-size: 12;"/>
                                     <TextField fx:id="perteField" text="1.0" GridPane.rowIndex="2" GridPane.columnIndex="1"
                                                style="-fx-font-size: 12;"/>
-                                    <Slider fx:id="perteSlider" GridPane.rowIndex="2" GridPane.columnIndex="2"/>
+                                    <Slider fx:id="perteSlider" min="0" max="100" value="1" showTickMarks="true"
+                                            showTickLabels="true" GridPane.rowIndex="2" GridPane.columnIndex="2"
+                                            majorTickUnit="10" minorTickCount="1"/>
 
                                     <!-- Bande passante -->
                                     <Label text="Bande Passante (Mbps):" GridPane.rowIndex="3" GridPane.columnIndex="0"
                                            style="-fx-font-weight: bold; -fx-font-size: 12;"/>
                                     <TextField fx:id="bandePassanteField" text="50" GridPane.rowIndex="3" GridPane.columnIndex="1"
                                                style="-fx-font-size: 12;"/>
-                                    <Slider fx:id="bandePassanteSlider" GridPane.rowIndex="3" GridPane.columnIndex="2"/>
+                                    <Slider fx:id="bandePassanteSlider" min="0" max="200" value="50" showTickMarks="true"
+                                            showTickLabels="true" GridPane.rowIndex="3" GridPane.columnIndex="2"
+                                            majorTickUnit="50" minorTickCount="4"/>
 
                                     <!-- Signal -->
                                     <Label text="Score Signal (%):" GridPane.rowIndex="4" GridPane.columnIndex="0"
                                            style="-fx-font-weight: bold; -fx-font-size: 12;"/>
                                     <TextField fx:id="signalField" text="80" GridPane.rowIndex="4" GridPane.columnIndex="1"
                                                style="-fx-font-size: 12;"/>
-                                    <Slider fx:id="signalSlider" GridPane.rowIndex="4" GridPane.columnIndex="2"/>
+                                    <Slider fx:id="signalSlider" min="0" max="100" value="80" showTickMarks="true"
+                                            showTickLabels="true" GridPane.rowIndex="4" GridPane.columnIndex="2"
+                                            majorTickUnit="25" minorTickCount="4"/>
+
+                                    <!-- MOS -->
+                                    <Label text="MOS (1-5):" GridPane.rowIndex="5" GridPane.columnIndex="0"
+                                           style="-fx-font-weight: bold; -fx-font-size: 12;"/>
+                                    <TextField fx:id="mosField" text="3.5" GridPane.rowIndex="5" GridPane.columnIndex="1"
+                                               style="-fx-font-size: 12;"/>
+
+                                    <!-- Zone -->
+                                    <Label text="Zone:" GridPane.rowIndex="6" GridPane.columnIndex="0"
+                                           style="-fx-font-weight: bold; -fx-font-size: 12;"/>
+                                    <TextField fx:id="zoneField" text="Default" GridPane.rowIndex="6" GridPane.columnIndex="1"
+                                               style="-fx-font-size: 12;"/>
                                 </GridPane>
 
                                 <!-- Boutons d'action -->
@@ -336,6 +365,14 @@
                                     </VBox>
                                 </HBox>
 
+                                <!-- Détails de prédiction -->
+                                <Separator/>
+                                <VBox spacing="6">
+                                    <Label text="📋 Détails de la Prédiction" style="-fx-font-weight: bold; -fx-font-size: 14;"/>
+                                    <TextArea fx:id="predictionDetailsArea" prefHeight="100" editable="false"
+                                              style="-fx-font-family: 'Courier New'; -fx-font-size: 11;"/>
+                                </VBox>
+
                                 <!-- Explication -->
                                 <Separator/>
                                 <VBox spacing="6" style="-fx-background-color: #ecf0f1; -fx-padding: 12; -fx-border-radius: 5; -fx-background-radius: 5;">
@@ -345,12 +382,12 @@
                                 </VBox>
                             </VBox>
                         </VBox>
-                    </VBox>
+                    </ScrollPane>
                 </Tab>
 
-                <!-- Tab 4: Tests et Analyse -->
+                <!-- Tab 4: Tests & Analyse -->
                 <Tab text="🧪 Tests &amp; Analyse">
-                    <VBox spacing="15" style="-fx-background-color: transparent;">
+                    <ScrollPane fitToWidth="true" fitToHeight="true">
                         <VBox spacing="15" style="-fx-padding: 15;">
                             <Label text="Tests et Analyses du Modèle"
                                    style="-fx-font-weight: bold; -fx-font-size: 17; -fx-text-fill: #2c3e50;"/>
@@ -375,9 +412,19 @@
                                             style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 12;"
                                             onAction="#handleFullAnalysis"/>
 
-                                    <Button text="🔌 Test Connexion BD"
+                                    <Button fx:id="demoButton" text="🎬 Démonstration"
+                                            prefWidth="220" prefHeight="45"
+                                            style="-fx-background-color: #1abc9c; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 12;"
+                                            onAction="#handleDemo"/>
+
+                                    <Button fx:id="analyzeDatasetButton" text="📈 Analyser Dataset"
                                             prefWidth="220" prefHeight="45"
                                             style="-fx-background-color: #f39c12; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 12;"
+                                            onAction="#handleAnalyzeDataset"/>
+
+                                    <Button text="🔌 Test Connexion BD"
+                                            prefWidth="220" prefHeight="45"
+                                            style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 12;"
                                             onAction="#testDatabaseConnection"/>
 
                                     <Button text="✅ Valider Modèle"
@@ -400,7 +447,7 @@
                                             onAction="#handleExportLogs"/>
                                 </HBox>
                                 <TextArea fx:id="systemLogArea" prefHeight="280" editable="false"
-                                          style="-fx-font-family: 'Courier New'; -fx-font-size: 10; -fx-control-inner-background: #2c3e50; -fx-text-fill: #2ecc71;"/>
+                                          style="-fx-font-family: 'Courier New'; -fx-font-size: 10;"/>
                             </VBox>
 
                             <!-- Logs d'anomalies -->
@@ -409,12 +456,12 @@
                                 <TableView fx:id="anomalyLogTable" prefHeight="220"/>
                             </VBox>
                         </VBox>
-                    </VBox>
+                    </ScrollPane>
                 </Tab>
 
                 <!-- Tab 5: Visualisations Avancées -->
                 <Tab text="📈 Visualisations">
-                    <VBox spacing="15" style="-fx-background-color: transparent;">
+                    <ScrollPane fitToWidth="true" fitToHeight="true">
                         <VBox spacing="15" style="-fx-padding: 15;">
                             <Label text="Visualisations et Analyses Statistiques"
                                    style="-fx-font-weight: bold; -fx-font-size: 17; -fx-text-fill: #2c3e50;"/>
@@ -424,10 +471,10 @@
                                 <Label text="🔗 Corrélations entre Features" style="-fx-font-weight: bold; -fx-font-size: 14;"/>
                                 <ScatterChart fx:id="correlationChart" prefHeight="250">
                                     <xAxis>
-                                        <NumberAxis label="Feature 1"/>
+                                        <NumberAxis label="Latence (ms)"/>
                                     </xAxis>
                                     <yAxis>
-                                        <NumberAxis label="Feature 2"/>
+                                        <NumberAxis label="Jitter (ms)"/>
                                     </yAxis>
                                 </ScatterChart>
                             </VBox>
@@ -435,39 +482,35 @@
                             <!-- Matrice de confusion -->
                             <VBox spacing="8" style="-fx-background-color: white; -fx-padding: 12; -fx-border-radius: 8; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 8, 0, 0, 0);">
                                 <Label text="🎯 Matrice de Confusion" style="-fx-font-weight: bold; -fx-font-size: 14;"/>
-                                <TableView fx:id="confusionMatrixTable" prefHeight="180">
-
-                                    <placeholder>
-                                        <Label text="Matrice de confusion vide"/>
-                                    </placeholder>
-                                </TableView>
+                                <TableView fx:id="confusionMatrixTable" prefHeight="180"/>
                             </VBox>
 
                             <!-- Statistiques des features -->
-                            <VBox spacing="10" prefHeight="300">
-                                <Label text="📊 Feature Statistics" />
-                                <VBox spacing="15" style="-fx-padding: 15;">
-                                    <TableView fx:id="featureStatsTable" prefHeight="280"/>
-                                </VBox>
+                            <VBox spacing="8" style="-fx-background-color: white; -fx-padding: 12; -fx-border-radius: 8; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 8, 0, 0, 0);">
+                                <Label text="📊 Statistiques des Features" style="-fx-font-weight: bold; -fx-font-size: 14;"/>
+                                <TableView fx:id="featureStatsTable" prefHeight="250"/>
                             </VBox>
                         </VBox>
-                    </VBox>
+                    </ScrollPane>
                 </Tab>
             </TabPane>
 
-            <!-- Bottom: Footer avec informations système -->
+            <!-- Footer avec informations système -->
             <HBox spacing="12" alignment="CENTER" style="-fx-background-color: #34495e; -fx-padding: 10;">
                 <Label fx:id="modelStatusLabel" text="Modèle: Non entraîné"
                        style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 11;"/>
-                <Separator orientation="VERTICAL" style="-fx-background-color: white;"/>
+                <Separator orientation="VERTICAL" style="-fx-background-color: #7f8c8d;"/>
                 <Label fx:id="lastTrainingLabel" text="Dernier entraînement: --"
                        style="-fx-text-fill: #ecf0f1; -fx-font-size: 10;"/>
-                <Separator orientation="VERTICAL" style="-fx-background-color: white;"/>
+                <Separator orientation="VERTICAL" style="-fx-background-color: #7f8c8d;"/>
                 <Label fx:id="dataUpdateLabel" text="Dernière mise à jour: --"
                        style="-fx-text-fill: #ecf0f1; -fx-font-size: 10;"/>
-                <Separator orientation="VERTICAL" style="-fx-background-color: white;"/>
+                <Separator orientation="VERTICAL" style="-fx-background-color: #7f8c8d;"/>
                 <Label fx:id="performanceStatusLabel" text="Performance: --"
                        style="-fx-text-fill: #ecf0f1; -fx-font-size: 10;"/>
+                <Separator orientation="VERTICAL" style="-fx-background-color: #7f8c8d;"/>
+                <Label fx:id="modelInfoLabel" text=""
+                       style="-fx-text-fill: #bdc3c7; -fx-font-size: 10;"/>
             </HBox>
         </VBox>
     </content>
