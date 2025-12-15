@@ -1,517 +1,196 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.chart.*?>
-<?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.Font?>
-
-<ScrollPane xmlns="http://javafx.com/javafx/17"
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.*?>
+<?import javafx.geometry.Insets?>
+<BorderPane xmlns="http://javafx.com/javafx/21"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.ensah.qoe.Controller.AnomalyDashboardController"
-            style="-fx-background-color: #f8f9fa;"
-            fitToWidth="true"
-            fitToHeight="false"
-            pannable="true"
-            prefWidth="1400" prefHeight="800">
+            stylesheets="@css/dashboard-ml-Anomaly.css">
 
-    <content>
-        <VBox spacing="0">
-            <!-- Header avec titre et boutons -->
-            <VBox spacing="8" style="-fx-background-color: #2c3e50; -fx-padding: 15;">
-                <HBox spacing="15" alignment="CENTER_LEFT">
-                    <Label text="Dashboard Détection d'Anomalies QoS"
-                           style="-fx-text-fill: white; -fx-font-weight: bold;">
-                        <font>
-                            <Font size="22"/>
-                        </font>
-                    </Label>
+    <!-- ===================== HEADER ===================== -->
+    <top>
+        <VBox styleClass="header">
+            <Label text="QoS / QoE – Anomaly Detection Dashboard"
+                   styleClass="header-title"/>
 
-                    <HBox spacing="10" alignment="CENTER_RIGHT" HBox.hgrow="ALWAYS">
-                        <Button fx:id="refreshButton" text="🔄 Actualiser"
-                                style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-padding: 8 15;"
-                                onAction="#handleRefresh"/>
-                        <Button fx:id="goBackButton" text="← Retour"
-                                style="-fx-background-color: #7f8c8d; -fx-text-fill: white; -fx-padding: 8 15;"
-                                onAction="#handleGoBack"/>
-                    </HBox>
-                </HBox>
+            <MenuBar>
+                <Menu text="Navigation">
+                    <MenuItem fx:id="menuTrain" text="Entraînement"
+                              onAction="#showTrain"/>
+                    <MenuItem fx:id="menuPredict" text="Prédiction"
+                              onAction="#showPredict"/>
+                    <MenuItem fx:id="menuEvaluate" text="Évaluation"
+                              onAction="#showEvaluate"/>
+                </Menu>
+            </MenuBar>
+        </VBox>
+    </top>
 
-                <Label fx:id="statusLabel" text="Système prêt"
-                       style="-fx-text-fill: #ecf0f1; -fx-font-size: 13; -fx-font-weight: bold;"/>
+    <!-- ===================== MAIN CONTENT ===================== -->
+    <center>
+
+        <!-- STACKPANE OBLIGATOIRE POUR LE CONTROLLER -->
+        <StackPane fx:id="contentPane">
+            <padding>
+                <Insets top="25" right="25" bottom="25" left="25"/>
+            </padding>
+
+            <!-- ===================== TRAIN PANE ===================== -->
+            <VBox fx:id="trainPane" spacing="15" maxWidth="700"
+                  styleClass="card">
+
+                <Label text="Entraînement du modèle (Random Forest)"
+                       styleClass="card-title"/>
+
+                <Button text="Lancer l'entraînement"
+                        fx:id="trainButton"
+                        onAction="#handleTrain"
+                        styleClass="primary-btn"/>
+
+                <TextArea fx:id="trainingLog"
+                          prefHeight="180"
+                          editable="false"/>
             </VBox>
 
-            <!-- TabPane principal -->
-            <TabPane fx:id="visualizationTabPane" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
+            <!-- ===================== PREDICT PANE ===================== -->
+            <VBox fx:id="predictPane"
+                  spacing="20"
+                  visible="false"
+                  managed="false"
+                  styleClass="card">
+                 <padding>
+                    <Insets top="25" right="25" bottom="25" left="25"/>
+                 </padding>
+                <!-- Titre -->
+                <Label text="Prédiction d'anomalie QoS"
+                       styleClass="card-title"/>
 
-                <!-- Tab 1: Vue d'ensemble -->
-                <Tab text="📊 Vue d'ensemble">
-                    <ScrollPane fitToWidth="true" fitToHeight="true">
-                        <VBox spacing="15" style="-fx-padding: 15;">
-                            <!-- KPI Cards -->
-                            <GridPane hgap="15" vgap="15">
-                                <columnConstraints>
-                                    <ColumnConstraints percentWidth="25"/>
-                                    <ColumnConstraints percentWidth="25"/>
-                                    <ColumnConstraints percentWidth="25"/>
-                                    <ColumnConstraints percentWidth="25"/>
-                                </columnConstraints>
+                <Label text="Veuillez saisir les paramètres réseau mesurés pour détecter une anomalie."
+                       styleClass="subtitle"/>
 
-                                <!-- Card 1: Total -->
-                                <VBox style="-fx-background-color: white; -fx-padding: 15; -fx-border-radius: 8; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 8, 0, 0, 0);"
-                                      GridPane.columnIndex="0">
-                                    <Label text="Total Instances" style="-fx-font-weight: bold; -fx-text-fill: #7f8c8d; -fx-font-size: 11;"/>
-                                    <Label fx:id="totalInstancesLabel" text="0"
-                                           style="-fx-font-size: 28; -fx-text-fill: #3498db; -fx-font-weight: bold;"/>
-                                    <Label text="mesures analysées" style="-fx-text-fill: #95a5a6; -fx-font-size: 10;"/>
-                                </VBox>
+                <!-- Formulaire -->
+                <GridPane hgap="15" vgap="14">
 
-                                <!-- Card 2: Normales -->
-                                <VBox style="-fx-background-color: white; -fx-padding: 15; -fx-border-radius: 8; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 8, 0, 0, 0);"
-                                      GridPane.columnIndex="1">
-                                    <Label text="Connexions Normales" style="-fx-font-weight: bold; -fx-text-fill: #7f8c8d; -fx-font-size: 11;"/>
-                                    <Label fx:id="normalCountLabel" text="0"
-                                           style="-fx-font-size: 28; -fx-text-fill: #27ae60; -fx-font-weight: bold;"/>
-                                    <Label text="connexions saines" style="-fx-text-fill: #95a5a6; -fx-font-size: 10;"/>
-                                </VBox>
+                    <!-- LATENCE -->
+                    <Label text="Latence réseau"
+                           GridPane.rowIndex="0" GridPane.columnIndex="0"
+                           styleClass="form-label"/>
+                    <TextField fx:id="latField"
+                               promptText="Ex: 50"
+                               GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+                    <Label text="ms"
+                           GridPane.rowIndex="0" GridPane.columnIndex="2"
+                           styleClass="unit-label"/>
 
-                                <!-- Card 3: Anomalies -->
-                                <VBox style="-fx-background-color: white; -fx-padding: 15; -fx-border-radius: 8; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 8, 0, 0, 0);"
-                                      GridPane.columnIndex="2">
-                                    <Label text="Anomalies Détectées" style="-fx-font-weight: bold; -fx-text-fill: #7f8c8d; -fx-font-size: 11;"/>
-                                    <Label fx:id="anomalyCountLabel" text="0"
-                                           style="-fx-font-size: 28; -fx-text-fill: #e74c3c; -fx-font-weight: bold;"/>
-                                    <Label text="incidents réseau" style="-fx-text-fill: #95a5a6; -fx-font-size: 10;"/>
-                                </VBox>
+                    <!-- JITTER -->
+                    <Label text="Jitter"
+                           GridPane.rowIndex="1" GridPane.columnIndex="0"
+                           styleClass="form-label"/>
+                    <TextField fx:id="jitField"
+                               promptText="Ex: 10"
+                               GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+                    <Label text="ms"
+                           GridPane.rowIndex="1" GridPane.columnIndex="2"
+                           styleClass="unit-label"/>
 
-                                <!-- Card 4: Taux d'anomalies -->
-                                <VBox spacing="5" style="-fx-background-color: white; -fx-padding: 15; -fx-border-radius: 8; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 8, 0, 0, 0);"
-                                      GridPane.columnIndex="3">
-                                    <Label text="Taux d'Anomalies" style="-fx-font-weight: bold; -fx-text-fill: #7f8c8d; -fx-font-size: 11;"/>
-                                    <Label fx:id="anomalyRateLabel" text="0%"
-                                           style="-fx-font-size: 28; -fx-text-fill: #f39c12; -fx-font-weight: bold;"/>
-                                    <ProgressBar fx:id="anomalyRateProgress" prefWidth="120" progress="0"
-                                                 style="-fx-accent: #f39c12;"/>
-                                </VBox>
-                            </GridPane>
+                    <!-- PERTE -->
+                    <Label text="Perte de paquets"
+                           GridPane.rowIndex="2" GridPane.columnIndex="0"
+                           styleClass="form-label"/>
+                    <TextField fx:id="lossField"
+                               promptText="Ex: 1.5"
+                               GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+                    <Label text=" "
+                           GridPane.rowIndex="2" GridPane.columnIndex="2"
+                           styleClass="unit-label"/>
 
-                            <!-- Métriques de Performance -->
-                            <VBox spacing="10" style="-fx-background-color: white; -fx-padding: 15; -fx-border-radius: 8; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 8, 0, 0, 0);">
-                                <Label text="📈 Métriques de Performance du Modèle"
-                                       style="-fx-font-weight: bold; -fx-font-size: 15;"/>
+                    <!-- BANDE PASSANTE -->
+                    <Label text="Bande passante"
+                           GridPane.rowIndex="3" GridPane.columnIndex="0"
+                           styleClass="form-label"/>
+                    <TextField fx:id="bwField"
+                               promptText="Ex: 100"
+                               GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+                    <Label text="Mbps"
+                           GridPane.rowIndex="3" GridPane.columnIndex="2"
+                           styleClass="unit-label"/>
 
-                                <GridPane hgap="25" vgap="12">
-                                    <columnConstraints>
-                                        <ColumnConstraints prefWidth="140"/>
-                                        <ColumnConstraints prefWidth="100"/>
-                                        <ColumnConstraints prefWidth="140"/>
-                                        <ColumnConstraints prefWidth="100"/>
-                                    </columnConstraints>
+                    <!-- SIGNAL -->
+                    <Label text="Qualité du signal"
+                           GridPane.rowIndex="4" GridPane.columnIndex="0"
+                           styleClass="form-label"/>
+                    <TextField fx:id="sigField"
+                               promptText="0 - 100"
+                               GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+                    <Label text=" "
+                           GridPane.rowIndex="4" GridPane.columnIndex="2"
+                           styleClass="unit-label"/>
 
-                                    <Label text="Accuracy (Précision):" GridPane.rowIndex="0" GridPane.columnIndex="0"
-                                           style="-fx-font-weight: bold; -fx-font-size: 12;"/>
-                                    <Label fx:id="accuracyLabel" text="--" GridPane.rowIndex="0" GridPane.columnIndex="1"
-                                           style="-fx-font-size: 16; -fx-text-fill: #3498db; -fx-font-weight: bold;"/>
+                </GridPane>
 
-                                    <Label text="Precision:" GridPane.rowIndex="0" GridPane.columnIndex="2"
-                                           style="-fx-font-weight: bold; -fx-font-size: 12;"/>
-                                    <Label fx:id="precisionLabel" text="--" GridPane.rowIndex="0" GridPane.columnIndex="3"
-                                           style="-fx-font-size: 16; -fx-text-fill: #2ecc71; -fx-font-weight: bold;"/>
+                <!-- Bouton -->
+                <Button text="Analyser et prédire"
+                        onAction="#handlePredict"
+                        styleClass="primary-btn"
+                        maxWidth="220"/>
 
-                                    <Label text="Recall (Rappel):" GridPane.rowIndex="1" GridPane.columnIndex="0"
-                                           style="-fx-font-weight: bold; -fx-font-size: 12;"/>
-                                    <Label fx:id="recallLabel" text="--" GridPane.rowIndex="1" GridPane.columnIndex="1"
-                                           style="-fx-font-size: 16; -fx-text-fill: #9b59b6; -fx-font-weight: bold;"/>
+                <!-- Résultat -->
+                <Separator/>
 
-                                    <Label text="F1-Score:" GridPane.rowIndex="1" GridPane.columnIndex="2"
-                                           style="-fx-font-weight: bold; -fx-font-size: 12;"/>
-                                    <Label fx:id="f1ScoreLabel" text="--" GridPane.rowIndex="1" GridPane.columnIndex="3"
-                                           style="-fx-font-size: 16; -fx-text-fill: #e67e22; -fx-font-weight: bold;"/>
-                                </GridPane>
-                            </VBox>
+                <HBox spacing="15" alignment="CENTER_LEFT">
 
-                            <!-- Graphiques -->
-                            <HBox spacing="15">
-                                <!-- Distribution des anomalies -->
-                                <VBox spacing="8" style="-fx-background-color: white; -fx-padding: 12; -fx-border-radius: 8; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 8, 0, 0, 0);"
-                                      HBox.hgrow="ALWAYS">
-                                    <Label text="Distribution des Types d'Anomalies" style="-fx-font-weight: bold; -fx-font-size: 14;"/>
-                                    <BarChart fx:id="distributionChart" prefHeight="250" legendVisible="false">
-                                        <xAxis>
-                                            <CategoryAxis label="Type d'Anomalie"/>
-                                        </xAxis>
-                                        <yAxis>
-                                            <NumberAxis label="Nombre"/>
-                                        </yAxis>
-                                    </BarChart>
-                                </VBox>
+                    <Label text="Résultat :"
+                           styleClass="result-label"/>
 
-                                <!-- Pie Chart -->
-                                <VBox spacing="8" style="-fx-background-color: white; -fx-padding: 12; -fx-border-radius: 8; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 8, 0, 0, 0);">
-                                    <Label text="Proportion Anomalies/Normales" style="-fx-font-weight: bold; -fx-font-size: 14;"/>
-                                    <PieChart fx:id="anomalyPieChart" prefHeight="250" prefWidth="300" labelLineLength="15"/>
-                                </VBox>
-                            </HBox>
+                    <Label fx:id="predictionLabel"
+                           text="--"
+                           styleClass="result-value"/>
 
-                            <!-- Historique des prédictions récentes -->
-                            <VBox spacing="8" style="-fx-background-color: white; -fx-padding: 12; -fx-border-radius: 8; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 8, 0, 0, 0);">
-                                <Label text="📋 Prédictions Récentes" style="-fx-font-weight: bold; -fx-font-size: 14;"/>
-                                <TableView fx:id="recentPredictionsTable" prefHeight="180"/>
-                            </VBox>
-                        </VBox>
-                    </ScrollPane>
-                </Tab>
+                    <Label text="Confiance :"
+                           styleClass="result-label"/>
 
-                <!-- Tab 2: Entraînement du modèle -->
-                <Tab text="🎓 Entraînement">
-                    <ScrollPane fitToWidth="true" fitToHeight="true">
-                        <VBox spacing="15" style="-fx-padding: 15;">
-                            <Label text="Configuration et Entraînement du Modèle"
-                                   style="-fx-font-weight: bold; -fx-font-size: 17; -fx-text-fill: #2c3e50;"/>
+                    <Label fx:id="confidenceLabel"
+                           text="--"
+                           styleClass="confidence-value"/>
 
-                            <!-- Configuration -->
-                            <VBox spacing="12" style="-fx-background-color: white; -fx-padding: 15; -fx-border-radius: 8; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 8, 0, 0, 0);">
-                                <Label text="⚙️ Configuration" style="-fx-font-weight: bold; -fx-font-size: 14;"/>
+                </HBox>
 
-                                <GridPane hgap="12" vgap="12">
-                                    <columnConstraints>
-                                        <ColumnConstraints prefWidth="180"/>
-                                        <ColumnConstraints prefWidth="350"/>
-                                    </columnConstraints>
+            </VBox>
 
-                                    <Label text="Algorithme de détection:" GridPane.rowIndex="0" GridPane.columnIndex="0"
-                                           style="-fx-font-weight: bold; -fx-font-size: 12;"/>
-                                    <ComboBox fx:id="algorithmCombo" prefWidth="320"
-                                              GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+            <!-- ===================== EVALUATE PANE ===================== -->
+            <VBox fx:id="evaluatePane" spacing="15" maxWidth="700"
+                  visible="false" managed="false"
+                  styleClass="card">
 
-                                    <Label text="Ratio Train/Test:" GridPane.rowIndex="1" GridPane.columnIndex="0"
-                                           style="-fx-font-weight: bold; -fx-font-size: 12;"/>
-                                    <HBox spacing="10" GridPane.rowIndex="1" GridPane.columnIndex="1">
-                                        <Slider fx:id="trainTestSplitSlider" min="50" max="90" value="80"
-                                                showTickLabels="true" showTickMarks="true"
-                                                majorTickUnit="10" minorTickCount="4" prefWidth="250"/>
-                                        <Label fx:id="splitRatioLabel" text="80/20"
-                                               style="-fx-font-weight: bold; -fx-font-size: 13;"/>
-                                    </HBox>
+                <Label text="Évaluation du modèle"
+                       styleClass="card-title"/>
 
-                                    <Label text="Comparaison d'algorithmes:" GridPane.rowIndex="2" GridPane.columnIndex="0"
-                                           style="-fx-font-weight: bold; -fx-font-size: 12;"/>
-                                    <CheckBox fx:id="compareAllCheckbox" text="Comparer tous les algorithmes"
-                                              GridPane.rowIndex="2" GridPane.columnIndex="1"/>
-                                </GridPane>
-                            </VBox>
+                <GridPane hgap="20" vgap="10">
+                    <Label text="Accuracy"/>
+                    <Label fx:id="accLabel"/>
 
-                            <!-- Actions d'entraînement -->
-                            <HBox spacing="15" style="-fx-background-color: white; -fx-padding: 15; -fx-border-radius: 8; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 8, 0, 0, 0);">
-                                <VBox spacing="8" HBox.hgrow="ALWAYS">
-                                    <Label text="🚀 Lancer l'entraînement" style="-fx-font-weight: bold; -fx-font-size: 12;"/>
-                                    <Button fx:id="trainButton" text="Entraîner le Modèle"
-                                            prefWidth="180" prefHeight="35"
-                                            style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13;"
-                                            onAction="#handleTrainModel"/>
-                                    <Button fx:id="visualizeDataButton" text="📊 Visualiser les Données"
-                                            prefWidth="180" prefHeight="30"
-                                            style="-fx-background-color: #9b59b6; -fx-text-fill: white; -fx-font-size: 12;"
-                                            onAction="#handleVisualizeData"/>
-                                    <Button fx:id="loadModelButton" text="💾 Charger Modèle"
-                                            prefWidth="180" prefHeight="30"
-                                            style="-fx-background-color: #16a085; -fx-text-fill: white; -fx-font-size: 12;"
-                                            onAction="#handleLoadModel"/>
-                                </VBox>
+                    <Label text="Precision" GridPane.rowIndex="1"/>
+                    <Label fx:id="precLabel" GridPane.rowIndex="1"/>
 
-                                <VBox spacing="5" HBox.hgrow="ALWAYS">
-                                    <Label text="Progression:" style="-fx-font-weight: bold; -fx-font-size: 12;"/>
-                                    <ProgressBar fx:id="trainingProgressBar" prefWidth="400" progress="0"/>
-                                    <Label fx:id="trainingProgressLabel" text="En attente..."
-                                           style="-fx-font-size: 11; -fx-text-fill: #7f8c8d;"/>
-                                </VBox>
-                            </HBox>
+                    <Label text="Recall" GridPane.rowIndex="2"/>
+                    <Label fx:id="recallLabel" GridPane.rowIndex="2"/>
 
-                            <!-- Logs d'entraînement -->
-                            <VBox spacing="8" style="-fx-background-color: white; -fx-padding: 12; -fx-border-radius: 8; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 8, 0, 0, 0);">
-                                <Label text="📝 Journal d'Entraînement" style="-fx-font-weight: bold; -fx-font-size: 14;"/>
-                                <TextArea fx:id="trainingLogArea" prefHeight="200" editable="false"
-                                          style="-fx-font-family: 'Courier New'; -fx-font-size: 11;"/>
-                            </VBox>
+                    <Label text="F1-score" GridPane.rowIndex="3"/>
+                    <Label fx:id="f1Label" GridPane.rowIndex="3"/>
+                </GridPane>
 
-                            <!-- Performance chart -->
-                            <VBox spacing="8" style="-fx-background-color: white; -fx-padding: 12; -fx-border-radius: 8; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 8, 0, 0, 0);">
-                                <Label text="📈 Évolution de la Performance" style="-fx-font-weight: bold; -fx-font-size: 14;"/>
-                                <LineChart fx:id="performanceChart" prefHeight="220">
-                                    <xAxis>
-                                        <CategoryAxis label="Période"/>
-                                    </xAxis>
-                                    <yAxis>
-                                        <NumberAxis label="Score (%)"/>
-                                    </yAxis>
-                                </LineChart>
-                            </VBox>
-                        </VBox>
-                    </ScrollPane>
-                </Tab>
+                <Button text="Évaluer le modèle"
+                        onAction="#handleEvaluate"
+                        styleClass="primary-btn"/>
 
-                <!-- Tab 3: Prédiction manuelle -->
-                <Tab text="🔮 Prédiction">
-                    <ScrollPane fitToWidth="true" fitToHeight="true">
-                        <VBox spacing="15" style="-fx-padding: 15;">
-                            <Label text="Prédiction d'Anomalies en Temps Réel"
-                                   style="-fx-font-weight: bold; -fx-font-size: 17; -fx-text-fill: #2c3e50;"/>
+                <TextArea fx:id="evalLog"
+                          prefHeight="200"
+                          editable="false"/>
+            </VBox>
 
-                            <!-- Inputs de prédiction -->
-                            <VBox fx:id="predictionInputsContainer" spacing="12" style="-fx-background-color: white; -fx-padding: 15; -fx-border-radius: 8; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 8, 0, 0, 0);">
-                                <Label text="⚙️ Paramètres QoS" style="-fx-font-weight: bold; -fx-font-size: 14;"/>
+        </StackPane>
+    </center>
 
-                                <GridPane hgap="12" vgap="15">
-                                    <columnConstraints>
-                                        <ColumnConstraints prefWidth="180"/>
-                                        <ColumnConstraints prefWidth="100"/>
-                                        <ColumnConstraints prefWidth="300"/>
-                                    </columnConstraints>
-
-                                    <!-- Latence -->
-                                    <Label text="Latence (ms):" GridPane.rowIndex="0" GridPane.columnIndex="0"
-                                           style="-fx-font-weight: bold; -fx-font-size: 12;"/>
-                                    <TextField fx:id="latenceField" text="50" GridPane.rowIndex="0" GridPane.columnIndex="1"
-                                               style="-fx-font-size: 12;"/>
-                                    <Slider fx:id="latenceSlider" min="0" max="500" value="50" showTickMarks="true"
-                                            showTickLabels="true" GridPane.rowIndex="0" GridPane.columnIndex="2"
-                                            majorTickUnit="100" minorTickCount="4"/>
-
-                                    <!-- Jitter -->
-                                    <Label text="Jitter (ms):" GridPane.rowIndex="1" GridPane.columnIndex="0"
-                                           style="-fx-font-weight: bold; -fx-font-size: 12;"/>
-                                    <TextField fx:id="jitterField" text="10" GridPane.rowIndex="1" GridPane.columnIndex="1"
-                                               style="-fx-font-size: 12;"/>
-                                    <Slider fx:id="jitterSlider" min="0" max="100" value="10" showTickMarks="true"
-                                            showTickLabels="true" GridPane.rowIndex="1" GridPane.columnIndex="2"
-                                            majorTickUnit="20" minorTickCount="4"/>
-
-                                    <!-- Perte -->
-                                    <Label text="Perte de Paquets (%):" GridPane.rowIndex="2" GridPane.columnIndex="0"
-                                           style="-fx-font-weight: bold; -fx-font-size: 12;"/>
-                                    <TextField fx:id="perteField" text="1.0" GridPane.rowIndex="2" GridPane.columnIndex="1"
-                                               style="-fx-font-size: 12;"/>
-                                    <Slider fx:id="perteSlider" min="0" max="100" value="1" showTickMarks="true"
-                                            showTickLabels="true" GridPane.rowIndex="2" GridPane.columnIndex="2"
-                                            majorTickUnit="10" minorTickCount="1"/>
-
-                                    <!-- Bande passante -->
-                                    <Label text="Bande Passante (Mbps):" GridPane.rowIndex="3" GridPane.columnIndex="0"
-                                           style="-fx-font-weight: bold; -fx-font-size: 12;"/>
-                                    <TextField fx:id="bandePassanteField" text="50" GridPane.rowIndex="3" GridPane.columnIndex="1"
-                                               style="-fx-font-size: 12;"/>
-                                    <Slider fx:id="bandePassanteSlider" min="0" max="200" value="50" showTickMarks="true"
-                                            showTickLabels="true" GridPane.rowIndex="3" GridPane.columnIndex="2"
-                                            majorTickUnit="50" minorTickCount="4"/>
-
-                                    <!-- Signal -->
-                                    <Label text="Score Signal (%):" GridPane.rowIndex="4" GridPane.columnIndex="0"
-                                           style="-fx-font-weight: bold; -fx-font-size: 12;"/>
-                                    <TextField fx:id="signalField" text="80" GridPane.rowIndex="4" GridPane.columnIndex="1"
-                                               style="-fx-font-size: 12;"/>
-                                    <Slider fx:id="signalSlider" min="0" max="100" value="80" showTickMarks="true"
-                                            showTickLabels="true" GridPane.rowIndex="4" GridPane.columnIndex="2"
-                                            majorTickUnit="25" minorTickCount="4"/>
-
-                                    <!-- MOS -->
-                                    <Label text="MOS (1-5):" GridPane.rowIndex="5" GridPane.columnIndex="0"
-                                           style="-fx-font-weight: bold; -fx-font-size: 12;"/>
-                                    <TextField fx:id="mosField" text="3.5" GridPane.rowIndex="5" GridPane.columnIndex="1"
-                                               style="-fx-font-size: 12;"/>
-
-                                    <!-- Zone -->
-                                    <Label text="Zone:" GridPane.rowIndex="6" GridPane.columnIndex="0"
-                                           style="-fx-font-weight: bold; -fx-font-size: 12;"/>
-                                    <TextField fx:id="zoneField" text="Default" GridPane.rowIndex="6" GridPane.columnIndex="1"
-                                               style="-fx-font-size: 12;"/>
-                                </GridPane>
-
-                                <!-- Boutons d'action -->
-                                <HBox spacing="12" alignment="CENTER">
-                                    <Button fx:id="predictButton" text="🔮 Prédire"
-                                            prefWidth="160" prefHeight="40"
-                                            style="-fx-background-color: #2ecc71; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14;"
-                                            onAction="#handlePredict"/>
-                                    <Button fx:id="analyzeButton" text="🔍 Analyser"
-                                            prefWidth="160" prefHeight="40"
-                                            style="-fx-background-color: #9b59b6; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14;"
-                                            onAction="#handleAnalyze"/>
-                                    <Button text="🔄 Réinitialiser"
-                                            prefWidth="160" prefHeight="40"
-                                            style="-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14;"
-                                            onAction="#handleResetInputs"/>
-                                </HBox>
-                            </VBox>
-
-                            <!-- Résultat de prédiction -->
-                            <VBox spacing="12" style="-fx-background-color: white; -fx-padding: 20; -fx-border-radius: 8; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 8, 0, 0, 0);">
-                                <Label text="📊 Résultat de la Prédiction" style="-fx-font-weight: bold; -fx-font-size: 16;"/>
-
-                                <HBox spacing="40" alignment="CENTER">
-                                    <!-- Prédiction -->
-                                    <VBox spacing="6" alignment="CENTER">
-                                        <Label text="Statut Détecté" style="-fx-font-size: 12; -fx-text-fill: #7f8c8d;"/>
-                                        <Label fx:id="predictionResultLabel" text="--"
-                                               style="-fx-font-size: 36; -fx-font-weight: bold; -fx-padding: 12; -fx-border-radius: 8; -fx-background-radius: 8;"/>
-                                    </VBox>
-
-                                    <!-- Confiance -->
-                                    <VBox spacing="6" alignment="CENTER">
-                                        <Label text="Niveau de Confiance" style="-fx-font-size: 12; -fx-text-fill: #7f8c8d;"/>
-                                        <Label fx:id="confidenceLabel" text="--"
-                                               style="-fx-font-size: 32; -fx-font-weight: bold; -fx-text-fill: #3498db;"/>
-                                        <ProgressBar fx:id="confidenceProgressBar" prefWidth="180" progress="0"
-                                                     style="-fx-accent: #3498db;"/>
-                                    </VBox>
-                                </HBox>
-
-                                <!-- Détails de prédiction -->
-                                <Separator/>
-                                <VBox spacing="6">
-                                    <Label text="📋 Détails de la Prédiction" style="-fx-font-weight: bold; -fx-font-size: 14;"/>
-                                    <TextArea fx:id="predictionDetailsArea" prefHeight="100" editable="false"
-                                              style="-fx-font-family: 'Courier New'; -fx-font-size: 11;"/>
-                                </VBox>
-
-                                <!-- Explication -->
-                                <Separator/>
-                                <VBox spacing="6" style="-fx-background-color: #ecf0f1; -fx-padding: 12; -fx-border-radius: 5; -fx-background-radius: 5;">
-                                    <Label text="💡 Interprétation" style="-fx-font-weight: bold; -fx-font-size: 12;"/>
-                                    <Label fx:id="explanationLabel" text="Aucune prédiction effectuée"
-                                           wrapText="true" style="-fx-font-size: 12; -fx-text-fill: #2c3e50;"/>
-                                </VBox>
-                            </VBox>
-                        </VBox>
-                    </ScrollPane>
-                </Tab>
-
-                <!-- Tab 4: Tests & Analyse -->
-                <Tab text="🧪 Tests &amp; Analyse">
-                    <ScrollPane fitToWidth="true" fitToHeight="true">
-                        <VBox spacing="15" style="-fx-padding: 15;">
-                            <Label text="Tests et Analyses du Modèle"
-                                   style="-fx-font-weight: bold; -fx-font-size: 17; -fx-text-fill: #2c3e50;"/>
-
-                            <!-- Actions rapides -->
-                            <VBox spacing="12" style="-fx-background-color: white; -fx-padding: 15; -fx-border-radius: 8; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 8, 0, 0, 0);">
-                                <Label text="🚀 Actions Rapides" style="-fx-font-weight: bold; -fx-font-size: 14;"/>
-
-                                <FlowPane hgap="12" vgap="12">
-                                    <Button fx:id="predictMissingButton" text="🔮 Prédire Anomalies Manquantes"
-                                            prefWidth="220" prefHeight="45"
-                                            style="-fx-background-color: #8e44ad; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 12;"
-                                            onAction="#handlePredictMissing"/>
-
-                                    <Button fx:id="evaluateModelButton" text="📊 Évaluer le Modèle"
-                                            prefWidth="220" prefHeight="45"
-                                            style="-fx-background-color: #16a085; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 12;"
-                                            onAction="#handleEvaluate"/>
-
-                                    <Button fx:id="fullAnalysisButton" text="🔬 Analyse Complète"
-                                            prefWidth="220" prefHeight="45"
-                                            style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 12;"
-                                            onAction="#handleFullAnalysis"/>
-
-                                    <Button fx:id="demoButton" text="🎬 Démonstration"
-                                            prefWidth="220" prefHeight="45"
-                                            style="-fx-background-color: #1abc9c; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 12;"
-                                            onAction="#handleDemo"/>
-
-                                    <Button fx:id="analyzeDatasetButton" text="📈 Analyser Dataset"
-                                            prefWidth="220" prefHeight="45"
-                                            style="-fx-background-color: #f39c12; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 12;"
-                                            onAction="#handleAnalyzeDataset"/>
-
-                                    <Button text="🔌 Test Connexion BD"
-                                            prefWidth="220" prefHeight="45"
-                                            style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 12;"
-                                            onAction="#testDatabaseConnection"/>
-
-                                    <Button text="✅ Valider Modèle"
-                                            prefWidth="220" prefHeight="45"
-                                            style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 12;"
-                                            onAction="#validateModel"/>
-                                </FlowPane>
-                            </VBox>
-
-                            <!-- Journal système -->
-                            <VBox spacing="8" style="-fx-background-color: white; -fx-padding: 12; -fx-border-radius: 8; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 8, 0, 0, 0);">
-                                <HBox spacing="10" alignment="CENTER_LEFT">
-                                    <Label text="📝 Journal Système" style="-fx-font-weight: bold; -fx-font-size: 14;"
-                                           HBox.hgrow="ALWAYS"/>
-                                    <Button fx:id="clearLogsButton" text="🗑️ Effacer"
-                                            style="-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-padding: 5 12;"
-                                            onAction="#handleClearLogs"/>
-                                    <Button fx:id="exportLogsButton" text="💾 Exporter"
-                                            style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-padding: 5 12;"
-                                            onAction="#handleExportLogs"/>
-                                </HBox>
-                                <TextArea fx:id="systemLogArea" prefHeight="280" editable="false"
-                                          style="-fx-font-family: 'Courier New'; -fx-font-size: 10;"/>
-                            </VBox>
-
-                            <!-- Logs d'anomalies -->
-                            <VBox spacing="8" style="-fx-background-color: white; -fx-padding: 12; -fx-border-radius: 8; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 8, 0, 0, 0);">
-                                <Label text="🚨 Journal des Anomalies Détectées" style="-fx-font-weight: bold; -fx-font-size: 14;"/>
-                                <TableView fx:id="anomalyLogTable" prefHeight="220"/>
-                            </VBox>
-                        </VBox>
-                    </ScrollPane>
-                </Tab>
-
-                <!-- Tab 5: Visualisations Avancées -->
-                <Tab text="📈 Visualisations">
-                    <ScrollPane fitToWidth="true" fitToHeight="true">
-                        <VBox spacing="15" style="-fx-padding: 15;">
-                            <Label text="Visualisations et Analyses Statistiques"
-                                   style="-fx-font-weight: bold; -fx-font-size: 17; -fx-text-fill: #2c3e50;"/>
-
-                            <!-- Correlation chart -->
-                            <VBox spacing="8" style="-fx-background-color: white; -fx-padding: 12; -fx-border-radius: 8; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 8, 0, 0, 0);">
-                                <Label text="🔗 Corrélations entre Features" style="-fx-font-weight: bold; -fx-font-size: 14;"/>
-                                <ScatterChart fx:id="correlationChart" prefHeight="250">
-                                    <xAxis>
-                                        <NumberAxis label="Latence (ms)"/>
-                                    </xAxis>
-                                    <yAxis>
-                                        <NumberAxis label="Jitter (ms)"/>
-                                    </yAxis>
-                                </ScatterChart>
-                            </VBox>
-
-                            <!-- Matrice de confusion -->
-                            <VBox spacing="8" style="-fx-background-color: white; -fx-padding: 12; -fx-border-radius: 8; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 8, 0, 0, 0);">
-                                <Label text="🎯 Matrice de Confusion" style="-fx-font-weight: bold; -fx-font-size: 14;"/>
-                                <TableView fx:id="confusionMatrixTable" prefHeight="180"/>
-                            </VBox>
-
-                            <!-- Statistiques des features -->
-                            <VBox spacing="8" style="-fx-background-color: white; -fx-padding: 12; -fx-border-radius: 8; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 8, 0, 0, 0);">
-                                <Label text="📊 Statistiques des Features" style="-fx-font-weight: bold; -fx-font-size: 14;"/>
-                                <TableView fx:id="featureStatsTable" prefHeight="250"/>
-                            </VBox>
-                        </VBox>
-                    </ScrollPane>
-                </Tab>
-            </TabPane>
-
-            <!-- Footer avec informations système -->
-            <HBox spacing="12" alignment="CENTER" style="-fx-background-color: #34495e; -fx-padding: 10;">
-                <Label fx:id="modelStatusLabel" text="Modèle: Non entraîné"
-                       style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 11;"/>
-                <Separator orientation="VERTICAL" style="-fx-background-color: #7f8c8d;"/>
-                <Label fx:id="lastTrainingLabel" text="Dernier entraînement: --"
-                       style="-fx-text-fill: #ecf0f1; -fx-font-size: 10;"/>
-                <Separator orientation="VERTICAL" style="-fx-background-color: #7f8c8d;"/>
-                <Label fx:id="dataUpdateLabel" text="Dernière mise à jour: --"
-                       style="-fx-text-fill: #ecf0f1; -fx-font-size: 10;"/>
-                <Separator orientation="VERTICAL" style="-fx-background-color: #7f8c8d;"/>
-                <Label fx:id="performanceStatusLabel" text="Performance: --"
-                       style="-fx-text-fill: #ecf0f1; -fx-font-size: 10;"/>
-                <Separator orientation="VERTICAL" style="-fx-background-color: #7f8c8d;"/>
-                <Label fx:id="modelInfoLabel" text=""
-                       style="-fx-text-fill: #bdc3c7; -fx-font-size: 10;"/>
-            </HBox>
-        </VBox>
-    </content>
-</ScrollPane>
+</BorderPane>

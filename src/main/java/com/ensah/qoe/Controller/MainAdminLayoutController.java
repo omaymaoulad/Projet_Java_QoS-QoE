@@ -259,17 +259,7 @@ public class MainAdminLayoutController {
 
     @FXML
     private void openMLDashboardAnomalies() {
-        try {
-            Parent root = FXMLLoader.load(getClass().getResource("/fxml/ml-dashboard-anomalies.fxml"));
-            Stage stage = new Stage();
-            stage.setScene(new Scene(root, 1400, 800));
-            stage.setTitle("Dashboard Détection d'Anomalies QoS");
-            stage.show();
-        } catch (Exception e) {
-            e.printStackTrace();
-            showAlert("Erreur", "Ouverture échouée",
-                    "Impossible d'ouvrir le dashboard anomalies: " + e.getMessage());
-        }
+        loadView("/fxml/ml-dashboard-anomalies.fxml");
     }
 
     @FXML

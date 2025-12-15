@@ -262,49 +262,65 @@ public class AnomalyDetectionModels {
     /**
      * Évaluation complète sur le jeu de test
      */
+    // ================================
+// 2) EVALUATION METHODS (SANS CONFUSION MATRIX)
+// ================================
+    // ================================
+// 2) EVALUATION METHODS (SAFE - NO WEKA METRICS)
+// ================================
     public EvaluationResult evaluate(Instances test) throws Exception {
+
         if (model == null) {
             throw new Exception("❌ Aucun modèle entraîné !");
         }
 
         System.out.println("\n📈 ÉVALUATION DU MODÈLE: " + algorithmName);
 
-        Evaluation eval = new Evaluation(test);
-        eval.evaluateModel(model, test);
+        int TP = 0, TN = 0, FP = 0, FN = 0;
 
-        // Extraire les métriques
-        this.accuracy = eval.pctCorrect();
-        this.precision = eval.weightedPrecision();
-        this.recall = eval.weightedRecall();
-        this.f1Score = eval.weightedFMeasure();
-        this.auc = eval.weightedAreaUnderROC();
-        this.confusionMatrix = eval.toMatrixString();
+        for (int i = 0; i < test.numInstances(); i++) {
 
-        // Mettre à jour les statistiques globales
-        GlobalStats.lastAccuracy = String.format("%.2f%%", accuracy);
-        GlobalStats.lastPrecision = String.format("%.2f", precision);
-        GlobalStats.lastRecall = String.format("%.2f", recall);
-        GlobalStats.lastF1 = String.format("%.2f", f1Score);
+            Instance inst = test.instance(i);
+            double actual = inst.classValue();
+            double predicted = model.classifyInstance(inst);
 
-        // Afficher les résultats
-        System.out.println("=".repeat(50));
-        System.out.println("📊 PERFORMANCE DU MODÈLE");
-        System.out.println("=".repeat(50));
-        System.out.println(eval.toSummaryString());
-        System.out.println("\n📋 DÉTAILS PAR CLASSE:");
-        System.out.println(eval.toClassDetailsString());
-        System.out.println("\n🎯 MATRICE DE CONFUSION:");
-        System.out.println(confusionMatrix);
+            if (actual == 1.0 && predicted == 1.0) TP++;
+            else if (actual == 0.0 && predicted == 0.0) TN++;
+            else if (actual == 0.0 && predicted == 1.0) FP++;
+            else if (actual == 1.0 && predicted == 0.0) FN++;
+        }
 
-        System.out.println("\n📈 MÉTRIQUES CLAVES:");
-        System.out.printf("  Accuracy:  %.2f%%\n", accuracy);
-        System.out.printf("  Precision: %.4f\n", precision);
-        System.out.printf("  Recall:    %.4f\n", recall);
-        System.out.printf("  F1-Score:  %.4f\n", f1Score);
-        System.out.printf("  AUC:       %.4f\n", auc);
+        double total = TP + TN + FP + FN;
 
-        return new EvaluationResult(accuracy, precision, recall, f1Score, auc, confusionMatrix);
+        this.accuracy = (TP + TN) / total;
+
+        this.precision = (TP + FP) == 0 ? 0 : (double) TP / (TP + FP);
+        this.recall    = (TP + FN) == 0 ? 0 : (double) TP / (TP + FN);
+        this.f1Score   = (precision + recall) == 0
+                ? 0
+                : 2 * precision * recall / (precision + recall);
+
+        this.auc = -1; // optionnel (ou calculé plus tard)
+
+        // Logs propres
+        System.out.println("Accuracy  : " + accuracy);
+        System.out.println("Precision : " + precision);
+        System.out.println("Recall    : " + recall);
+        System.out.println("F1-score  : " + f1Score);
+
+        return new EvaluationResult(
+                accuracy,
+                precision,
+                recall,
+                f1Score,
+                auc,
+                null
+        );
     }
+
+
+
+
 
     /**
      * Validation croisée
