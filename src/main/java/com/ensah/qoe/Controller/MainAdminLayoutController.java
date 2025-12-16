@@ -322,19 +322,7 @@ public class MainAdminLayoutController {
 
     @FXML
     private void openMLDashboard() {
-        try {
-            Parent root = FXMLLoader.load(getClass().getResource("/fxml/ml-dashboard.fxml"));
-            Stage stage = new Stage();
-            stage.setScene(new Scene(root, 1400, 800));
-            stage.setTitle("Dashboard Machine Learning QoE/QoS");
-            stage.show();
-        } catch (Exception e) {
-            e.printStackTrace();
-            showAlert("Erreur", "Erreur d'ouverture",
-                    "Impossible d'ouvrir le dashboard ML: " + e.getMessage());
-        }
-    }
-
+            loadView("/fxml/ml-dashboard.fxml");}
     @FXML
     private void openMLDashboardAnomalies() {
         loadView("/fxml/ml-dashboard-anomalies.fxml");

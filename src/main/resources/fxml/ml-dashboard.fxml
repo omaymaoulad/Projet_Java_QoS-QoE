@@ -1,363 +1,529 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.*?>
 <?import javafx.scene.chart.*?>
-<?import javafx.scene.text.*?>
 
-<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.ensah.qoe.Controller.MLDashboardController"
-            stylesheets="@../css/ml-dashboard.css">
+<BorderPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.ensah.qoe.Controller.MOSDashboardController"
+            stylesheets="/css/ml-dashboard.css"
+            styleClass="root">
 
-    <!-- HEADER -->
+    <!-- ===================== HEADER ===================== -->
     <top>
-        <VBox styleClass="header-container">
-            <HBox alignment="CENTER_LEFT" spacing="20" styleClass="header-main">
-                <Label text="🤖 QoE Machine Learning Dashboard" styleClass="header-title"/>
+        <VBox styleClass="header">
+            <HBox styleClass="header-content" alignment="CENTER_LEFT" spacing="30">
+                <Label text="🎵 Prédiction de Qualité Audio (MOS)" styleClass="header-title"/>
+
                 <Region HBox.hgrow="ALWAYS"/>
-                <Label fx:id="statusLabel" text="Initialisation..." styleClass="status-label"/>
-                <Button text="🔄 Actualiser" onAction="#refreshData" styleClass="btn-refresh"/>
-                <Button text="← Retour" onAction="#goBack" styleClass="btn-back"/>
-            </HBox>
 
-            <!-- Stats Cards -->
-            <HBox spacing="15" styleClass="stats-container">
-                <VBox styleClass="stat-card">
-                    <Label text="Dataset" styleClass="stat-label"/>
-                    <Label fx:id="datasetSizeLabel" text="0" styleClass="stat-value"/>
-                    <Label text="instances" styleClass="stat-unit"/>
-                </VBox>
-
-                <VBox styleClass="stat-card">
-                    <Label text="Modèle" styleClass="stat-label"/>
-                    <Label fx:id="modelTypeLabel" text="-" styleClass="stat-value"/>
-                    <Label text="algorithme" styleClass="stat-unit"/>
-                </VBox>
-
-                <VBox styleClass="stat-card">
-                    <Label text="Précision" styleClass="stat-label"/>
-                    <Label fx:id="accuracyLabel" text="0.00" styleClass="stat-value"/>
-                    <Label text="R² score" styleClass="stat-unit"/>
-                </VBox>
-
-                <VBox styleClass="stat-card">
-                    <Label text="Prédictions" styleClass="stat-label"/>
-                    <Label fx:id="predictionsCountLabel" text="0" styleClass="stat-value"/>
-                    <Label text="effectuées" styleClass="stat-unit"/>
-                </VBox>
+                <HBox spacing="15" alignment="CENTER_RIGHT">
+                    <Button fx:id="btnAccueilMOS" text="📊 Tableau de bord"
+                            onAction="#showAccueilMOS"
+                            styleClass="nav-btn-active"/>
+                    <Button fx:id="btnPredictionMOS" text="🎵 Prédiction MOS"
+                            onAction="#showPredictionMOS"
+                            styleClass="nav-btn"/>
+                    <Button fx:id="btnComparisonMOS" text="📈 Comparaison"
+                            onAction="#showComparisonMOS"
+                            styleClass="nav-btn"/>
+                </HBox>
             </HBox>
         </VBox>
     </top>
 
-    <!-- MAIN CONTENT -->
+    <!-- ===================== MAIN CONTENT ===================== -->
     <center>
-        <TabPane tabClosingPolicy="UNAVAILABLE" styleClass="main-tabs">
+        <StackPane fx:id="contentPaneMOS">
 
-            <!-- TAB 1: VUE D'ENSEMBLE -->
-            <Tab text="📊 Vue d'ensemble">
-                <ScrollPane fitToWidth="true" fitToHeight="true">
-                    <VBox spacing="20" styleClass="content-container">
+            <!-- ============== PAGE ACCUEIL ============== -->
+            <ScrollPane fx:id="accueilMOSScroll" fitToWidth="true" styleClass="scroll-pane">
+                <VBox fx:id="accueilMOSPane" spacing="25" styleClass="main-content">
+                    <padding>
+                        <Insets top="30" right="30" bottom="30" left="30"/>
+                    </padding>
 
-                        <!-- Performance Metrics -->
-                        <VBox styleClass="section-card">
-                            <Label text="📈 Métriques de Performance" styleClass="section-title"/>
-                            <HBox spacing="20" alignment="CENTER">
-                                <LineChart fx:id="performanceChart"
-                                           title="Évolution des Performances"
-                                           prefHeight="250" prefWidth="500"
-                                           styleClass="chart-container">
-                                    <xAxis><CategoryAxis label="Métrique"/></xAxis>
-                                    <yAxis><NumberAxis label="Score"/></yAxis>
+                    <!-- Section Entraînement -->
+                    <VBox spacing="15" styleClass="section">
+                        <Label text="🚀 Entraînement du Modèle MOS" styleClass="section-title"/>
+                        <HBox spacing="15" alignment="CENTER_LEFT">
+                            <Button text="Lancer l'Entraînement"
+                                    onAction="#handleTrainMOS"
+                                    styleClass="train-btn"/>
+                            <Label text="Algorithme: Random Forest | Dataset: mos_dataset.csv"
+                                   styleClass="info-text"/>
+                        </HBox>
+                    </VBox>
+
+                    <!-- Statistiques en cartes -->
+                    <VBox spacing="15" styleClass="section">
+                        <Label text="📈 Statistiques de Qualité Audio" styleClass="section-title"/>
+
+                        <GridPane hgap="20" vgap="20">
+                            <!-- Carte 1: Échantillons audio -->
+                            <VBox styleClass="stat-card" GridPane.rowIndex="0" GridPane.columnIndex="0">
+                                <Label text="🎵 Échantillons Audio" styleClass="card-label"/>
+                                <Label fx:id="totalAudioLabel" text="--" styleClass="card-value"/>
+                                <Label text="Fichiers analysés" styleClass="card-subtitle"/>
+                            </VBox>
+
+                            <!-- Carte 2: MOS Moyen -->
+                            <VBox styleClass="stat-card stat-card-info" GridPane.rowIndex="0" GridPane.columnIndex="1">
+                                <Label text="📊 MOS Moyen" styleClass="card-label"/>
+                                <Label fx:id="avgMOSLabel" text="--" styleClass="card-value"/>
+                                <Label text="Sur 5.0" styleClass="card-subtitle"/>
+                            </VBox>
+
+                            <!-- Carte 3: Précision -->
+                            <VBox styleClass="stat-card stat-card-success" GridPane.rowIndex="0" GridPane.columnIndex="2">
+                                <Label text="🎯 Précision (RMSE)" styleClass="card-label"/>
+                                <Label fx:id="rmseLabel" text="--" styleClass="card-value"/>
+                                <Label text="Erreur moyenne" styleClass="card-subtitle"/>
+                            </VBox>
+
+                            <!-- Carte 4: Plage MOS -->
+                            <VBox styleClass="stat-card stat-card-warning" GridPane.rowIndex="0" GridPane.columnIndex="3">
+                                <Label text="📈 Plage MOS" styleClass="card-label"/>
+                                <HBox spacing="5" alignment="CENTER">
+                                    <Label fx:id="minMOSLabel" text="1.0" styleClass="mos-min"/>
+                                    <Label text="→" styleClass="mos-arrow"/>
+                                    <Label fx:id="maxMOSLabel" text="5.0" styleClass="mos-max"/>
+                                </HBox>
+                                <Label text="Min → Max" styleClass="card-subtitle"/>
+                            </VBox>
+                        </GridPane>
+                    </VBox>
+
+                    <!-- Graphiques -->
+                    <VBox spacing="15" styleClass="section">
+                        <Label text="📉 Visualisation des Données" styleClass="section-title"/>
+                        <Label text="Analyse de la qualité audio et distribution MOS"
+                               styleClass="info-text"/>
+
+                        <GridPane hgap="20" vgap="20">
+                            <!-- Graphique 1: Tendances MOS -->
+                            <VBox styleClass="chart-container" GridPane.rowIndex="0" GridPane.columnIndex="0">
+                                <LineChart fx:id="mosTrendChart" legendVisible="true" animated="false">
+                                    <xAxis>
+                                        <NumberAxis label="Échantillon" side="BOTTOM" autoRanging="true"/>
+                                    </xAxis>
+                                    <yAxis>
+                                        <NumberAxis label="MOS (1-5)" side="LEFT" lowerBound="1" upperBound="5" tickUnit="1"/>
+                                    </yAxis>
                                 </LineChart>
+                            </VBox>
 
-                                <VBox spacing="15" styleClass="metrics-grid">
-                                    <HBox spacing="10" styleClass="metric-row">
-                                        <Label text="MAE:" styleClass="metric-label"/>
-                                        <Label fx:id="maeLabel" text="0.00" styleClass="metric-value"/>
-                                    </HBox>
-                                    <HBox spacing="10" styleClass="metric-row">
-                                        <Label text="RMSE:" styleClass="metric-label"/>
-                                        <Label fx:id="rmseLabel" text="0.00" styleClass="metric-value"/>
-                                    </HBox>
-                                    <HBox spacing="10" styleClass="metric-row">
-                                        <Label text="R²:" styleClass="metric-label"/>
-                                        <Label fx:id="r2Label" text="0.00" styleClass="metric-value"/>
-                                    </HBox>
-                                    <HBox spacing="10" styleClass="metric-row">
-                                        <Label text="Corrélation:" styleClass="metric-label"/>
-                                        <Label fx:id="correlationLabel" text="0.00" styleClass="metric-value"/>
-                                    </HBox>
+                            <!-- Graphique 2: Distribution qualité -->
+                            <VBox styleClass="chart-container" GridPane.rowIndex="0" GridPane.columnIndex="1">
+                                <BarChart fx:id="qualityDistributionChart" legendVisible="true" animated="false">
+                                    <xAxis>
+                                        <CategoryAxis label="Niveau Qualité" side="BOTTOM"/>
+                                    </xAxis>
+                                    <yAxis>
+                                        <NumberAxis label="Nombre" side="LEFT" autoRanging="true"/>
+                                    </yAxis>
+                                </BarChart>
+                            </VBox>
+
+                            <!-- Graphique 3: Relation SNR-MOS -->
+                            <VBox styleClass="chart-container" GridPane.rowIndex="1" GridPane.columnIndex="0" GridPane.columnSpan="2">
+                                <ScatterChart fx:id="featureMOSChart" legendVisible="true" animated="false">
+                                    <xAxis>
+                                        <NumberAxis label="SNR (dB)" side="BOTTOM" autoRanging="true"/>
+                                    </xAxis>
+                                    <yAxis>
+                                        <NumberAxis label="MOS" side="LEFT" lowerBound="1" upperBound="5"/>
+                                    </yAxis>
+                                </ScatterChart>
+                            </VBox>
+                        </GridPane>
+                    </VBox>
+
+                    <!-- Tableau des résultats -->
+                    <VBox spacing="15" styleClass="section">
+                        <Label text="📋 Résultats de Prédiction MOS" styleClass="section-title"/>
+                        <Label text="Comparaison MOS prédit vs réel pour les échantillons audio"
+                               styleClass="info-text"/>
+
+                        <TableView fx:id="qualityTable" styleClass="data-table">
+                            <columns>
+                                <TableColumn fx:id="colAudioId" text="ID Audio" prefWidth="120"/>
+                                <TableColumn fx:id="colPredictedMOS" text="MOS Prédit" prefWidth="120"/>
+                                <TableColumn fx:id="colActualMOS" text="MOS Réel" prefWidth="100"/>
+                                <TableColumn fx:id="colError" text="Erreur" prefWidth="100"/>
+                                <TableColumn fx:id="colQualityLevel" text="Niveau Qualité" prefWidth="150"/>
+                            </columns>
+                        </TableView>
+                    </VBox>
+                </VBox>
+            </ScrollPane>
+
+            <!-- ============== PAGE PRÉDICTION ============== -->
+            <ScrollPane fx:id="predictionMOSScroll" fitToWidth="true" styleClass="scroll-pane" visible="false" managed="false">
+                <HBox alignment="CENTER">
+                    <VBox fx:id="predictionMOSPane" spacing="30" styleClass="main-content"
+                          maxWidth="900">
+                        <padding>
+                            <Insets top="40" right="40" bottom="40" left="40"/>
+                        </padding>
+
+                        <!-- Titre principal -->
+                        <VBox spacing="8" alignment="CENTER">
+                            <Label text="🎵 Prédiction du Mean Opinion Score (MOS)" styleClass="prediction-title"/>
+                            <Label text="Analysez vos caractéristiques audio pour prédire la qualité perçue"
+                                   styleClass="prediction-subtitle"/>
+                        </VBox>
+
+                        <!-- Formulaire de prédiction -->
+                        <VBox styleClass="prediction-form" spacing="25" maxWidth="700" alignment="CENTER">
+                            <Label text="🎛️ Caractéristiques Audio" styleClass="form-section-title"/>
+
+                            <GridPane hgap="20" vgap="20">
+                                <columnConstraints>
+                                    <ColumnConstraints percentWidth="40"/>
+                                    <ColumnConstraints percentWidth="50"/>
+                                    <ColumnConstraints percentWidth="10"/>
+                                </columnConstraints>
+
+                                <!-- Spectral Centroid -->
+                                <Label text="🎯 Centroïde Spectral"
+                                       GridPane.rowIndex="0" GridPane.columnIndex="0"
+                                       styleClass="form-label"/>
+                                <TextField fx:id="spectralCentroidField"
+                                           text="0.5"
+                                           promptText="0.0 - 1.0"
+                                           GridPane.rowIndex="0" GridPane.columnIndex="1"
+                                           styleClass="form-input"/>
+                                <Label text=""
+                                       GridPane.rowIndex="0" GridPane.columnIndex="2"
+                                       styleClass="unit-label"/>
+
+                                <!-- Spectral Bandwidth -->
+                                <Label text="📊 Largeur Spectrale"
+                                       GridPane.rowIndex="1" GridPane.columnIndex="0"
+                                       styleClass="form-label"/>
+                                <TextField fx:id="spectralBandwidthField"
+                                           text="0.3"
+                                           promptText="0.0 - 1.0"
+                                           GridPane.rowIndex="1" GridPane.columnIndex="1"
+                                           styleClass="form-input"/>
+                                <Label text=""
+                                       GridPane.rowIndex="1" GridPane.columnIndex="2"
+                                       styleClass="unit-label"/>
+
+                                <!-- RMS -->
+                                <Label text="🔊 RMS (Volume)"
+                                       GridPane.rowIndex="2" GridPane.columnIndex="0"
+                                       styleClass="form-label"/>
+                                <TextField fx:id="rmsField"
+                                           text="0.1"
+                                           promptText="0.0 - 0.5"
+                                           GridPane.rowIndex="2" GridPane.columnIndex="1"
+                                           styleClass="form-input"/>
+                                <Label text=""
+                                       GridPane.rowIndex="2" GridPane.columnIndex="2"
+                                       styleClass="unit-label"/>
+
+                                <!-- ZCR -->
+                                <Label text="📈 ZCR (Zero Crossing)"
+                                       GridPane.rowIndex="3" GridPane.columnIndex="0"
+                                       styleClass="form-label"/>
+                                <TextField fx:id="zcrField"
+                                           text="0.05"
+                                           promptText="0.0 - 0.2"
+                                           GridPane.rowIndex="3" GridPane.columnIndex="1"
+                                           styleClass="form-input"/>
+                                <Label text=""
+                                       GridPane.rowIndex="3" GridPane.columnIndex="2"
+                                       styleClass="unit-label"/>
+
+                                <!-- SNR -->
+                                <Label text="📶 SNR"
+                                       GridPane.rowIndex="4" GridPane.columnIndex="0"
+                                       styleClass="form-label"/>
+                                <TextField fx:id="snrField"
+                                           text="25.0"
+                                           promptText="0 - 50"
+                                           GridPane.rowIndex="4" GridPane.columnIndex="1"
+                                           styleClass="form-input"/>
+                                <Label text="dB"
+                                       GridPane.rowIndex="4" GridPane.columnIndex="2"
+                                       styleClass="unit-label"/>
+
+                                <!-- Distortion -->
+                                <Label text="⚠️ Distorsion"
+                                       GridPane.rowIndex="5" GridPane.columnIndex="0"
+                                       styleClass="form-label"/>
+                                <TextField fx:id="distortionField"
+                                           text="0.02"
+                                           promptText="0.0 - 0.1"
+                                           GridPane.rowIndex="5" GridPane.columnIndex="1"
+                                           styleClass="form-input"/>
+                                <Label text=""
+                                       GridPane.rowIndex="5" GridPane.columnIndex="2"
+                                       styleClass="unit-label"/>
+
+                                <!-- Noise Level -->
+                                <Label text="🔇 Niveau Bruit"
+                                       GridPane.rowIndex="6" GridPane.columnIndex="0"
+                                       styleClass="form-label"/>
+                                <TextField fx:id="noiseLevelField"
+                                           text="0.01"
+                                           promptText="0.0 - 0.1"
+                                           GridPane.rowIndex="6" GridPane.columnIndex="1"
+                                           styleClass="form-input"/>
+                                <Label text=""
+                                       GridPane.rowIndex="6" GridPane.columnIndex="2"
+                                       styleClass="unit-label"/>
+                            </GridPane>
+
+                            <!-- Sliders interactifs -->
+                            <VBox spacing="20" styleClass="slider-container">
+                                <Label text="⚙️ Paramètres Interactifs" styleClass="slider-title"/>
+
+                                <VBox spacing="15">
+                                    <!-- Volume -->
+                                    <VBox spacing="5">
+                                        <HBox>
+                                            <Label text="Volume" styleClass="slider-label"/>
+                                            <Region HBox.hgrow="ALWAYS"/>
+                                            <Label text="50%" styleClass="slider-value"/>
+                                        </HBox>
+                                        <Slider fx:id="volumeSlider" min="0" max="100" value="50"
+                                                showTickLabels="true" showTickMarks="true"
+                                                majorTickUnit="25" minorTickCount="5"/>
+                                    </VBox>
+
+                                    <!-- Bruit -->
+                                    <VBox spacing="5">
+                                        <HBox>
+                                            <Label text="Niveau Bruit" styleClass="slider-label"/>
+                                            <Region HBox.hgrow="ALWAYS"/>
+                                            <Label text="Faible" styleClass="slider-value"/>
+                                        </HBox>
+                                        <Slider fx:id="noiseSlider" min="0" max="5" value="1"
+                                                showTickLabels="true" showTickMarks="true"
+                                                majorTickUnit="1"/>
+                                    </VBox>
+
+                                    <!-- Compression -->
+                                    <VBox spacing="5">
+                                        <HBox>
+                                            <Label text="Compression" styleClass="slider-label"/>
+                                            <Region HBox.hgrow="ALWAYS"/>
+                                            <Label text="40%" styleClass="slider-value"/>
+                                        </HBox>
+                                        <Slider fx:id="compressionSlider" min="0" max="100" value="40"
+                                                showTickLabels="true" showTickMarks="true"
+                                                majorTickUnit="25" minorTickCount="5"/>
+                                    </VBox>
+                                </VBox>
+                            </VBox>
+
+                            <!-- Bouton Prédire -->
+                            <HBox alignment="CENTER" spacing="15">
+                                <Button text="🎯 Prédire le MOS"
+                                        onAction="#handlePredictMOS"
+                                        styleClass="predict-btn"/>
+                                <ProgressIndicator fx:id="loadingIndicatorMOS"
+                                                   visible="false"
+                                                   prefWidth="30" prefHeight="30"/>
+                            </HBox>
+                        </VBox>
+
+                        <!-- Résultat -->
+                        <VBox styleClass="result-card" spacing="20" alignment="CENTER" maxWidth="700">
+                            <Label text="📊 Résultat de Prédiction MOS" styleClass="result-title"/>
+
+                            <HBox spacing="40" alignment="CENTER">
+                                <VBox alignment="CENTER" spacing="8">
+                                    <Label text="MOS Prédit" styleClass="result-label-text"/>
+                                    <Label fx:id="predictedMOSLabel" text="--"
+                                           styleClass="result-value"/>
+                                </VBox>
+
+                                <Separator orientation="VERTICAL" prefHeight="60"/>
+
+                                <VBox alignment="CENTER" spacing="8">
+                                    <Label text="Niveau Qualité" styleClass="result-label-text"/>
+                                    <Label fx:id="qualityLevelLabel" text="--"
+                                           styleClass="quality-value"/>
+                                </VBox>
+
+                                <Separator orientation="VERTICAL" prefHeight="60"/>
+
+                                <VBox alignment="CENTER" spacing="8">
+                                    <Label text="Confiance" styleClass="result-label-text"/>
+                                    <Label fx:id="confidenceLabel" text="--"
+                                           styleClass="confidence-value"/>
                                 </VBox>
                             </HBox>
-                        </VBox>
 
-                        <!-- Recent Predictions Table -->
-                        <VBox styleClass="section-card">
-                            <Label text="🔮 Prédictions Récentes" styleClass="section-title"/>
-                            <TableView fx:id="recentPredictionsTable"
-                                       prefHeight="300"
-                                       styleClass="predictions-table"/>
-                        </VBox>
-
-                    </VBox>
-                </ScrollPane>
-            </Tab>
-
-            <!-- TAB 2: ENTRAÎNEMENT -->
-            <Tab text="🎓 Entraînement">
-                <ScrollPane fitToWidth="true" fitToHeight="true">
-                    <VBox spacing="20" styleClass="content-container">
-
-                        <!-- Training Configuration -->
-                        <VBox styleClass="section-card">
-                            <Label text="⚙️ Configuration de l'Entraînement" styleClass="section-title"/>
-
-                            <GridPane hgap="15" vgap="15" styleClass="config-grid">
-                                <Label text="Type de Modèle:" GridPane.rowIndex="0" GridPane.columnIndex="0" styleClass="label-bold"/>
-                                <ComboBox fx:id="modelTypeCombo" prefWidth="250" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
-
-                                <Label text="Validation:" GridPane.rowIndex="1" GridPane.columnIndex="0" styleClass="label-bold"/>
-                                <ComboBox fx:id="validationCombo" prefWidth="250" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
-
-                                <Label text="Ratio Train/Test:" GridPane.rowIndex="2" GridPane.columnIndex="0" styleClass="label-bold"/>
-                                <HBox spacing="10" alignment="CENTER_LEFT" GridPane.rowIndex="2" GridPane.columnIndex="1">
-                                    <Slider fx:id="trainRatioSlider" min="0.5" max="0.95" value="0.8"
-                                            showTickLabels="true" showTickMarks="true" prefWidth="200"/>
-                                    <Label text="80%" styleClass="slider-value"/>
-                                </HBox>
-                            </GridPane>
-
-                            <HBox spacing="15" alignment="CENTER" styleClass="button-group">
-                                <Button fx:id="trainBtn" text="🚀 Entraîner le Modèle"
-                                        onAction="#trainModel" styleClass="btn-primary"/>
-                                <Button text="💾 Sauvegarder Modèle" styleClass="btn-secondary"/>
-                                <Button text="📂 Charger Modèle" styleClass="btn-secondary"/>
-                            </HBox>
-                        </VBox>
-
-                        <!-- Training Progress -->
-                        <VBox styleClass="section-card">
-                            <Label text="⏳ Progression de l'Entraînement" styleClass="section-title"/>
-                            <VBox spacing="10">
-                                <HBox spacing="10" alignment="CENTER_LEFT">
-                                    <ProgressBar fx:id="trainingProgressBar" prefWidth="500" prefHeight="25"/>
-                                    <Label fx:id="trainingProgressLabel" text="En attente..." styleClass="progress-label"/>
-                                </HBox>
-                            </VBox>
-                        </VBox>
-
-                        <!-- Training Results -->
-                        <VBox styleClass="section-card">
-                            <HBox alignment="CENTER_LEFT" spacing="10">
-                                <Label text="📄 Résultats de l'Entraînement" styleClass="section-title"/>
-                                <Region HBox.hgrow="ALWAYS"/>
-                                <Button text="🗑️ Effacer" onAction="#clearTestOutput" styleClass="btn-small"/>
-                                <Button text="💾 Sauvegarder Log" onAction="#saveTestLog" styleClass="btn-small"/>
-                            </HBox>
-                            <TextArea fx:id="trainingResultsArea"
-                                      prefHeight="300"
-                                      editable="false"
-                                      wrapText="true"
-                                      styleClass="console-output"/>
-                        </VBox>
-
-                        <!-- Feature Importance -->
-                        <VBox styleClass="section-card">
-                            <Label text="🎯 Importance des Features" styleClass="section-title"/>
-                            <BarChart fx:id="featureImportanceChart"
-                                      title="Impact des Variables sur la Qualité"
-                                      prefHeight="300"
-                                      styleClass="chart-container">
-                                <xAxis><CategoryAxis label="Feature"/></xAxis>
-                                <yAxis><NumberAxis label="Importance (%)" upperBound="100"/></yAxis>
-                            </BarChart>
-                        </VBox>
-
-                    </VBox>
-                </ScrollPane>
-            </Tab>
-
-            <!-- TAB 3: PRÉDICTION -->
-            <Tab text="🔮 Prédiction">
-                <ScrollPane fitToWidth="true" fitToHeight="true">
-                    <VBox spacing="20" styleClass="content-container">
-
-                        <!-- Manual Prediction -->
-                        <VBox styleClass="section-card">
-                            <Label text="🎛️ Prédiction Manuelle" styleClass="section-title"/>
-
-                            <GridPane hgap="20" vgap="15" styleClass="prediction-grid">
-                                <!-- Latence -->
-                                <Label text="Latence (ms):" GridPane.rowIndex="0" GridPane.columnIndex="0" styleClass="input-label"/>
-                                <HBox spacing="10" GridPane.rowIndex="0" GridPane.columnIndex="1">
-                                    <Slider fx:id="latenceSlider" prefWidth="300"/>
-                                    <TextField fx:id="latenceField" prefWidth="80" styleClass="input-field"/>
-                                </HBox>
-
-                                <!-- Jitter -->
-                                <Label text="Jitter (ms):" GridPane.rowIndex="1" GridPane.columnIndex="0" styleClass="input-label"/>
-                                <HBox spacing="10" GridPane.rowIndex="1" GridPane.columnIndex="1">
-                                    <Slider fx:id="jitterSlider" prefWidth="300"/>
-                                    <TextField fx:id="jitterField" prefWidth="80" styleClass="input-field"/>
-                                </HBox>
-
-                                <!-- Perte -->
-                                <Label text="Perte (%):" GridPane.rowIndex="2" GridPane.columnIndex="0" styleClass="input-label"/>
-                                <HBox spacing="10" GridPane.rowIndex="2" GridPane.columnIndex="1">
-                                    <Slider fx:id="perteSlider" prefWidth="300"/>
-                                    <TextField fx:id="perteField" prefWidth="80" styleClass="input-field"/>
-                                </HBox>
-
-                                <!-- Bande Passante -->
-                                <Label text="Bande Passante (Mbps):" GridPane.rowIndex="3" GridPane.columnIndex="0" styleClass="input-label"/>
-                                <HBox spacing="10" GridPane.rowIndex="3" GridPane.columnIndex="1">
-                                    <Slider fx:id="bandePassanteSlider" prefWidth="300"/>
-                                    <TextField fx:id="bandePassanteField" prefWidth="80" styleClass="input-field"/>
-                                </HBox>
-
-                                <!-- Signal -->
-                                <Label text="Signal Score:" GridPane.rowIndex="4" GridPane.columnIndex="0" styleClass="input-label"/>
-                                <HBox spacing="10" GridPane.rowIndex="4" GridPane.columnIndex="1">
-                                    <Slider fx:id="signalSlider" prefWidth="300"/>
-                                    <TextField fx:id="signalField" prefWidth="80" styleClass="input-field"/>
-                                </HBox>
-                            </GridPane>
-
-                            <Button fx:id="predictBtn" text="🔮 Prédire le MOS"
-                                    onAction="#predictManual" styleClass="btn-predict"/>
-                        </VBox>
-
-                        <!-- Prediction Result -->
-                        <HBox spacing="20" styleClass="result-container">
-                            <VBox styleClass="result-card-large" alignment="CENTER">
-                                <Label text="MOS Prédit" styleClass="result-label"/>
-                                <Label fx:id="predictedMOSLabel" text="--" styleClass="result-mos"/>
-                                <Label fx:id="qoeCategoryLabel" text="En attente" styleClass="result-category"/>
-                            </VBox>
-
-                            <VBox styleClass="result-card-large" alignment="CENTER" spacing="10">
-                                <Label text="Indicateur de Qualité" styleClass="result-label"/>
-                                <ProgressBar fx:id="qualityIndicator"
-                                             prefWidth="300" prefHeight="40"
-                                             styleClass="quality-bar"/>
-                                <HBox spacing="5">
-                                    <Label text="Mauvais" styleClass="quality-text-low"/>
+                            <!-- Barre de progression MOS -->
+                            <VBox spacing="5" styleClass="mos-bar-container">
+                                <ProgressBar fx:id="mosBar" prefWidth="400"/>
+                                <HBox>
+                                    <Label text="1.0 (Médiocre)" styleClass="mos-scale-label"/>
                                     <Region HBox.hgrow="ALWAYS"/>
-                                    <Label text="Excellent" styleClass="quality-text-high"/>
+                                    <Label text="5.0 (Excellent)" styleClass="mos-scale-label"/>
                                 </HBox>
                             </VBox>
-                        </HBox>
-
-                        <!-- Prediction History -->
-                        <VBox styleClass="section-card">
-                            <Label text="📜 Historique des Prédictions" styleClass="section-title"/>
-                            <TableView fx:id="predictionHistoryTable"
-                                       prefHeight="250"
-                                       styleClass="predictions-table"/>
                         </VBox>
 
+                        <!-- Information sur le MOS -->
+                        <VBox styleClass="info-box" spacing="15" maxWidth="800">
+                            <Label text="💡 Qu'est-ce que le MOS (Mean Opinion Score) ?" styleClass="info-title"/>
+
+                            <VBox spacing="12">
+                                <Label text="Le Mean Opinion Score (MOS) est une mesure standard de la qualité audio perçue par les utilisateurs. Il varie de 1 (très mauvaise qualité) à 5 (excellente qualité)."
+                                       wrapText="true" styleClass="info-text"/>
+
+                                <Label text="📋 Échelle MOS :" styleClass="info-subtitle"/>
+                                <VBox spacing="6" styleClass="info-list">
+                                    <Label text="🎯 4.0-5.0 : Excellente - Qualité téléphonique HD, audio clair et naturel"
+                                           wrapText="true" styleClass="info-item"/>
+                                    <Label text="✅ 3.0-4.0 : Bonne - Qualité acceptable, légères distorsions audibles"
+                                           wrapText="true" styleClass="info-item"/>
+                                    <Label text="⚠️ 2.5-3.0 : Acceptable - Qualité médiocre mais compréhensible"
+                                           wrapText="true" styleClass="info-item"/>
+                                    <Label text="🔴 2.0-2.5 : Médiocre - Difficultés de compréhension, bruit important"
+                                           wrapText="true" styleClass="info-item"/>
+                                    <Label text="❌ 1.0-2.0 : Mauvaise - Incompréhensible, très dégradé"
+                                           wrapText="true" styleClass="info-item"/>
+                                </VBox>
+
+                                <Separator/>
+
+                                <Label text="🎯 Facteurs influençant le MOS :" styleClass="info-subtitle"/>
+                                <Label text="Notre modèle de Machine Learning (Random Forest) analyse plusieurs caractéristiques audio pour prédire le MOS :"
+                                       wrapText="true" styleClass="info-text"/>
+                                <VBox spacing="6" styleClass="info-list">
+                                    <Label text="• Rapport Signal/Bruit (SNR) : Plus il est élevé, meilleur est le MOS"
+                                           wrapText="true" styleClass="info-item"/>
+                                    <Label text="• Niveau de bruit : Le bruit réduit considérablement la qualité perçue"
+                                           wrapText="true" styleClass="info-item"/>
+                                    <Label text="• Distorsion : Les artefacts de compression dégradent le MOS"
+                                           wrapText="true" styleClass="info-item"/>
+                                    <Label text="• Caractéristiques spectrales : Centroïde spectral, largeur de bande"
+                                           wrapText="true" styleClass="info-item"/>
+                                </VBox>
+
+                                <Label text="⚠️ Impact sur l'expérience utilisateur :" styleClass="info-subtitle"/>
+                                <Label text="Un MOS bas (inférieur à 3.0) peut entraîner : fatigue auditive, difficultés de compréhension, frustration des utilisateurs, et une diminution de la productivité dans les environnements professionnels comme les centres d'appel ou les réunions virtuelles."
+                                       wrapText="true" styleClass="info-text"/>
+                            </VBox>
+                        </VBox>
                     </VBox>
-                </ScrollPane>
-            </Tab>
+                </HBox>
+            </ScrollPane>
 
-            <!-- TAB 4: TESTS -->
-            <Tab text="🧪 Tests">
-                <ScrollPane fitToWidth="true" fitToHeight="true">
-                    <VBox spacing="20" styleClass="content-container">
+            <!-- ============== PAGE COMPARAISON ============== -->
+            <ScrollPane fx:id="comparisonMOSScroll" fitToWidth="true" styleClass="scroll-pane" visible="false" managed="false">
+                <VBox spacing="30" styleClass="main-content">
+                    <padding>
+                        <Insets top="40" right="40" bottom="40" left="40"/>
+                    </padding>
 
-                        <!-- Test Actions -->
-                        <VBox styleClass="section-card">
-                            <Label text="🎮 Actions de Test" styleClass="section-title"/>
-                            <HBox spacing="15" alignment="CENTER" styleClass="test-buttons">
-                                <Button fx:id="quickTestBtn" text="⚡ Test Rapide"
-                                        onAction="#runQuickTest" styleClass="btn-test"/>
-                                <Button fx:id="evaluateBtn" text="📊 Évaluer Modèle"
-                                        onAction="#evaluateModel" styleClass="btn-test"/>
-                                <Button fx:id="predictMissingBtn" text="🔮 Prédire MOS Manquants"
-                                        onAction="#predictMissingMOS" styleClass="btn-test"/>
-                                <Button fx:id="fullTestBtn" text="🚀 Suite Complète"
-                                        onAction="#runAllTests" styleClass="btn-test-full"/>
-                            </HBox>
-                        </VBox>
-
-                        <!-- Test Output -->
-                        <VBox styleClass="section-card">
-                            <HBox alignment="CENTER_LEFT" spacing="10">
-                                <Label text="💻 Console de Sortie" styleClass="section-title"/>
-                                <Region HBox.hgrow="ALWAYS"/>
-                                <Button text="🗑️ Effacer" onAction="#clearTestOutput" styleClass="btn-small"/>
-                                <Button text="💾 Exporter" onAction="#saveTestLog" styleClass="btn-small"/>
-                            </HBox>
-                            <TextArea fx:id="testOutputArea"
-                                      prefHeight="400"
-                                      editable="false"
-                                      wrapText="true"
-                                      styleClass="console-output"/>
-                        </VBox>
-
+                    <!-- Titre -->
+                    <VBox spacing="8" alignment="CENTER_LEFT">
+                        <Label text="📈 Analyse Comparative MOS" styleClass="section-title"/>
+                        <Label text="Comparez les performances du modèle et analysez l'influence des paramètres"
+                               styleClass="info-text"/>
                     </VBox>
-                </ScrollPane>
-            </Tab>
 
-            <!-- TAB 5: VISUALISATIONS -->
-            <Tab text="📈 Visualisations">
-                <ScrollPane fitToWidth="true" fitToHeight="true">
-                    <VBox spacing="20" styleClass="content-container">
+                    <!-- Contrôles -->
+                    <HBox spacing="20" alignment="CENTER_LEFT" styleClass="comparison-controls">
+                        <Label text="Métrique :" styleClass="control-label"/>
+                        <ChoiceBox fx:id="comparisonMetricChoice" prefWidth="200"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <CheckBox fx:id="showActualMOSCheck" text="MOS Réel" selected="true"/>
+                        <CheckBox fx:id="showPredictedMOSCheck" text="MOS Prédit" selected="true"/>
+                        <Button text="Actualiser" onAction="#updateComparisonChart"
+                                styleClass="control-button"/>
+                    </HBox>
 
-                        <!-- MOS Distribution -->
-                        <VBox styleClass="section-card">
-                            <Label text="📊 Distribution des Scores MOS" styleClass="section-title"/>
-                            <BarChart fx:id="mosDistributionChart"
-                                      title="Répartition par Catégorie QoE"
-                                      prefHeight="300"
-                                      styleClass="chart-container">
-                                <xAxis><CategoryAxis label="Catégorie"/></xAxis>
-                                <yAxis><NumberAxis label="Nombre d'instances"/></yAxis>
-                            </BarChart>
-                        </VBox>
+                    <!-- Graphique de comparaison -->
+                    <VBox styleClass="chart-container-large">
+                        <LineChart fx:id="comparisonChart" legendVisible="true" animated="false" prefHeight="400">
+                            <xAxis>
+                                <NumberAxis label="Échantillon" side="BOTTOM" autoRanging="true"/>
+                            </xAxis>
+                            <yAxis>
+                                <NumberAxis label="MOS (1-5)" side="LEFT" lowerBound="1" upperBound="5" tickUnit="1"/>
+                            </yAxis>
+                        </LineChart>
+                    </VBox>
 
-                        <!-- Scatter Plots -->
-                        <HBox spacing="20">
-                            <VBox styleClass="section-card" HBox.hgrow="ALWAYS">
-                                <Label text="📉 MOS vs Latence" styleClass="section-title"/>
-                                <ScatterChart fx:id="mosVsLatenceChart"
-                                              prefHeight="300"
-                                              styleClass="chart-container">
-                                    <xAxis><NumberAxis label="Latence (ms)"/></xAxis>
-                                    <yAxis><NumberAxis label="MOS" lowerBound="1" upperBound="5"/></yAxis>
-                                </ScatterChart>
+                    <!-- Rapport d'analyse -->
+                    <VBox spacing="15" styleClass="analysis-section">
+                        <Label text="📋 Rapport d'Analyse" styleClass="section-title"/>
+                        <TextArea fx:id="comparisonTextArea" wrapText="true" editable="false"
+                                  prefHeight="200" styleClass="analysis-textarea"/>
+                    </VBox>
+
+                    <!-- Facteurs d'influence -->
+                    <VBox spacing="15" styleClass="factors-section">
+                        <Label text="📊 Facteurs d'Influence sur le MOS" styleClass="section-title"/>
+
+                        <VBox spacing="15">
+                            <!-- SNR -->
+                            <VBox spacing="5">
+                                <HBox>
+                                    <Label text="Rapport Signal/Bruit (SNR)" styleClass="factor-label"/>
+                                    <Region HBox.hgrow="ALWAYS"/>
+                                    <Label text="Impact: Élevé" styleClass="factor-impact-high"/>
+                                </HBox>
+                                <ProgressBar progress="0.9" styleClass="factor-progress-high"/>
                             </VBox>
 
-                            <VBox styleClass="section-card" HBox.hgrow="ALWAYS">
-                                <Label text="📉 MOS vs Perte" styleClass="section-title"/>
-                                <ScatterChart fx:id="mosVsPerteChart"
-                                              prefHeight="300"
-                                              styleClass="chart-container">
-                                    <xAxis><NumberAxis label="Perte (%)"/></xAxis>
-                                    <yAxis><NumberAxis label="MOS" lowerBound="1" upperBound="5"/></yAxis>
-                                </ScatterChart>
+                            <!-- Bruit -->
+                            <VBox spacing="5">
+                                <HBox>
+                                    <Label text="Niveau de Bruit" styleClass="factor-label"/>
+                                    <Region HBox.hgrow="ALWAYS"/>
+                                    <Label text="Impact: Élevé" styleClass="factor-impact-high"/>
+                                </HBox>
+                                <ProgressBar progress="0.85" styleClass="factor-progress-high"/>
                             </VBox>
-                        </HBox>
 
+                            <!-- Distorsion -->
+                            <VBox spacing="5">
+                                <HBox>
+                                    <Label text="Distorsion" styleClass="factor-label"/>
+                                    <Region HBox.hgrow="ALWAYS"/>
+                                    <Label text="Impact: Moyen" styleClass="factor-impact-medium"/>
+                                </HBox>
+                                <ProgressBar progress="0.6" styleClass="factor-progress-medium"/>
+                            </VBox>
+
+                            <!-- Compression -->
+                            <VBox spacing="5">
+                                <HBox>
+                                    <Label text="Compression" styleClass="factor-label"/>
+                                    <Region HBox.hgrow="ALWAYS"/>
+                                    <Label text="Impact: Modéré" styleClass="factor-impact-medium"/>
+                                </HBox>
+                                <ProgressBar progress="0.4" styleClass="factor-progress-medium"/>
+                            </VBox>
+                        </VBox>
+
+                        <!-- Recommandations -->
+                        <VBox spacing="10" styleClass="recommendations-box">
+                            <Label text="💡 Recommandations d'Amélioration" styleClass="recommendations-title"/>
+                            <VBox spacing="5" styleClass="recommendations-list">
+                                <Label text="• Augmenter le SNR au-delà de 30 dB" styleClass="recommendation-item"/>
+                                <Label text="• Réduire le bruit en dessous de 0.01" styleClass="recommendation-item"/>
+                                <Label text="• Maintenir la distorsion inférieure à 0.05" styleClass="recommendation-item"/>
+                                <Label text="• Éviter une compression excessive" styleClass="recommendation-item"/>
+                            </VBox>
+                        </VBox>
                     </VBox>
-                </ScrollPane>
-            </Tab>
+                </VBox>
+            </ScrollPane>
 
-        </TabPane>
+        </StackPane>
     </center>
-
-    <!-- FOOTER -->
-    <bottom>
-        <HBox styleClass="footer-container" alignment="CENTER_LEFT" spacing="30">
-            <Label fx:id="modelInfoLabel" text="Modèle: Non entraîné" styleClass="footer-text"/>
-            <Separator orientation="VERTICAL"/>
-            <Label fx:id="dataInfoLabel" text="Données: 0 instances" styleClass="footer-text"/>
-            <Separator orientation="VERTICAL"/>
-            <Label fx:id="lastUpdateLabel" text="Dernière mise à jour: --" styleClass="footer-text"/>
-            <Region HBox.hgrow="ALWAYS"/>
-            <Label text="QoE ML System v1.0" styleClass="footer-text-version"/>
-        </HBox>
-    </bottom>
 
 </BorderPane>

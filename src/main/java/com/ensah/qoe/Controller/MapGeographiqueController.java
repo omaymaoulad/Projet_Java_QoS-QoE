@@ -288,7 +288,7 @@ public class MapGeographiqueController implements Initializable {
             legend.onAdd = function(map) {
                 var div = L.DomUtil.create('div', 'legend');
                 div.innerHTML = `
-                    <h4>📊 Légende QoE</h4>
+                    <h4>Légende QoE</h4>
                     <div class="legend-item">
                         <div class="legend-circle" style="background: #10b981;"></div>
                         <span>Excellent (4.5-5.0)</span>
@@ -363,7 +363,7 @@ public class MapGeographiqueController implements Initializable {
                         <span class="qoe-badge">${qoe.toFixed(2)}/5 (${label})</span>
                     </div>
                     <div class="metric-row">
-                        <span class="metric-label">📍 Zone</span>
+                        <span class="metric-label"> Zone</span>
                         <span class="metric-value">${zone}</span>
                     </div>
                     <div class="metric-row">
@@ -371,7 +371,7 @@ public class MapGeographiqueController implements Initializable {
                         <span class="metric-value">${genre}</span>
                     </div>
                     <div class="metric-row">
-                        <span class="metric-label">📞 Téléphone</span>
+                        <span class="metric-label"> Téléphone</span>
                         <span class="metric-value">${telephone}</span>
                     </div>
                 </div>
