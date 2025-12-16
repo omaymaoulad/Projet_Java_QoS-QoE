@@ -3,192 +3,307 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.geometry.*?>
-<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.*?>
+
 <BorderPane xmlns="http://javafx.com/javafx/21"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.ensah.qoe.Controller.AnomalyDashboardController"
-            stylesheets="@css/dashboard-ml-Anomaly.css">
+            stylesheets="/css/dashboard-ml-Anomaly.css"
+            styleClass="root">
 
     <!-- ===================== HEADER ===================== -->
     <top>
         <VBox styleClass="header">
-            <Label text="QoS / QoE – Anomaly Detection Dashboard"
-                   styleClass="header-title"/>
+            <HBox styleClass="header-content" alignment="CENTER_LEFT" spacing="30">
+                <Label text="🔍 Détection d'Anomalies QoS/QoE" styleClass="header-title"/>
 
-            <MenuBar>
-                <Menu text="Navigation">
-                    <MenuItem fx:id="menuTrain" text="Entraînement"
-                              onAction="#showTrain"/>
-                    <MenuItem fx:id="menuPredict" text="Prédiction"
-                              onAction="#showPredict"/>
-                    <MenuItem fx:id="menuEvaluate" text="Évaluation"
-                              onAction="#showEvaluate"/>
-                </Menu>
-            </MenuBar>
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <HBox spacing="15" alignment="CENTER_RIGHT">
+                    <Button fx:id="btnAccueil" text="📊 Accueil"
+                            onAction="#showAccueil"
+                            styleClass="nav-btn-active"/>
+                    <Button fx:id="btnPrediction" text="🔮 Prédiction"
+                            onAction="#showPrediction"
+                            styleClass="nav-btn"/>
+                </HBox>
+            </HBox>
         </VBox>
     </top>
 
     <!-- ===================== MAIN CONTENT ===================== -->
     <center>
-
-        <!-- STACKPANE OBLIGATOIRE POUR LE CONTROLLER -->
         <StackPane fx:id="contentPane">
-            <padding>
-                <Insets top="25" right="25" bottom="25" left="25"/>
-            </padding>
 
-            <!-- ===================== TRAIN PANE ===================== -->
-            <VBox fx:id="trainPane" spacing="15" maxWidth="700"
-                  styleClass="card">
+            <!-- ============== PAGE ACCUEIL ============== -->
+            <ScrollPane fx:id="accueilScroll" fitToWidth="true"  styleClass="scroll-pane">
+                <VBox fx:id="accueilPane" spacing="25" styleClass="main-content">
+                    <padding>
+                        <Insets top="30" right="30" bottom="30" left="30"/>
+                    </padding>
 
-                <Label text="Entraînement du modèle (Random Forest)"
-                       styleClass="card-title"/>
+                    <!-- Section Entraînement -->
+                    <VBox spacing="15" styleClass="section">
+                        <Label text="🚀 Entraînement du Modèle" styleClass="section-title"/>
+                        <HBox spacing="15" alignment="CENTER_LEFT">
+                            <Button text="Lancer l'Entraînement"
+                                    onAction="#handleTrain"
+                                    styleClass="train-btn"/>
+                            <Label text="Algorithme: Random Forest | Dataset: prediction_dataset.csv"
+                                   styleClass="info-text"/>
+                        </HBox>
+                    </VBox>
 
-                <Button text="Lancer l'entraînement"
-                        fx:id="trainButton"
-                        onAction="#handleTrain"
-                        styleClass="primary-btn"/>
+                    <!-- Statistiques en cartes -->
+                    <VBox spacing="15" styleClass="section">
+                        <Label text="📈 Statistiques du Dataset CSV" styleClass="section-title"/>
 
-                <TextArea fx:id="trainingLog"
-                          prefHeight="180"
-                          editable="false"/>
-            </VBox>
+                        <GridPane hgap="20" vgap="20">
+                            <!-- Carte 1: Total -->
+                            <VBox styleClass="stat-card" GridPane.rowIndex="0" GridPane.columnIndex="0">
+                                <Label text="📊 Total Instances" styleClass="card-label"/>
+                                <Label fx:id="totalInstancesLabel" text="--" styleClass="card-value"/>
+                                <Label text="Lignes dans le CSV" styleClass="card-subtitle"/>
+                            </VBox>
 
-            <!-- ===================== PREDICT PANE ===================== -->
-            <VBox fx:id="predictPane"
-                  spacing="20"
-                  visible="false"
-                  managed="false"
-                  styleClass="card">
-                 <padding>
-                    <Insets top="25" right="25" bottom="25" left="25"/>
-                 </padding>
-                <!-- Titre -->
-                <Label text="Prédiction d'anomalie QoS"
-                       styleClass="card-title"/>
+                            <!-- Carte 2: Normal -->
+                            <VBox styleClass="stat-card stat-card-success" GridPane.rowIndex="0" GridPane.columnIndex="1">
+                                <Label text="✅ Instances Normales" styleClass="card-label"/>
+                                <Label fx:id="normalCountLabel" text="--" styleClass="card-value"/>
+                                <Label text="Comportement normal" styleClass="card-subtitle"/>
+                            </VBox>
 
-                <Label text="Veuillez saisir les paramètres réseau mesurés pour détecter une anomalie."
-                       styleClass="subtitle"/>
+                            <!-- Carte 3: Anomalies -->
+                            <VBox styleClass="stat-card stat-card-danger" GridPane.rowIndex="0" GridPane.columnIndex="2">
+                                <Label text="⚠️ Anomalies Détectées" styleClass="card-label"/>
+                                <Label fx:id="anomalyCountLabel" text="--" styleClass="card-value"/>
+                                <Label text="Nécessitent attention" styleClass="card-subtitle"/>
+                            </VBox>
 
-                <!-- Formulaire -->
-                <GridPane hgap="15" vgap="14">
+                            <!-- Carte 4: Accuracy -->
+                            <VBox styleClass="stat-card stat-card-info" GridPane.rowIndex="0" GridPane.columnIndex="3">
+                                <Label text="🎯 Précision Modèle" styleClass="card-label"/>
+                                <Label fx:id="accuracyLabel" text="--" styleClass="card-value"/>
+                                <Label text="Performance globale" styleClass="card-subtitle"/>
+                            </VBox>
+                        </GridPane>
+                    </VBox>
 
-                    <!-- LATENCE -->
-                    <Label text="Latence réseau"
-                           GridPane.rowIndex="0" GridPane.columnIndex="0"
-                           styleClass="form-label"/>
-                    <TextField fx:id="latField"
-                               promptText="Ex: 50"
-                               GridPane.rowIndex="0" GridPane.columnIndex="1"/>
-                    <Label text="ms"
-                           GridPane.rowIndex="0" GridPane.columnIndex="2"
-                           styleClass="unit-label"/>
+                    <!-- Graphiques -->
+                    <VBox spacing="15" styleClass="section">
+                        <Label text="📉 Analyse Visuelle des Features" styleClass="section-title"/>
+                        <Label text="Visualisation de la corrélation entre différentes métriques QoS"
+                               styleClass="info-text"/>
 
-                    <!-- JITTER -->
-                    <Label text="Jitter"
-                           GridPane.rowIndex="1" GridPane.columnIndex="0"
-                           styleClass="form-label"/>
-                    <TextField fx:id="jitField"
-                               promptText="Ex: 10"
-                               GridPane.rowIndex="1" GridPane.columnIndex="1"/>
-                    <Label text="ms"
-                           GridPane.rowIndex="1" GridPane.columnIndex="2"
-                           styleClass="unit-label"/>
+                        <GridPane hgap="20" vgap="20">
+                            <!-- Graphique 1 -->
+                            <VBox styleClass="chart-container" GridPane.rowIndex="0" GridPane.columnIndex="0">
+                                <ScatterChart fx:id="chart1" legendVisible="true" animated="false">
+                                    <xAxis>
+                                        <NumberAxis label="Latence (ms)" side="BOTTOM" autoRanging="true"/>
+                                    </xAxis>
+                                    <yAxis>
+                                        <NumberAxis label="Jitter (ms)" side="LEFT" autoRanging="true"/>
+                                    </yAxis>
+                                </ScatterChart>
+                            </VBox>
 
-                    <!-- PERTE -->
-                    <Label text="Perte de paquets"
-                           GridPane.rowIndex="2" GridPane.columnIndex="0"
-                           styleClass="form-label"/>
-                    <TextField fx:id="lossField"
-                               promptText="Ex: 1.5"
-                               GridPane.rowIndex="2" GridPane.columnIndex="1"/>
-                    <Label text=" "
-                           GridPane.rowIndex="2" GridPane.columnIndex="2"
-                           styleClass="unit-label"/>
+                            <!-- Graphique 2 -->
+                            <VBox styleClass="chart-container" GridPane.rowIndex="0" GridPane.columnIndex="1">
+                                <ScatterChart fx:id="chart2" legendVisible="true" animated="false">
+                                    <xAxis>
+                                        <NumberAxis label="Bande passante (Mbps)" side="BOTTOM" autoRanging="true"/>
+                                    </xAxis>
+                                    <yAxis>
+                                        <NumberAxis label="Perte " side="LEFT" autoRanging="true"/>
+                                    </yAxis>
+                                </ScatterChart>
+                            </VBox>
 
-                    <!-- BANDE PASSANTE -->
-                    <Label text="Bande passante"
-                           GridPane.rowIndex="3" GridPane.columnIndex="0"
-                           styleClass="form-label"/>
-                    <TextField fx:id="bwField"
-                               promptText="Ex: 100"
-                               GridPane.rowIndex="3" GridPane.columnIndex="1"/>
-                    <Label text="Mbps"
-                           GridPane.rowIndex="3" GridPane.columnIndex="2"
-                           styleClass="unit-label"/>
+                            <!-- Graphique 3 -->
+                            <VBox styleClass="chart-container" GridPane.rowIndex="1" GridPane.columnIndex="0" GridPane.columnSpan="2">
+                                <ScatterChart fx:id="chart3" legendVisible="true" animated="false">
+                                    <xAxis>
+                                        <NumberAxis label="Score Signal (0-100)" side="BOTTOM" autoRanging="true"/>
+                                    </xAxis>
+                                    <yAxis>
+                                        <NumberAxis label="Latence (ms)" side="LEFT" autoRanging="true"/>
+                                    </yAxis>
+                                </ScatterChart>
+                            </VBox>
+                        </GridPane>
+                    </VBox>
 
-                    <!-- SIGNAL -->
-                    <Label text="Qualité du signal"
-                           GridPane.rowIndex="4" GridPane.columnIndex="0"
-                           styleClass="form-label"/>
-                    <TextField fx:id="sigField"
-                               promptText="0 - 100"
-                               GridPane.rowIndex="4" GridPane.columnIndex="1"/>
-                    <Label text=" "
-                           GridPane.rowIndex="4" GridPane.columnIndex="2"
-                           styleClass="unit-label"/>
+                    <!-- Tableau des zones -->
+                    <VBox spacing="15" styleClass="section">
+                        <Label text="🗺 Analyse par Zone Géographique" styleClass="section-title"/>
+                        <Label text="Statistiques d'anomalies par zone "
+                               styleClass="info-text"/>
 
-                </GridPane>
+                        <TableView fx:id="zoneTable" styleClass="data-table">
+                            <columns>
+                                <TableColumn fx:id="colZone" text="Zone" prefWidth="200"/>
+                                <TableColumn fx:id="colNormal" text="Normal" prefWidth="120"/>
+                                <TableColumn fx:id="colAnomaly" text="Anomalies" prefWidth="120"/>
+                                <TableColumn fx:id="colTotal" text="Total" prefWidth="100"/>
+                                <TableColumn fx:id="colStatus" text="Statut" prefWidth="180"/>
+                            </columns>
+                        </TableView>
+                    </VBox>
+                </VBox>
+            </ScrollPane>
 
-                <!-- Bouton -->
-                <Button text="Analyser et prédire"
-                        onAction="#handlePredict"
-                        styleClass="primary-btn"
-                        maxWidth="220"/>
+            <!-- ============== PAGE PREDICTION ============== -->
+            <ScrollPane fx:id="predictionScroll" fitToWidth="true" styleClass="scroll-pane" visible="false" managed="false">
+                <HBox alignment="CENTER">
+                    <VBox fx:id="predictionPane" spacing="30" styleClass="main-content"
+                          maxWidth="900">
+                        <padding>
+                             <Insets top="40" right="40" bottom="40" left="100"/>
+                        </padding>
 
-                <!-- Résultat -->
-                <Separator/>
+                    <!-- Titre principal -->
+                        <VBox spacing="8" alignment="CENTER">
+                            <Label text="🔮 Prédiction d'Anomalie QoS" styleClass="prediction-title"/>
+                            <Label text="Analysez vos métriques réseau en temps réel avec Machine Learning"
+                               styleClass="prediction-subtitle"/>
+                        </VBox>
 
-                <HBox spacing="15" alignment="CENTER_LEFT">
+                    <!-- Formulaire de prédiction -->
+                        <VBox styleClass="prediction-form" spacing="25" maxWidth="700" alignment="CENTER">
+                            <Label text="📝 Paramètres Réseau" styleClass="form-section-title"/>
 
-                    <Label text="Résultat :"
-                           styleClass="result-label"/>
+                            <GridPane hgap="20" vgap="20">
+                                <columnConstraints>
+                                    <ColumnConstraints percentWidth="40"/>
+                                    <ColumnConstraints percentWidth="50"/>
+                                    <ColumnConstraints percentWidth="10"/>
+                                </columnConstraints>
 
-                    <Label fx:id="predictionLabel"
-                           text="--"
-                           styleClass="result-value"/>
+                            <!-- Latence -->
+                                <Label text="📡 Latence Réseau"
+                                   GridPane.rowIndex="0" GridPane.columnIndex="0"
+                                   styleClass="form-label"/>
+                                <TextField fx:id="latField"
+                                       promptText="Ex: 50"
+                                       GridPane.rowIndex="0" GridPane.columnIndex="1"
+                                       styleClass="form-input"/>
+                                <Label text="ms"
+                                   GridPane.rowIndex="0" GridPane.columnIndex="2"
+                                   styleClass="unit-label"/>
 
-                    <Label text="Confiance :"
-                           styleClass="result-label"/>
+                            <!-- Jitter -->
+                                <Label text="📊 Jitter"
+                                   GridPane.rowIndex="1" GridPane.columnIndex="0"
+                                   styleClass="form-label"/>
+                                <TextField fx:id="jitField"
+                                       promptText="Ex: 10"
+                                       GridPane.rowIndex="1" GridPane.columnIndex="1"
+                                       styleClass="form-input"/>
+                                <Label text="ms"
+                                   GridPane.rowIndex="1" GridPane.columnIndex="2"
+                                   styleClass="unit-label"/>
 
-                    <Label fx:id="confidenceLabel"
-                           text="--"
-                           styleClass="confidence-value"/>
+                            <!-- Perte -->
+                                <Label text="📉 Perte de Paquets"
+                                   GridPane.rowIndex="2" GridPane.columnIndex="0"
+                                   styleClass="form-label"/>
+                                <TextField fx:id="lossField"
+                                       promptText="Ex: 1.5"
+                                       GridPane.rowIndex="2" GridPane.columnIndex="1"
+                                       styleClass="form-input"/>
+                                <Label text=" "
+                                   GridPane.rowIndex="2" GridPane.columnIndex="2"
+                                   styleClass="unit-label"/>
 
+                            <!-- Bande passante -->
+                                <Label text="🌐 Bande Passante"
+                                   GridPane.rowIndex="3" GridPane.columnIndex="0"
+                                   styleClass="form-label"/>
+                                <TextField fx:id="bwField"
+                                       promptText="Ex: 100"
+                                       GridPane.rowIndex="3" GridPane.columnIndex="1"
+                                       styleClass="form-input"/>
+                                <Label text="Mbps"
+                                   GridPane.rowIndex="3" GridPane.columnIndex="2"
+                                   styleClass="unit-label"/>
+
+                            <!-- Signal -->
+                                <Label text="📶 Qualité Signal"
+                                   GridPane.rowIndex="4" GridPane.columnIndex="0"
+                                   styleClass="form-label"/>
+                                <TextField fx:id="sigField"
+                                       promptText="0 - 100"
+                                       GridPane.rowIndex="4" GridPane.columnIndex="1"
+                                       styleClass="form-input"/>
+                                <Label text=""
+                                   GridPane.rowIndex="4" GridPane.columnIndex="2"/>
+                            </GridPane>
+
+                        <!-- Bouton Prédire -->
+                            <HBox alignment="CENTER" spacing="15">
+                                <Button text="🔍 Analyser"
+                                    onAction="#handlePredict"
+                                    styleClass="predict-btn"/>
+                                <ProgressIndicator fx:id="loadingIndicator"
+                                               visible="false"
+                                               prefWidth="30" prefHeight="30"/>
+                            </HBox>
+                         </VBox>
+
+                    <!-- Résultat -->
+                        <VBox styleClass="result-card" spacing="20" alignment="CENTER" maxWidth="700">
+                            <Label text="📊 Résultat de l'Analyse" styleClass="result-title"/>
+
+                            <HBox spacing="40" alignment="CENTER">
+                                <VBox alignment="CENTER" spacing="8">
+                                    <Label text="Prédiction" styleClass="result-label-text"/>
+                                    <Label fx:id="predictionLabel" text="--"
+                                       styleClass="result-value"/>
+                                </VBox>
+
+                                <Separator orientation="VERTICAL" prefHeight="60"/>
+
+                                <VBox alignment="CENTER" spacing="8">
+                                    <Label text="Confiance" styleClass="result-label-text"/>
+                                    <Label fx:id="confidenceLabel" text="--"
+                                       styleClass="confidence-value"/>
+                                </VBox>
+                            </HBox>
+                        </VBox>
+
+                    <!-- Information sur les anomalies -->
+                        <VBox styleClass="info-box" spacing="15" maxWidth="800">
+                            <Label text="💡 Qu'est-ce qu'une Anomalie Réseau ?" styleClass="info-title"/>
+
+                            <VBox spacing="12">
+                                <Label text="Une anomalie réseau représente un comportement inhabituel ou dégradé dans les performances du réseau qui peut affecter négativement l'expérience utilisateur (QoE - Quality of Experience)."
+                                   wrapText="true" styleClass="info-text"/>
+
+                                <Label text="📋 Indicateurs d'Anomalie :" styleClass="info-subtitle"/>
+                                <VBox spacing="6" styleClass="info-list">
+                                    <Label text=" Latence élevée (plus grand de 150ms) : Retards dans la transmission des données, affectant la réactivité"
+                                       wrapText="true" styleClass="info-item"/>
+                                    <Label text=" Jitter important (plus grand de 30ms) : Variation instable du délai, causant des coupures audio/vidéo"
+                                       wrapText="true" styleClass="info-item"/>
+                                    <Label text="Perte de paquets (plus petit de  3) : Données non reçues, nécessitant des retransmissions"
+                                       wrapText="true" styleClass="info-item"/>
+                                    <Label text=" Bande passante faible (plus petit de 50 Mbps) : Débit insuffisant pour les applications gourmandes"
+                                       wrapText="true" styleClass="info-item"/>
+                                    <Label text=" Signal dégradé (plus petit que 60 pour cent) : Qualité de connexion médiocre, instabilité réseau"
+                                       wrapText="true" styleClass="info-item"/>
+                                </VBox>
+                                <Separator/>
+                                <Label text="🎯 Quand une zone est-elle considérée comme anomale ?" styleClass="info-subtitle"/>
+                                <Label text="Une zone est classée comme anomale lorsqu'elle présente plusieurs de ces indicateurs simultanément, dépassant les seuils acceptables. Notre modèle de Machine Learning (Random Forest) analyse ces patterns complexes pour identifier les anomalies avec une grande précision."
+                                   wrapText="true" styleClass="info-text"/>
+                                <Label text="⚠ Impact sur l'utilisateur : Lorsqu'une anomalie est détectée, cela peut entraîner des coupures de service, du buffering vidéo, une qualité audio/vidéo dégradée, des déconnexions fréquentes, ou une navigation web lente."
+                                   wrapText="true" styleClass="info-text"/>
+                            </VBox>
+                        </VBox>
+                    </VBox>
                 </HBox>
-
-            </VBox>
-
-            <!-- ===================== EVALUATE PANE ===================== -->
-            <VBox fx:id="evaluatePane" spacing="15" maxWidth="700"
-                  visible="false" managed="false"
-                  styleClass="card">
-
-                <Label text="Évaluation du modèle"
-                       styleClass="card-title"/>
-
-                <GridPane hgap="20" vgap="10">
-                    <Label text="Accuracy"/>
-                    <Label fx:id="accLabel"/>
-
-                    <Label text="Precision" GridPane.rowIndex="1"/>
-                    <Label fx:id="precLabel" GridPane.rowIndex="1"/>
-
-                    <Label text="Recall" GridPane.rowIndex="2"/>
-                    <Label fx:id="recallLabel" GridPane.rowIndex="2"/>
-
-                    <Label text="F1-score" GridPane.rowIndex="3"/>
-                    <Label fx:id="f1Label" GridPane.rowIndex="3"/>
-                </GridPane>
-
-                <Button text="Évaluer le modèle"
-                        onAction="#handleEvaluate"
-                        styleClass="primary-btn"/>
-
-                <TextArea fx:id="evalLog"
-                          prefHeight="200"
-                          editable="false"/>
-            </VBox>
+            </ScrollPane>
 
         </StackPane>
     </center>

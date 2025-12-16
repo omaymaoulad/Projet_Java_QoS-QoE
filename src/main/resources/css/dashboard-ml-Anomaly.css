@@ -1,76 +1,425 @@
-/* ---------- GLOBAL ---------- */
+/* ===============================================
+   MODERN DASHBOARD STYLESHEET
+   =============================================== */
+
+/* ========== ROOT & GLOBAL ========== */
 .root {
-    -fx-font-family: "Segoe UI", "Roboto", sans-serif;
-    -fx-background-color: #f4f6f9;
+    -fx-background-color: #f5f7fa;
+    -fx-font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
 }
 
-/* ---------- CARD ---------- */
-.card {
+.scroll-pane {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+}
+
+.scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+
+/* ========== HEADER ========== */
+.header {
+    -fx-background-color: linear-gradient(to right, #2c3e50, #3498db);
+    -fx-padding: 0;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 10, 0, 0, 2);
+}
+
+.header-content {
+    -fx-padding: 20 40;
+}
+
+.header-title {
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 2, 0, 0, 1);
+}
+
+/* ========== NAVIGATION BUTTONS ========== */
+.nav-btn, .nav-btn-active {
+    -fx-font-size: 15px;
+    -fx-font-weight: 600;
+    -fx-padding: 12 30;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+    -fx-border-radius: 8;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 5, 0, 0, 2);
+}
+
+.nav-btn {
+    -fx-background-color: rgba(255, 255, 255, 0.2);
+    -fx-text-fill: white;
+    -fx-border-color: rgba(255, 255, 255, 0.3);
+    -fx-border-width: 1;
+}
+
+.nav-btn:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.3);
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+}
+
+.nav-btn-active {
+    -fx-background-color: white;
+    -fx-text-fill: #2c3e50;
+    -fx-border-color: white;
+    -fx-border-width: 2;
+}
+
+/* ========== MAIN CONTENT ========== */
+.main-content {
+    -fx-background-color: transparent;
+}
+
+.section {
     -fx-background-color: white;
     -fx-background-radius: 12;
     -fx-padding: 25;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 15, 0, 0, 4);
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 15, 0, 0, 3);
 }
 
-/* ---------- TITRES ---------- */
-.card-title {
+.section-title {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+    -fx-padding: 0 0 10 0;
+}
+
+/* ========== STAT CARDS ========== */
+.stat-card {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-padding: 20;
+    -fx-spacing: 8;
+    -fx-alignment: center;
+    -fx-min-width: 200;
+    -fx-min-height: 140;
+    -fx-border-color: #e1e8ed;
+    -fx-border-width: 1;
+    -fx-border-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 3);
+}
+
+.stat-card:hover {
+    -fx-scale-x: 1.03;
+    -fx-scale-y: 1.03;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 15, 0, 0, 5);
+}
+
+.stat-card-success {
+    -fx-border-color: #27ae60;
+    -fx-border-width: 2;
+}
+
+.stat-card-danger {
+    -fx-border-color: #e74c3c;
+    -fx-border-width: 2;
+}
+
+.stat-card-info {
+    -fx-border-color: #3498db;
+    -fx-border-width: 2;
+}
+
+.card-label {
+    -fx-font-size: 13px;
+    -fx-text-fill: #7f8c8d;
+    -fx-font-weight: 600;
+}
+
+.card-value {
+    -fx-font-size: 36px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+}
+
+.card-subtitle {
+    -fx-font-size: 11px;
+    -fx-text-fill: #95a5a6;
+}
+
+/* ========== BUTTONS ========== */
+.train-btn {
+    -fx-background-color: linear-gradient(to bottom, #3498db, #2980b9);
+    -fx-text-fill: white;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-padding: 15 40;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(41, 128, 185, 0.4), 10, 0, 0, 3);
+}
+
+.train-btn:hover {
+    -fx-background-color: linear-gradient(to bottom, #2980b9, #21618c);
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+}
+
+.info-text {
+    -fx-font-size: 14px;
+    -fx-text-fill: #7f8c8d;
+    -fx-padding: 10 0 0 0;
+}
+
+/* ========== CHARTS ========== */
+.chart-container {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-padding: 15;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 10, 0, 0, 2);
+}
+
+.chart {
+    -fx-background-color: transparent;
+}
+
+.chart-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+}
+
+.axis {
+    -fx-tick-label-fill: #2c3e50;
+    -fx-font-size: 11px;
+}
+
+.axis-label {
+    -fx-text-fill: #2c3e50;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+}
+
+.chart-legend {
+    -fx-background-color: #f8f9fa;
+    -fx-background-radius: 6;
+    -fx-padding: 8;
+}
+
+.chart-legend-item {
+    -fx-text-fill: #2c3e50;
+}
+
+.chart-legend-item .label {
+    -fx-text-fill: #2c3e50;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+}
+
+.default-color0.chart-series-line { -fx-stroke: #27ae60; -fx-stroke-width: 2px; }
+.default-color1.chart-series-line { -fx-stroke: #e74c3c; -fx-stroke-width: 2px; }
+
+.default-color0.chart-line-symbol { -fx-background-color: #27ae60, white; }
+.default-color1.chart-line-symbol { -fx-background-color: #e74c3c, white; }
+
+
+/* ========== TABLE ========== */
+.data-table {
+    -fx-background-color: white;
+    -fx-background-radius: 8;
+    -fx-border-color: #e1e8ed;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+}
+
+.data-table .column-header {
+    -fx-background-color: #f8f9fa;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+    -fx-font-size: 13px;
+}
+
+.data-table .column-header .label {
+    -fx-text-fill: #2c3e50;
+    -fx-font-weight: bold;
+}
+
+.data-table .table-row-cell {
+    -fx-border-color: #f0f3f5;
+}
+
+.data-table .table-row-cell:hover {
+    -fx-background-color: #e8f4f8;
+}
+
+.data-table .table-cell {
+    -fx-padding: 12 8;
+    -fx-font-size: 13px;
+    -fx-text-fill: #2c3e50;
+}
+
+/* ========== PREDICTION PAGE ========== */
+.prediction-title {
+    -fx-font-size: 32px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+}
+
+.prediction-subtitle {
+    -fx-font-size: 16px;
+    -fx-text-fill: #7f8c8d;
+}
+
+.prediction-form {
+    -fx-background-color: white;
+    -fx-background-radius: 15;
+    -fx-padding: 40;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 20, 0, 0, 5);
+}
+
+.form-section-title {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+    -fx-padding: 0 0 10 0;
+}
+
+.form-label {
+    -fx-font-size: 15px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #34495e;
+}
+
+.form-input {
+    -fx-font-size: 14px;
+    -fx-padding: 12;
+    -fx-background-color: #f8f9fa;
+    -fx-background-radius: 8;
+    -fx-border-color: #e1e8ed;
+    -fx-border-radius: 8;
+    -fx-border-width: 2;
+}
+
+.form-input:focused {
+    -fx-background-color: white;
+    -fx-border-color: #3498db;
+}
+
+.unit-label {
+    -fx-font-size: 13px;
+    -fx-text-fill: #95a5a6;
+    -fx-font-weight: bold;
+}
+
+.predict-btn {
+    -fx-background-color: linear-gradient(to right, #3498db, #2ecc71);
+    -fx-text-fill: white;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-padding: 15 50;
+    -fx-background-radius: 10;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(52, 152, 219, 0.4), 15, 0, 0, 5);
+}
+
+.predict-btn:hover {
+    -fx-background-color: linear-gradient(to right, #2980b9, #27ae60);
+    -fx-scale-x: 1.08;
+    -fx-scale-y: 1.08;
+}
+
+/* ========== RESULT CARD ========== */
+.result-card {
+    -fx-background-color: white;
+    -fx-background-radius: 15;
+    -fx-padding: 30;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 20, 0, 0, 5);
+    -fx-border-color: #e1e8ed;
+    -fx-border-width: 2;
+    -fx-border-radius: 15;
+}
+
+.result-title {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #34495e;
+}
+
+.result-label-text {
+    -fx-font-size: 14px;
+    -fx-text-fill: #7f8c8d;
+    -fx-font-weight: 600;
+}
+
+.result-value {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+}
+
+.confidence-value {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #3498db;
+}
+
+/* ========== INFO BOX ========== */
+.info-box {
+    -fx-background-color: linear-gradient(to bottom right, #ecf0f1, #d5dbdb);
+    -fx-background-radius: 12;
+    -fx-padding: 25;
+    -fx-border-color: #bdc3c7;
+    -fx-border-width: 1;
+    -fx-border-radius: 12;
+}
+
+.info-title {
     -fx-font-size: 18px;
     -fx-font-weight: bold;
     -fx-text-fill: #2c3e50;
 }
 
-.subtitle {
-    -fx-font-size: 12px;
-    -fx-text-fill: #7f8c8d;
+.info-subtitle {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #34495e;
+    -fx-padding: 10 0 5 0;
 }
 
-/* ---------- FORM ---------- */
-.form-label {
+.info-text {
+    -fx-font-size: 13px;
+    -fx-text-fill: #2c3e50;
+    -fx-line-spacing: 3;
+}
+
+.info-list {
+    -fx-padding: 5 0 5 15;
+}
+
+.info-item {
     -fx-font-size: 13px;
     -fx-text-fill: #34495e;
 }
 
-.unit-label {
-    -fx-text-fill: #7f8c8d;
+/* ========== ANIMATIONS ========== */
+/*@keyframes fadeIn {
+    from { -fx-opacity: 0; }
+    to { -fx-opacity: 1; }
+}*/
+
+.section {
+    -fx-animation: fadeIn 0.5s ease-in;
 }
 
-/* ---------- INPUT ---------- */
-.text-field {
-    -fx-background-radius: 6;
-    -fx-border-radius: 6;
-    -fx-border-color: #dcdde1;
-    -fx-padding: 6 8;
+/* ========== RESPONSIVE ADJUSTMENTS ========== */
+.scroll-bar:vertical {
+    -fx-background-color: transparent;
 }
 
-.text-field:focused {
-    -fx-border-color: #3498db;
+.scroll-bar:vertical .track {
+    -fx-background-color: #f0f3f5;
+    -fx-background-radius: 5;
 }
 
-/* ---------- BUTTON ---------- */
-.primary-btn {
-    -fx-background-color: #3498db;
-    -fx-text-fill: white;
-    -fx-font-weight: bold;
-    -fx-background-radius: 8;
-    -fx-padding: 10 18;
+.scroll-bar:vertical .thumb {
+    -fx-background-color: #bdc3c7;
+    -fx-background-radius: 5;
 }
 
-.primary-btn:hover {
-    -fx-background-color: #2980b9;
+.scroll-bar:vertical .thumb:hover {
+    -fx-background-color: #95a5a6;
 }
 
-/* ---------- RESULT ---------- */
-.result-label {
-    -fx-font-weight: bold;
-    -fx-text-fill: #2c3e50;
-}
-
-.result-value {
-    -fx-font-size: 14px;
-    -fx-font-weight: bold;
-}
-
-.confidence-value {
-    -fx-text-fill: #16a085;
-    -fx-font-weight: bold;
+.separator {
+    -fx-background-color: #e1e8ed;
 }

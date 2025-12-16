@@ -148,7 +148,7 @@
                     <VBox spacing="4">
                         <!-- Bouton parent avec indicateur -->
                         <HBox>
-                            <Button text="🧠  Prédictions ML"
+                            <Button text="🤖 Prédictions "
                                     fx:id="menuPredictionsBtn"
                                     onMouseEntered="#handleMenuHover"
                                     onMouseExited="#handleMenuExit"
@@ -208,7 +208,7 @@
                     </VBox>
 
                     <!-- Settings -->
-                    <Button text="⚙️  Settings"
+                    <Button text="⚙ Settings"
                             onMouseEntered="#handleMenuHover"
                             onMouseExited="#handleMenuExit"
                             style="-fx-background-color: transparent;

@@ -3,11 +3,12 @@ package com.ensah.qoe.Services;
 import com.ensah.qoe.ML.AnomalyDetectionModels;
 import com.ensah.qoe.ML.DataPreparationAnomalie;
 import weka.core.*;
+import weka.core.converters.CSVLoader;
 import weka.filters.Filter;
 import weka.filters.unsupervised.attribute.Normalize;
 
-import java.util.Arrays;
-import java.util.Date;
+import java.io.InputStream;
+import java.util.*;
 
 public class PredictionServiceAnomalies {
 
@@ -16,17 +17,41 @@ public class PredictionServiceAnomalies {
     // =========================
     private static final AnomalyDetectionModels modelHandler = new AnomalyDetectionModels();
     private static Instances trainingHeader;
+    private static Instances originalDataset; // ✅ NOUVEAU : Dataset ORIGINAL avec zone
 
     private static boolean modelTrained = false;
-
+    private static boolean modelReady = false;
     // Métriques
     private static double lastAccuracy = 0.0;
     private static double lastPrecision = 0.0;
     private static double lastRecall = 0.0;
     private static String lastConfusionMatrix = "";
     private static double lastF1 = 0.0;
+
     // =========================
-    // 1️⃣ ENTRAÎNEMENT
+    // ✅ NOUVELLE FONCTION : Charger CSV original
+    // =========================
+    private static Instances loadOriginalCSV(String resourcePath) throws Exception {
+        InputStream input = DataPreparationAnomalie.class.getResourceAsStream(resourcePath);
+        if (input == null) {
+            throw new Exception("❌ Fichier introuvable : " + resourcePath);
+        }
+
+        CSVLoader loader = new CSVLoader();
+        loader.setSource(input);
+        Instances data = loader.getDataSet();
+
+        // Définir la classe
+        Attribute anomalyAttr = data.attribute("anomalie");
+        if (anomalyAttr != null) {
+            data.setClass(anomalyAttr);
+        }
+
+        return data;
+    }
+
+    // =========================
+    // 1️⃣ ENTRAÎNEMENT (INCHANGÉ)
     // =========================
     public static String trainModel() {
 
@@ -38,6 +63,9 @@ public class PredictionServiceAnomalies {
 
             Instances trainData = datasets[0];
             Instances testData  = datasets[1];
+
+            // ✅ Charger le dataset ORIGINAL avec zones
+            originalDataset = loadOriginalCSV("/CSV/prediction_dataset.csv");
 
             // Header (structure des features)
             trainingHeader = new Instances(trainData, 0);
@@ -61,7 +89,7 @@ public class PredictionServiceAnomalies {
             lastConfusionMatrix = result.confusionMatrix;
             lastF1 = (2 * lastPrecision * lastRecall) / (lastPrecision + lastRecall + 1e-9);
             modelTrained = true;
-
+            modelReady = true;
             report.append("=== ENTRAÎNEMENT TERMINÉ ===\n");
             report.append("Accuracy : ").append(String.format("%.2f%%", lastAccuracy)).append("\n");
             report.append("Precision: ").append(String.format("%.3f", lastPrecision)).append("\n");
@@ -76,7 +104,147 @@ public class PredictionServiceAnomalies {
     }
 
     // =========================
-    // 2️⃣ PRÉDICTION
+    // ✅ NOUVELLES FONCTIONS POUR STATISTIQUES
+    // =========================
+
+    /**
+     * Retourne le nombre total de lignes dans le CSV original
+     */
+    public static int getTotalInstances() {
+        if (originalDataset == null) return 0;
+        return originalDataset.numInstances();
+    }
+
+    /**
+     * Retourne le nombre d'instances normales
+     */
+    public static int getNormalCount() {
+        if (originalDataset == null || !modelTrained) return 0;
+
+        int count = 0;
+        Attribute classAttr = originalDataset.attribute("anomalie");
+        if (classAttr == null) return 0;
+
+        for (int i = 0; i < originalDataset.numInstances(); i++) {
+            Instance inst = originalDataset.instance(i);
+            if (!inst.isMissing(classAttr)) {
+                double value = inst.value(classAttr);
+                if (value == 0.0) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
+    /**
+     * Retourne le nombre d'anomalies
+     */
+    public static int getAnomalyCount() {
+        if (originalDataset == null || !modelTrained) return 0;
+
+        int count = 0;
+        Attribute classAttr = originalDataset.attribute("anomalie");
+        if (classAttr == null) return 0;
+
+        for (int i = 0; i < originalDataset.numInstances(); i++) {
+            Instance inst = originalDataset.instance(i);
+            if (!inst.isMissing(classAttr)) {
+                double value = inst.value(classAttr);
+                if (value == 1.0) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
+    /**
+     * Retourne les données pour un graphique scatter de 2 features
+     */
+    public static List<DataPoint> getScatterData(String feature1, String feature2) {
+        List<DataPoint> points = new ArrayList<>();
+
+        if (originalDataset == null || !modelTrained) return points;
+
+        Attribute attr1 = originalDataset.attribute(feature1);
+        Attribute attr2 = originalDataset.attribute(feature2);
+        Attribute classAttr = originalDataset.attribute("anomalie");
+
+        if (attr1 == null || attr2 == null || classAttr == null) return points;
+
+        // Limiter à 500 points pour la performance
+        int step = Math.max(1, originalDataset.numInstances() / 500);
+
+        for (int i = 0; i < originalDataset.numInstances(); i += step) {
+            Instance inst = originalDataset.instance(i);
+
+            if (inst.isMissing(attr1) || inst.isMissing(attr2) || inst.isMissing(classAttr)) {
+                continue;
+            }
+
+            double x = inst.value(attr1);
+            double y = inst.value(attr2);
+            boolean isAnomaly = inst.value(classAttr) == 1.0;
+
+            points.add(new DataPoint(x, y, isAnomaly));
+        }
+
+        return points;
+    }
+
+    /**
+     * Retourne les statistiques par zone (depuis le CSV original)
+     */
+    public static List<ZoneStats> getZoneStatistics() {
+        List<ZoneStats> zones = new ArrayList<>();
+
+        if (originalDataset == null || !modelTrained) return zones;
+
+        Attribute zoneAttr = originalDataset.attribute("zone");
+        Attribute classAttr = originalDataset.attribute("anomalie");
+
+        if (zoneAttr == null || classAttr == null) return zones;
+
+        // Map pour compter par zone
+        Map<String, int[]> zoneMap = new HashMap<>();
+
+        for (int i = 0; i < originalDataset.numInstances(); i++) {
+            Instance inst = originalDataset.instance(i);
+
+            if (inst.isMissing(zoneAttr) || inst.isMissing(classAttr)) {
+                continue;
+            }
+
+            String zoneName = inst.stringValue(zoneAttr);
+            boolean isAnomaly = inst.value(classAttr) == 1.0;
+
+            zoneMap.putIfAbsent(zoneName, new int[]{0, 0}); // [normal, anomaly]
+
+            if (isAnomaly) {
+                zoneMap.get(zoneName)[1]++;
+            } else {
+                zoneMap.get(zoneName)[0]++;
+            }
+        }
+
+        // Convertir en liste
+        for (Map.Entry<String, int[]> entry : zoneMap.entrySet()) {
+            String zoneName = entry.getKey();
+            int normalCount = entry.getValue()[0];
+            int anomalyCount = entry.getValue()[1];
+
+            zones.add(new ZoneStats(zoneName, normalCount, anomalyCount));
+        }
+
+        // Trier par nombre total décroissant
+        zones.sort((a, b) -> Integer.compare(b.getTotal(), a.getTotal()));
+
+        return zones;
+    }
+
+    // =========================
+    // 2️⃣ PRÉDICTION (INCHANGÉE - utilise déjà le bon filtre)
     // =========================
     public static PredictionResult predict(
             double latency, double jitter, double loss,
@@ -124,7 +292,7 @@ public class PredictionServiceAnomalies {
             double predictionValue =
                     modelHandler.getModel().classifyInstance(normalizedInstance);
 
-// Cas 1️⃣ : classe NUMÉRIQUE (0 / 1)
+            // Cas 1️⃣ : classe NUMÉRIQUE (0 / 1)
             if (trainingHeader.classAttribute().isNumeric()) {
 
                 boolean isAnomaly = predictionValue >= 0.5;
@@ -137,13 +305,13 @@ public class PredictionServiceAnomalies {
 
                 return new PredictionResult(
                         prediction,
-                        confidence,               // ✅ OK
+                        confidence,
                         1.0 - confidence,
                         "OK"
                 );
             }
 
-// Cas 2️⃣ : classe NOMINALE
+            // Cas 2️⃣ : classe NOMINALE
             else {
 
                 double[] dist =
@@ -166,14 +334,11 @@ public class PredictionServiceAnomalies {
                 );
             }
 
-
         } catch (Exception e) {
             e.printStackTrace();
             return new PredictionResult("ERREUR", 0, 0, e.getMessage());
         }
     }
-
-
 
     // Alias pour le Dashboard
     public static PredictionResult predictAnomaly(
@@ -184,7 +349,7 @@ public class PredictionServiceAnomalies {
     }
 
     // =========================
-    // 3️⃣ ÉVALUATION (CSV)
+    // 3️⃣ ÉVALUATION (INCHANGÉE)
     // =========================
     public static String evaluateModel() {
 
@@ -203,7 +368,7 @@ public class PredictionServiceAnomalies {
     }
 
     // =========================
-    // 4️⃣ GETTERS POUR DASHBOARD
+    // 4️⃣ GETTERS POUR DASHBOARD (INCHANGÉS)
     // =========================
     public static boolean isModelReady() {
         return modelTrained;
@@ -228,11 +393,13 @@ public class PredictionServiceAnomalies {
     public static String getLastConfusionMatrix() {
         return lastConfusionMatrix;
     }
+
     public static double getLastF1() {
         return lastF1;
     }
+
     // =========================
-    // 5️⃣ ANALYSE DATASET
+    // 5️⃣ ANALYSE DATASET (INCHANGÉE)
     // =========================
     public static void analyzeDataset() {
         System.out.println("=== ANALYSE DATASET CSV ===");
@@ -242,7 +409,44 @@ public class PredictionServiceAnomalies {
     }
 
     // =========================
-    // 6️⃣ CLASSE RÉSULTAT
+    // ✅ NOUVELLES CLASSES
+    // =========================
+
+    public static class DataPoint {
+        public final double x;
+        public final double y;
+        public final boolean isAnomaly;
+
+        public DataPoint(double x, double y, boolean isAnomaly) {
+            this.x = x;
+            this.y = y;
+            this.isAnomaly = isAnomaly;
+        }
+    }
+
+    public static class ZoneStats {
+        public final String zoneName;
+        public final int normalCount;
+        public final int anomalyCount;
+
+        public ZoneStats(String zoneName, int normalCount, int anomalyCount) {
+            this.zoneName = zoneName;
+            this.normalCount = normalCount;
+            this.anomalyCount = anomalyCount;
+        }
+
+        public int getTotal() {
+            return normalCount + anomalyCount;
+        }
+
+        public double getAnomalyPercentage() {
+            if (getTotal() == 0) return 0;
+            return (anomalyCount * 100.0) / getTotal();
+        }
+    }
+
+    // =========================
+    // 6️⃣ CLASSE RÉSULTAT (INCHANGÉE)
     // =========================
     public static class PredictionResult {
         public final String prediction;
@@ -273,7 +477,5 @@ public class PredictionServiceAnomalies {
                     timestamp.toString()
             );
         }
-
     }
-
 }
