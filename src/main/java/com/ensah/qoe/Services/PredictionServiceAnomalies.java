@@ -2,380 +2,480 @@ package com.ensah.qoe.Services;
 
 import com.ensah.qoe.ML.AnomalyDetectionModels;
 import com.ensah.qoe.ML.DataPreparationAnomalie;
-import com.ensah.qoe.Models.DBConnection;
 import weka.core.*;
+import weka.core.converters.CSVLoader;
 import weka.filters.Filter;
 import weka.filters.unsupervised.attribute.Normalize;
 
-import java.sql.*;
+import java.io.InputStream;
+import java.util.*;
 
 public class PredictionServiceAnomalies {
 
-    private static AnomalyDetectionModels modelHandler;
-    private static boolean modelTrained = false;
-    public static int[][] confusion = new int[2][2];
-    private static Filter normalizeFilter;
+    // =========================
+    // ÉTAT GLOBAL
+    // =========================
+    private static final AnomalyDetectionModels modelHandler = new AnomalyDetectionModels();
     private static Instances trainingHeader;
-    private static weka.classifiers.Classifier classifier;
-    public static String selectedAlgorithm = "J48";
-    // ======================================================================
-    // 1) ENTRAÎNER LE MODELE
-    // ======================================================================
-    public static void trainModel() {
-        System.out.println("\n🤖 Entraînement Détection Anomalies — Version Optimisée");
-        System.out.println("========================================================");
+    private static Instances originalDataset; // ✅ NOUVEAU : Dataset ORIGINAL avec zone
 
-        // 1. Charger les données depuis DataPreparation
-        Instances[] datasets = DataPreparationAnomalie.prepare();
-        if (datasets == null) {
-            System.err.println("❌ Impossible de charger les données");
-            return;
+    private static boolean modelTrained = false;
+    private static boolean modelReady = false;
+    // Métriques
+    private static double lastAccuracy = 0.0;
+    private static double lastPrecision = 0.0;
+    private static double lastRecall = 0.0;
+    private static String lastConfusionMatrix = "";
+    private static double lastF1 = 0.0;
+
+    // =========================
+    // ✅ NOUVELLE FONCTION : Charger CSV original
+    // =========================
+    private static Instances loadOriginalCSV(String resourcePath) throws Exception {
+        InputStream input = DataPreparationAnomalie.class.getResourceAsStream(resourcePath);
+        if (input == null) {
+            throw new Exception("❌ Fichier introuvable : " + resourcePath);
         }
 
-        Instances train = datasets[0];
-        Instances test = datasets[1];
+        CSVLoader loader = new CSVLoader();
+        loader.setSource(input);
+        Instances data = loader.getDataSet();
 
-        System.out.println("📊 Train = " + train.numInstances());
-        System.out.println("📊 Test  = " + test.numInstances());
+        // Définir la classe
+        Attribute anomalyAttr = data.attribute("anomalie");
+        if (anomalyAttr != null) {
+            data.setClass(anomalyAttr);
+        }
+
+        return data;
+    }
+
+    // =========================
+    // 1️⃣ ENTRAÎNEMENT (INCHANGÉ)
+    // =========================
+    public static String trainModel() {
+
+        StringBuilder report = new StringBuilder();
 
         try {
-            // 2. Initialiser la normalisation
-            normalizeFilter = new Normalize();
-            normalizeFilter.setInputFormat(train);
+            Instances[] datasets =
+                    DataPreparationAnomalie.prepareFromResources("/CSV/prediction_dataset.csv");
 
-            Instances trainNorm = Filter.useFilter(train, normalizeFilter);
-            Instances testNorm = Filter.useFilter(test, normalizeFilter);
+            Instances trainData = datasets[0];
+            Instances testData  = datasets[1];
 
-            // Sauvegarder le header pour la prédiction
-            trainingHeader = new Instances(trainNorm, 0);
+            // ✅ Charger le dataset ORIGINAL avec zones
+            originalDataset = loadOriginalCSV("/CSV/prediction_dataset.csv");
 
-            // 3. Choix du modèle selon dataset
-            modelHandler = new AnomalyDetectionModels();
+            // Header (structure des features)
+            trainingHeader = new Instances(trainData, 0);
 
-            if (train.numInstances() <= 50) {
-                System.out.println("✔ Dataset petit → Modèle recommandé : " + selectedAlgorithm);
-
-                if (selectedAlgorithm.contains("J48")) {
-                    modelHandler.trainJ48(trainNorm);
-                }
-                else if (selectedAlgorithm.contains("Naive")) {
-                    modelHandler.trainNaiveBayes(trainNorm);
-                }
-                else if (selectedAlgorithm.contains("KNN")) {
-                    modelHandler.trainKNN(trainNorm);
-                }
-            } else {
-                System.out.println("✔ Dataset moyen → Naive Bayes");
-                modelHandler.trainNaiveBayes(trainNorm);
+            // Vérification ordre des classes
+            System.out.println("Classes détectées :");
+            for (int i = 0; i < trainingHeader.classAttribute().numValues(); i++) {
+                System.out.println(i + " -> " + trainingHeader.classAttribute().value(i));
             }
 
-            classifier = modelHandler.getModel();
+            // Entraînement
+            modelHandler.trainRandomForest(trainData);
 
-            // 4. Évaluation
-            System.out.println("\n📈 Évaluation du modèle :");
-            modelHandler.evaluate(testNorm);
+            // Évaluation
+            AnomalyDetectionModels.EvaluationResult result =
+                    modelHandler.evaluate(testData);
 
-            // 5. Validation croisée
-            System.out.println("\n🔄 Validation croisée 10-fold :");
-            modelHandler.crossValidate(trainNorm);
-
-            // ============================================================
-            // 🔥 Sauvegarde modèle + filtre + header pour prédiction future
-            // ============================================================
-            try {
-                SerializationHelper.write("models/anomaly.model", classifier);
-                SerializationHelper.write("models/anomaly_norm.filter", normalizeFilter);
-                SerializationHelper.write("models/anomaly_header.model", trainingHeader);
-
-                System.out.println("💾 Modèle sauvegardé dans /models/");
-            } catch (Exception e) {
-                System.err.println("❌ Erreur sauvegarde modèle : " + e.getMessage());
-            }
-
+            lastAccuracy = result.accuracy;
+            lastPrecision = result.precision;
+            lastRecall = result.recall;
+            lastConfusionMatrix = result.confusionMatrix;
+            lastF1 = (2 * lastPrecision * lastRecall) / (lastPrecision + lastRecall + 1e-9);
             modelTrained = true;
-            System.out.println("\n✅ Modèle anomalies entraîné avec succès !");
-
+            modelReady = true;
+            report.append("=== ENTRAÎNEMENT TERMINÉ ===\n");
+            report.append("Accuracy : ").append(String.format("%.2f%%", lastAccuracy)).append("\n");
+            report.append("Precision: ").append(String.format("%.3f", lastPrecision)).append("\n");
+            report.append("Recall   : ").append(String.format("%.3f", lastRecall)).append("\n");
+            report.append("F1-score : ").append(String.format("%.3f", lastF1)).append("\n");
         } catch (Exception e) {
+            report.append("❌ ERREUR ENTRAÎNEMENT: ").append(e.getMessage());
             e.printStackTrace();
         }
+
+        return report.toString();
     }
 
+    // =========================
+    // ✅ NOUVELLES FONCTIONS POUR STATISTIQUES
+    // =========================
 
-
-    // ======================================================================
-    // 2) CHARGER UN MODELE SAUVEGARDÉ
-    // ======================================================================
-    public static void loadPreTrainedModel() {
-        try {
-
-            System.out.println("📥 Chargement du modèle enregistré...");
-
-            classifier = (weka.classifiers.Classifier)
-                    SerializationHelper.read("models/anomaly.model");
-
-            normalizeFilter = (Normalize)
-                    SerializationHelper.read("models/anomaly_norm.filter");
-
-            trainingHeader = (Instances)
-                    SerializationHelper.read("models/anomaly_header.model");
-
-            modelTrained = true;
-
-            System.out.println("✅ Modèle, filtre et header chargés avec succès !");
-
-        } catch (Exception e) {
-            modelTrained = false;
-            System.err.println("❌ Erreur lors du chargement du modèle : " + e.getMessage());
-        }
+    /**
+     * Retourne le nombre total de lignes dans le CSV original
+     */
+    public static int getTotalInstances() {
+        if (originalDataset == null) return 0;
+        return originalDataset.numInstances();
     }
 
-
-
-    // ======================================================================
-    // 3) PRÉDICTION (simple)
-    // ======================================================================
-    public static String predictAnomaly(double lat, double jit, double perte,
-                                        double bp, double signalScore) {
-
-        if (!modelTrained) {
-            loadPreTrainedModel();
-        }
-        if (!modelTrained) {
-            System.err.println("❌ Modèle non prêt.");
-            return "NORMAL";
-        }
-
-        double[] p = predictWithProbability(lat, jit, perte, bp, signalScore);
-        return p[1] > 0.5 ? "ANOMALIE" : "NORMAL";
-    }
-
-
-    // ======================================================================
-    // 4) PRÉDICTION AVEC PROBABILITÉS
-    // ======================================================================
-    public static double[] predictWithProbability(
-            double lat, double jit, double perte,
-            double bp, double signalScore) {
-
-        if (!modelTrained || classifier == null || trainingHeader == null || normalizeFilter == null) {
-            System.err.println("❌ Modèle non initialisé. Chargement du modèle...");
-            loadPreTrainedModel();
-            if (!modelTrained) return new double[]{0.5, 0.5};
-        }
-
-        try {
-            // 1. Créer instance brute CONFORME AU HEADER
-            Instance inst = new DenseInstance(trainingHeader.numAttributes());
-            inst.setDataset(trainingHeader);
-
-            inst.setValue(0, lat);
-            inst.setValue(1, jit);
-            inst.setValue(2, perte);
-            inst.setValue(3, bp);
-            inst.setValue(4, signalScore);
-
-            // 2. Appliquer la normalisation déjà entraînée (TRÈS IMPORTANT)
-            Instances temp = new Instances(trainingHeader, 0);
-            temp.add(inst);
-
-            Normalize norm = (Normalize) normalizeFilter;
-            Instances normalized = Filter.useFilter(temp, norm);
-
-            Instance normInst = normalized.instance(0);
-
-            // 3. Prédire probabilités
-            return classifier.distributionForInstance(normInst);
-
-        } catch (Exception e) {
-            System.err.println("❌ Erreur prédiction : " + e.getMessage());
-            return new double[]{0.5, 0.5};
-        }
-    }
-
-
-
-
-    // ======================================================================
-    // 5) PRÉDICTIONS EN MASSE → mise à jour DB
-    // ======================================================================
-    public static void predictMissingAnomalies() {
-        System.out.println("\n🔍 Mise à jour des anomalies manquantes…");
-
-        if (!modelTrained) loadPreTrainedModel();
-        if (!modelTrained) return;
-
-        String selectSQL = """
-            SELECT ID_MESURE, LATENCE, JITTER, PERTE,
-                   BANDE_PASSANTE, SIGNAL_SCORE
-            FROM MESURES_QOS
-            WHERE ANOMALIE IS NULL
-        """;
-
-        String updateSQL = "UPDATE MESURES_QOS SET ANOMALIE = ? WHERE ID_MESURE = ?";
+    /**
+     * Retourne le nombre d'instances normales
+     */
+    public static int getNormalCount() {
+        if (originalDataset == null || !modelTrained) return 0;
 
         int count = 0;
+        Attribute classAttr = originalDataset.attribute("anomalie");
+        if (classAttr == null) return 0;
 
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(selectSQL);
-             PreparedStatement upd = conn.prepareStatement(updateSQL);
-             ResultSet rs = ps.executeQuery()) {
-
-            while (rs.next()) {
-
-                String pred = predictAnomaly(
-                        rs.getDouble("LATENCE"),
-                        rs.getDouble("JITTER"),
-                        rs.getDouble("PERTE"),
-                        rs.getDouble("BANDE_PASSANTE"),
-                        rs.getDouble("SIGNAL_SCORE")
-                );
-
-                int anomalyValue = pred.equals("ANOMALIE") ? 1 : 0;
-
-                upd.setInt(1, anomalyValue);
-                upd.setInt(2, rs.getInt("ID_MESURE"));
-                upd.executeUpdate();
-
-                count++;
+        for (int i = 0; i < originalDataset.numInstances(); i++) {
+            Instance inst = originalDataset.instance(i);
+            if (!inst.isMissing(classAttr)) {
+                double value = inst.value(classAttr);
+                if (value == 0.0) {
+                    count++;
+                }
             }
-
-            System.out.println("✅ " + count + " anomalies mises à jour !");
-        } catch (Exception e) {
-            e.printStackTrace();
         }
+        return count;
     }
 
-
-    // ======================================================================
-    // 6) ÉVALUATION SUR DB
-    // ======================================================================
-    public static void evaluateOnDatabase() {
-        System.out.println("\n📊 Évaluation du modèle sur DB");
-
-        String sql = """
-            SELECT LATENCE, JITTER, PERTE, BANDE_PASSANTE, SIGNAL_SCORE, ANOMALIE
-            FROM MESURES_QOS
-            WHERE ANOMALIE IS NOT NULL
-            FETCH FIRST 80 ROWS ONLY
-        """;
-
-        int correct = 0;
-        int total = 0;
-
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-
-            while (rs.next()) {
-                int real = rs.getInt("ANOMALIE");
-                String pred = predictAnomaly(
-                        rs.getDouble("LATENCE"),
-                        rs.getDouble("JITTER"),
-                        rs.getDouble("PERTE"),
-                        rs.getDouble("BANDE_PASSANTE"),
-                        rs.getDouble("SIGNAL_SCORE")
-                );
-                int predicted = pred.equals("ANOMALIE") ? 1 : 0;
-
-                if (real == predicted) correct++;
-                total++;
-            }
-
-            System.out.println("Accuracy DB : " +
-                    String.format("%.2f%%", (correct * 100.0) / total));
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-    public static void setSelectedAlgorithm(String algo) {
-        selectedAlgorithm = algo;
-    }
     /**
-     * Charger la matrice de confusion depuis la base Oracle
-     * et la mettre dans PredictionServiceAnomalies.confusion
+     * Retourne le nombre d'anomalies
      */
-    public static void loadConfusionMatrix() {
+    public static int getAnomalyCount() {
+        if (originalDataset == null || !modelTrained) return 0;
 
-        // Reset (cas où pas encore évalué)
-        confusion[0][0] = 0; // TN
-        confusion[0][1] = 0; // FP
-        confusion[1][0] = 0; // FN
-        confusion[1][1] = 0; // TP
+        int count = 0;
+        Attribute classAttr = originalDataset.attribute("anomalie");
+        if (classAttr == null) return 0;
 
-        String sql = """
-        SELECT 
-            ANOMALIE AS actual,
-            PREDICTION AS predicted,
-            COUNT(*) AS total
-        FROM (
-            SELECT 
-                ANOMALIE,
-                CASE 
-                    WHEN LATENCE > 200 OR JITTER > 50 OR PERTE > 10 OR SIGNAL_SCORE < 30
-                         THEN 1 
-                    ELSE 0
-                END AS PREDICTION
-            FROM MESURES_QOS
-            WHERE ANOMALIE IS NOT NULL
-        )
-        GROUP BY ANOMALIE, PREDICTION
-        ORDER BY actual, predicted
-    """;
+        for (int i = 0; i < originalDataset.numInstances(); i++) {
+            Instance inst = originalDataset.instance(i);
+            if (!inst.isMissing(classAttr)) {
+                double value = inst.value(classAttr);
+                if (value == 1.0) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
 
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+    /**
+     * Retourne les données pour un graphique scatter de 2 features
+     */
+    public static List<DataPoint> getScatterData(String feature1, String feature2) {
+        List<DataPoint> points = new ArrayList<>();
 
-            while (rs.next()) {
-                int actual = rs.getInt("actual");
-                int predicted = rs.getInt("predicted");
-                int count = rs.getInt("total");
+        if (originalDataset == null || !modelTrained) return points;
 
-                // actual = 0 (normal) , actual = 1 (anomalie)
-                // predicted = 0 / 1
-                confusion[actual][predicted] = count;
+        Attribute attr1 = originalDataset.attribute(feature1);
+        Attribute attr2 = originalDataset.attribute(feature2);
+        Attribute classAttr = originalDataset.attribute("anomalie");
+
+        if (attr1 == null || attr2 == null || classAttr == null) return points;
+
+        // Limiter à 500 points pour la performance
+        int step = Math.max(1, originalDataset.numInstances() / 500);
+
+        for (int i = 0; i < originalDataset.numInstances(); i += step) {
+            Instance inst = originalDataset.instance(i);
+
+            if (inst.isMissing(attr1) || inst.isMissing(attr2) || inst.isMissing(classAttr)) {
+                continue;
             }
 
-            System.out.println("\n📊 MATRICE DE CONFUSION CHARGÉE :");
-            System.out.println("TN = " + confusion[0][0] + "   FP = " + confusion[0][1]);
-            System.out.println("FN = " + confusion[1][0] + "   TP = " + confusion[1][1]);
+            double x = inst.value(attr1);
+            double y = inst.value(attr2);
+            boolean isAnomaly = inst.value(classAttr) == 1.0;
 
-        } catch (SQLException e) {
-            System.err.println("❌ Erreur lors du chargement de la matrice de confusion : " + e.getMessage());
+            points.add(new DataPoint(x, y, isAnomaly));
+        }
+
+        return points;
+    }
+
+    /**
+     * Retourne les statistiques par zone (depuis le CSV original)
+     */
+    public static List<ZoneStats> getZoneStatistics() {
+        List<ZoneStats> zones = new ArrayList<>();
+
+        if (originalDataset == null || !modelTrained) return zones;
+
+        Attribute zoneAttr = originalDataset.attribute("zone");
+        Attribute classAttr = originalDataset.attribute("anomalie");
+
+        if (zoneAttr == null || classAttr == null) return zones;
+
+        // Map pour compter par zone
+        Map<String, int[]> zoneMap = new HashMap<>();
+
+        for (int i = 0; i < originalDataset.numInstances(); i++) {
+            Instance inst = originalDataset.instance(i);
+
+            if (inst.isMissing(zoneAttr) || inst.isMissing(classAttr)) {
+                continue;
+            }
+
+            String zoneName = inst.stringValue(zoneAttr);
+            boolean isAnomaly = inst.value(classAttr) == 1.0;
+
+            zoneMap.putIfAbsent(zoneName, new int[]{0, 0}); // [normal, anomaly]
+
+            if (isAnomaly) {
+                zoneMap.get(zoneName)[1]++;
+            } else {
+                zoneMap.get(zoneName)[0]++;
+            }
+        }
+
+        // Convertir en liste
+        for (Map.Entry<String, int[]> entry : zoneMap.entrySet()) {
+            String zoneName = entry.getKey();
+            int normalCount = entry.getValue()[0];
+            int anomalyCount = entry.getValue()[1];
+
+            zones.add(new ZoneStats(zoneName, normalCount, anomalyCount));
+        }
+
+        // Trier par nombre total décroissant
+        zones.sort((a, b) -> Integer.compare(b.getTotal(), a.getTotal()));
+
+        return zones;
+    }
+
+    // =========================
+    // 2️⃣ PRÉDICTION (INCHANGÉE - utilise déjà le bon filtre)
+    // =========================
+    public static PredictionResult predict(
+            double latency, double jitter, double loss,
+            double bandwidth, double signal) {
+
+        if (!modelTrained || trainingHeader == null) {
+            return new PredictionResult("ERREUR", 0, 0, "Modèle non prêt");
+        }
+
+        try {
+            // ==================================================
+            // 1️⃣ Création de l'instance brute (SANS mos)
+            // ==================================================
+            DenseInstance instance = new DenseInstance(trainingHeader.numAttributes());
+            instance.setDataset(trainingHeader);
+
+            instance.setValue(trainingHeader.attribute("latence"), latency);
+            instance.setValue(trainingHeader.attribute("jitter"), jitter);
+            instance.setValue(trainingHeader.attribute("loss_rate"), loss);
+            instance.setValue(trainingHeader.attribute("bande_passante"), bandwidth);
+            instance.setValue(trainingHeader.attribute("signal_score"), signal);
+
+            instance.setClassMissing();
+
+            // ==================================================
+            // 2️⃣ Normalisation avec le filtre du TRAIN
+            // ==================================================
+            Normalize normalize = DataPreparationAnomalie.getNormalizeFilter();
+            if (normalize == null) {
+                throw new IllegalStateException("Filtre de normalisation non initialisé");
+            }
+
+            Instances temp = new Instances(trainingHeader, 0);
+            temp.add(instance);
+            temp.setClassIndex(trainingHeader.classIndex());
+
+            Instances normalizedTemp = Filter.useFilter(temp, normalize);
+            normalizedTemp.setClassIndex(trainingHeader.classIndex());
+
+            Instance normalizedInstance = normalizedTemp.firstInstance();
+
+            // ==================================================
+            // 3️⃣ Prédiction
+            // ==================================================
+            double predictionValue =
+                    modelHandler.getModel().classifyInstance(normalizedInstance);
+
+            // Cas 1️⃣ : classe NUMÉRIQUE (0 / 1)
+            if (trainingHeader.classAttribute().isNumeric()) {
+
+                boolean isAnomaly = predictionValue >= 0.5;
+
+                String prediction = isAnomaly ? "ANOMALIE" : "NORMAL";
+
+                double confidence = isAnomaly
+                        ? predictionValue
+                        : (1.0 - predictionValue);
+
+                return new PredictionResult(
+                        prediction,
+                        confidence,
+                        1.0 - confidence,
+                        "OK"
+                );
+            }
+
+            // Cas 2️⃣ : classe NOMINALE
+            else {
+
+                double[] dist =
+                        modelHandler.getModel().distributionForInstance(normalizedInstance);
+
+                int anomalyIndex =
+                        trainingHeader.classAttribute().indexOfValue("1");
+
+                double anomalyProb = dist[anomalyIndex];
+                double normalProb  = 1.0 - anomalyProb;
+
+                String prediction =
+                        anomalyProb >= 0.5 ? "ANOMALIE" : "NORMAL";
+
+                return new PredictionResult(
+                        prediction,
+                        anomalyProb,
+                        normalProb,
+                        "OK"
+                );
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new PredictionResult("ERREUR", 0, 0, e.getMessage());
         }
     }
+
+    // Alias pour le Dashboard
+    public static PredictionResult predictAnomaly(
+            double lat, double jit, double loss,
+            double bw, double sig
+    ) {
+        return predict(lat, jit, loss, bw, sig);
+    }
+
+    // =========================
+    // 3️⃣ ÉVALUATION (INCHANGÉE)
+    // =========================
+    public static String evaluateModel() {
+
+        if (!modelTrained) {
+            throw new IllegalStateException("Modèle non entraîné");
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("=== ÉVALUATION DU MODÈLE ===\n");
+        sb.append("Accuracy : ").append(String.format("%.2f%%", lastAccuracy)).append("\n");
+        sb.append("Precision: ").append(String.format("%.3f", lastPrecision)).append("\n");
+        sb.append("Recall   : ").append(String.format("%.3f", lastRecall)).append("\n");
+        sb.append("Confusion Matrix:\n").append(lastConfusionMatrix).append("\n");
+        sb.append("F1-score : ").append(String.format("%.3f", lastF1)).append("\n");
+        return sb.toString();
+    }
+
+    // =========================
+    // 4️⃣ GETTERS POUR DASHBOARD (INCHANGÉS)
+    // =========================
+    public static boolean isModelReady() {
+        return modelTrained;
+    }
+
     public static boolean isModelTrained() {
         return modelTrained;
     }
-    public static void evaluatePredictions() {
-        evaluateOnDatabase();
-    }
-    public static void analyzeAnomalyPrediction(double lat, double jit, double perte,
-                                                double bp, double signalScore) {
 
-        System.out.println("\n🔍 ANALYSE DÉTAILLÉE DE PRÉDICTION");
-        System.out.println("=====================================");
-
-        String pred = predictAnomaly(lat, jit, perte, bp, signalScore);
-        double[] probs = predictWithProbability(lat, jit, perte, bp, signalScore);
-
-        System.out.println("Latence        : " + lat);
-        System.out.println("Jitter         : " + jit);
-        System.out.println("Perte          : " + perte);
-        System.out.println("Bande passante : " + bp);
-        System.out.println("Signal Score   : " + signalScore);
-
-        System.out.println("\nPrédiction : " + pred);
-        System.out.println("Probabilité anomalie : " + String.format("%.2f%%", probs[1] * 100));
-    }
-    public static void checkAnomalyMOSCorrelation() {
-        System.out.println("\nℹ Vérification MOS→Anomalie (info)");
-        System.out.println("Cette version du modèle n’utilise plus MOS.");
-    }
-    public static double[] predictAnomalyWithProbability(double lat, double jit, double perte,
-                                                         double bp, double signalScore) {
-        return predictWithProbability(lat, jit, perte, bp, signalScore);
+    public static double getLastAccuracy() {
+        return lastAccuracy;
     }
 
+    public static double getLastPrecision() {
+        return lastPrecision;
+    }
+
+    public static double getLastRecall() {
+        return lastRecall;
+    }
+
+    public static String getLastConfusionMatrix() {
+        return lastConfusionMatrix;
+    }
+
+    public static double getLastF1() {
+        return lastF1;
+    }
+
+    // =========================
+    // 5️⃣ ANALYSE DATASET (INCHANGÉE)
+    // =========================
+    public static void analyzeDataset() {
+        System.out.println("=== ANALYSE DATASET CSV ===");
+        System.out.println("Instances : " + trainingHeader.numInstances());
+        System.out.println("Attributs : " + trainingHeader.numAttributes());
+        System.out.println("Classes   : " + trainingHeader.classAttribute().numValues());
+    }
+
+    // =========================
+    // ✅ NOUVELLES CLASSES
+    // =========================
+
+    public static class DataPoint {
+        public final double x;
+        public final double y;
+        public final boolean isAnomaly;
+
+        public DataPoint(double x, double y, boolean isAnomaly) {
+            this.x = x;
+            this.y = y;
+            this.isAnomaly = isAnomaly;
+        }
+    }
+
+    public static class ZoneStats {
+        public final String zoneName;
+        public final int normalCount;
+        public final int anomalyCount;
+
+        public ZoneStats(String zoneName, int normalCount, int anomalyCount) {
+            this.zoneName = zoneName;
+            this.normalCount = normalCount;
+            this.anomalyCount = anomalyCount;
+        }
+
+        public int getTotal() {
+            return normalCount + anomalyCount;
+        }
+
+        public double getAnomalyPercentage() {
+            if (getTotal() == 0) return 0;
+            return (anomalyCount * 100.0) / getTotal();
+        }
+    }
+
+    // =========================
+    // 6️⃣ CLASSE RÉSULTAT (INCHANGÉE)
+    // =========================
+    public static class PredictionResult {
+        public final String prediction;
+        public final double anomalyProbability;
+        public final double normalProbability;
+        public final String status;
+        public final Date timestamp = new Date();
+
+        public PredictionResult(String p, double a, double n, String s) {
+            prediction = p;
+            anomalyProbability = a;
+            normalProbability = n;
+            status = s;
+        }
+
+        public String getPrediction() { return prediction; }
+        public double getAnomalyProbability() { return anomalyProbability; }
+        public String toDetailedString() {
+            return String.format(
+                    "📌 Résultat de la prédiction\n" +
+                            "→ Statut           : %s\n" +
+                            "→ Probabilité anomalie : %.2f %%\n" +
+                            "→ Probabilité normale  : %.2f %%\n" +
+                            "→ Horodatage       : %s\n",
+                    prediction,
+                    anomalyProbability * 100,
+                    normalProbability * 100,
+                    timestamp.toString()
+            );
+        }
+    }
 }

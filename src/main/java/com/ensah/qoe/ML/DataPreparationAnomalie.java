@@ -1,202 +1,161 @@
 package com.ensah.qoe.ML;
 
-import com.ensah.qoe.Models.DBConnection;
 import weka.core.*;
+import weka.core.converters.CSVLoader;
 import weka.filters.Filter;
 import weka.filters.unsupervised.attribute.Normalize;
 
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.HashSet;
+import java.io.InputStream;
+import java.util.Random;
 
 public class DataPreparationAnomalie {
 
-    // ============================
-    //        LOAD DATA
-    // ============================
-    public static Instances loadData() {
-        System.out.println("📥 Chargement dataset anomalies…");
+    // 🔒 Filtre partagé (TRAIN → TEST → PREDICTION)
+    private static Normalize sharedNormalizeFilter;
 
-        // Collecte des catégories NOMINALES
-        HashSet<String> zones = new HashSet<>();
-        HashSet<String> tranches = new HashSet<>();
+    // ======================================================
+    // 1️⃣ Chargement du CSV
+    // ======================================================
+    public static Instances loadFromResources(String resourcePath) throws Exception {
 
-        String collectSQL = """
-            SELECT DISTINCT ZONE, TRANCHE_12H
-            FROM MESURES_QOS
-            WHERE ANOMALIE IS NOT NULL
-        """;
-
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(collectSQL);
-             ResultSet rs = ps.executeQuery()) {
-
-            while (rs.next()) {
-                if (rs.getString("ZONE") != null) zones.add(rs.getString("ZONE"));
-                if (rs.getString("TRANCHE_12H") != null) tranches.add(rs.getString("TRANCHE_12H"));
-            }
-
-        } catch (Exception e) {
-            System.err.println("❌ Erreur collecte catégories : " + e.getMessage());
+        InputStream input = DataPreparationAnomalie.class.getResourceAsStream(resourcePath);
+        if (input == null) {
+            throw new Exception("❌ Fichier introuvable : " + resourcePath);
         }
 
-        // Convertir HashSet → ArrayList
-        ArrayList<String> zoneVals = new ArrayList<>(zones);
-        ArrayList<String> trancheVals = new ArrayList<>(tranches);
+        CSVLoader loader = new CSVLoader();
+        loader.setSource(input);
+        Instances data = loader.getDataSet();
 
-        // ============================
-        //        ATTRIBUTS
-        // ============================
-        ArrayList<Attribute> attributes = new ArrayList<>();
+        System.out.println("✔ CSV chargé : " + data.numInstances() + " lignes");
 
-        attributes.add(new Attribute("latence"));
-        attributes.add(new Attribute("jitter"));
-        attributes.add(new Attribute("perte"));
-        attributes.add(new Attribute("bande_passante"));
-        attributes.add(new Attribute("signal_score"));
-        attributes.add(new Attribute("mos"));
-        attributes.add(new Attribute("heure"));
+        // Classe = anomalie
+        Attribute anomalyAttr = data.attribute("anomalie");
+        if (anomalyAttr == null) {
+            throw new Exception("❌ Colonne 'anomalie' introuvable");
+        }
+        data.setClass(anomalyAttr);
 
-        // Nominal
-        attributes.add(new Attribute("tranche_12h", trancheVals));
-        attributes.add(new Attribute("zone", zoneVals));
+        // Colonnes inutiles
+        if (data.attribute("zone") != null) {
+            data.deleteAttributeAt(data.attribute("zone").index());
+        }
+        if (data.attribute("mos") != null) {
+            data.deleteAttributeAt(data.attribute("mos").index());
+        }
 
-        // Classe nominale
-        ArrayList<String> cls = new ArrayList<>();
-        cls.add("0");   // normal
-        cls.add("1");   // anomalie
-        attributes.add(new Attribute("anomalie", cls));
-
-        Instances data = new Instances("QoS_Anomaly", attributes, 0);
         data.setClassIndex(data.numAttributes() - 1);
 
-        // ============================
-        //     CHARGEMENT DB
-        // ============================
-        String sql = """
-            SELECT LATENCE, JITTER, PERTE, BANDE_PASSANTE, SIGNAL_SCORE,
-                   MOS, DATE_REELLE, TRANCHE_12H, ZONE, ANOMALIE
-            FROM MESURES_QOS
-            WHERE ANOMALIE IS NOT NULL
-        """;
-
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-
-            while (rs.next()) {
-
-                double[] values = new double[data.numAttributes()];
-
-                values[0] = rs.getDouble("LATENCE");
-                values[1] = rs.getDouble("JITTER");
-                values[2] = rs.getDouble("PERTE");
-                values[3] = rs.getDouble("BANDE_PASSANTE");
-                values[4] = rs.getDouble("SIGNAL_SCORE");
-                values[5] = rs.getDouble("MOS");
-
-                Timestamp ts = rs.getTimestamp("DATE_REELLE");
-                values[6] = ts == null ? 0 : ts.toLocalDateTime().getHour();
-
-                values[7] = trancheVals.indexOf(rs.getString("TRANCHE_12H"));
-                values[8] = zoneVals.indexOf(rs.getString("ZONE"));
-
-                values[9] = rs.getInt("ANOMALIE");
-
-                data.add(new DenseInstance(1.0, values));
-            }
-
-        } catch (Exception e) {
-            System.err.println("❌ Erreur chargement DB : " + e.getMessage());
-        }
-
-        System.out.println("✅ Dataset chargé : " + data.numInstances() + " instances");
         return data;
     }
 
+    // ======================================================
+    // 2️⃣ Équilibrage (undersampling)
+    // ======================================================
+    private static Instances balance(Instances data) {
 
-    // ============================
-    //   BALANCER LES CLASSES
-    // ============================
-    private static Instances balanceDataset(Instances data) {
-        System.out.println("⚖️ Équilibrage du dataset…");
-
-        Instances normal = new Instances(data, 0);
-        Instances anomalies = new Instances(data, 0);
+        Instances c0 = new Instances(data, 0);
+        Instances c1 = new Instances(data, 0);
 
         for (Instance inst : data) {
-            if (inst.stringValue(data.classIndex()).equals("1"))
-                anomalies.add(inst);
-            else
-                normal.add(inst);
+            if ((int) inst.classValue() == 0) c0.add(inst);
+            else c1.add(inst);
         }
 
-        // Si équilibré → ne rien faire
-        if (normal.numInstances() == anomalies.numInstances()) return data;
+        int min = Math.min(c0.numInstances(), c1.numInstances());
+        Random r = new Random(42);
 
-        int diff = Math.abs(normal.numInstances() - anomalies.numInstances());
-        Instances balanced = new Instances(data);
+        c0.randomize(r);
+        c1.randomize(r);
 
-        if (normal.numInstances() < anomalies.numInstances()) {
-            for (int i = 0; i < diff; i++)
-                balanced.add((Instance) normal.instance(i % normal.numInstances()).copy());
-        } else {
-            for (int i = 0; i < diff; i++)
-                balanced.add((Instance) anomalies.instance(i % anomalies.numInstances()).copy());
+        Instances balanced = new Instances(data, 0);
+        for (int i = 0; i < min; i++) {
+            balanced.add(c0.instance(i));
+            balanced.add(c1.instance(i));
         }
 
-        System.out.println("➡ Normal : " + normal.numInstances());
-        System.out.println("➡ Anomalies : " + anomalies.numInstances());
-        System.out.println("➡ Total équilibré : " + balanced.numInstances());
+        balanced.randomize(r);
+        balanced.setClassIndex(data.classIndex());
 
         return balanced;
     }
 
+    // ======================================================
+    // 3️⃣ Split TRAIN / TEST (AVANT normalisation)
+    // ======================================================
+    private static Instances[] split(Instances data, double ratio) {
 
-    // ============================
-    //     NORMALISATION
-    // ============================
-    public static Instances normalize(Instances data) {
-        try {
-            Normalize norm = new Normalize();
-            norm.setInputFormat(data);
-            return Filter.useFilter(data, norm);
-        } catch (Exception e) {
-            System.err.println("❌ Normalisation impossible : " + e.getMessage());
-            return data;
-        }
-    }
+        data.randomize(new Random(42));
 
-
-    // ============================
-    //     TRAIN / TEST SPLIT
-    // ============================
-    public static Instances[] stratifiedSplit(Instances data, double ratio) {
-        data.randomize(new java.util.Random(1));
-
-        int trainSize = (int) Math.round(data.numInstances() * ratio);
-        int testSize = data.numInstances() - trainSize;
+        int trainSize = (int) (data.numInstances() * ratio);
 
         Instances train = new Instances(data, 0, trainSize);
-        Instances test = new Instances(data, trainSize, testSize);
+        Instances test  = new Instances(data, trainSize, data.numInstances() - trainSize);
+
+        train.setClassIndex(data.classIndex());
+        test.setClassIndex(data.classIndex());
 
         return new Instances[]{train, test};
     }
 
+    // ======================================================
+    // 4️⃣ Normalisation (SANS la classe)
+    // ======================================================
+    private static Instances normalizeTrain(Instances train) throws Exception {
 
-    // ============================
-    //       PIPELINE FINAL
-    // ============================
-    public static Instances[] prepare() {
-        Instances data = loadData();
+        // 🔑 IMPORTANT : classIndex AVANT normalize
+        train.setClassIndex(train.numAttributes() - 1);
 
-        // Équilibrage ✔
-        data = balanceDataset(data);
+        sharedNormalizeFilter = new Normalize();
+        sharedNormalizeFilter.setInputFormat(train);
 
-        // Normalisation ✔
-        Instances norm = normalize(data);
+        Instances normTrain = Filter.useFilter(train, sharedNormalizeFilter);
+        normTrain.setClassIndex(train.classIndex());
 
-        // Split ✔
-        return stratifiedSplit(norm, 0.80);
+        return normTrain;
+    }
+
+    private static Instances normalizeTest(Instances test) throws Exception {
+
+        test.setClassIndex(test.numAttributes() - 1);
+
+        Instances normTest = Filter.useFilter(test, sharedNormalizeFilter);
+        normTest.setClassIndex(test.classIndex());
+
+        return normTest;
+    }
+
+    // ======================================================
+    // 5️⃣ PIPELINE COMPLET
+    // ======================================================
+    public static Instances[] prepareFromResources(String path) {
+
+        try {
+            System.out.println("\n===== PREPARATION DATASET ANOMALIES =====");
+
+            Instances data = loadFromResources(path);
+            data = balance(data);
+
+            Instances[] split = split(data, 0.7);
+
+            Instances train = normalizeTrain(split[0]);
+            Instances test  = normalizeTest(split[1]);
+
+            System.out.println("✔ Train = " + train.numInstances());
+            System.out.println("✔ Test  = " + test.numInstances());
+
+            return new Instances[]{train, test};
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    // ======================================================
+    // 6️⃣ Accès filtre (PRÉDICTION)
+    // ======================================================
+    public static Normalize getNormalizeFilter() {
+        return sharedNormalizeFilter;
     }
 }
