@@ -1,10 +1,7 @@
 package com.ensah.qoe.Controller;
 
 import com.ensah.qoe.Models.User;
-import javafx.animation.TranslateTransition;
-import javafx.animation.FadeTransition;
-import javafx.animation.RotateTransition;
-import javafx.animation.ParallelTransition;
+import javafx.animation.*;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -26,39 +23,113 @@ public class MainAdminLayoutController {
 
     @FXML
     private Label usernameLabel;
+
     @FXML
     private AnchorPane contentArea;
+
     @FXML
     private VBox predictionsSubmenu;
+
     @FXML
     private Label submenuIndicator;
+
     @FXML
     private Button dashboardBtn;
+
     @FXML
     private ScrollPane menuScrollPane;
 
-    // Charger le tableau de bord par défaut au démarrage
     @FXML
     public void initialize() {
+        System.out.println("🔄 MainAdminLayoutController - initialize() called");
         loadView("/fxml/admin_dashboard.fxml");
 
-        // Configuration du ScrollPane
         if (menuScrollPane != null) {
-            // Rendre le scroll plus fluide
             menuScrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
             menuScrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
             menuScrollPane.setFitToWidth(true);
             menuScrollPane.setPannable(false);
 
-            // Ajuster la vitesse de défilement avec la molette de la souris
             menuScrollPane.setOnScroll(event -> {
-                double deltaY = event.getDeltaY() * 0.01; // Ajuster le facteur de vitesse
+                double deltaY = event.getDeltaY() * 0.01;
                 menuScrollPane.setVvalue(menuScrollPane.getVvalue() - deltaY);
             });
         }
     }
 
-    // Effet hover pour les boutons du menu principal
+    public void setCurrentUser(User user) {
+        System.out.println("═══════════════════════════════════════");
+        System.out.println("🔥 setCurrentUser() called");
+
+        if (user != null) {
+            this.currentUser = user;
+            System.out.println("✅ User set: " + user.getUsername());
+            System.out.println("   - ID: " + user.getIdUser());
+            System.out.println("   - Email: " + user.getEmail());
+
+            if (usernameLabel != null) {
+                usernameLabel.setText(user.getUsername());
+                System.out.println("✅ Username label updated");
+            }
+        } else {
+            System.err.println("❌ User is NULL in setCurrentUser!");
+        }
+        System.out.println("═══════════════════════════════════════");
+    }
+
+    public User getCurrentUser() {
+        return currentUser;
+    }
+
+    // 🔥 MÉTHODE CORRIGÉE : Utilise contentArea au lieu de mainContainer
+    @FXML
+    public void loadProfileView() {
+        System.out.println("═══════════════════════════════════════");
+        System.out.println("🔥 loadProfileView() called");
+        System.out.println("   - currentUser: " + (currentUser != null ? currentUser.getUsername() : "NULL"));
+
+        if (currentUser == null) {
+            System.err.println("❌ CRITICAL ERROR: currentUser is NULL!");
+            showAlert("Erreur de session", "Utilisateur non connecté",
+                    "Veuillez vous reconnecter.");
+            return;
+        }
+
+        try {
+            System.out.println("🔄 Loading profile FXML...");
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/AdminProfileView.fxml"));
+            Parent profileView = loader.load();
+            System.out.println("✅ FXML loaded successfully");
+
+            AdminProfileController profileController = loader.getController();
+            System.out.println("✅ AdminProfileController obtained");
+
+            System.out.println("🔄 Passing user to profile controller...");
+            profileController.setMainController(this);
+            profileController.setCurrentUser(this.currentUser);
+            System.out.println("✅ User data passed to profile controller");
+
+            // 🔥 CORRECTION : Utiliser contentArea au lieu de mainContainer
+            if (contentArea != null) {
+                contentArea.getChildren().setAll(profileView);
+                AnchorPane.setTopAnchor(profileView, 0.0);
+                AnchorPane.setBottomAnchor(profileView, 0.0);
+                AnchorPane.setLeftAnchor(profileView, 0.0);
+                AnchorPane.setRightAnchor(profileView, 0.0);
+                System.out.println("✅ Profile view displayed in contentArea");
+            } else {
+                System.err.println("❌ contentArea is NULL!");
+            }
+
+        } catch (Exception e) {
+            System.err.println("❌ ERROR loading profile:");
+            e.printStackTrace();
+            showAlert("Erreur", "Erreur de chargement",
+                    "Impossible de charger le profil: " + e.getMessage());
+        }
+        System.out.println("═══════════════════════════════════════");
+    }
+
     public void handleMenuHover(MouseEvent event) {
         Button btn = (Button) event.getSource();
         btn.setStyle("-fx-background-color: rgba(52, 152, 219, 0.2); " +
@@ -77,7 +148,6 @@ public class MainAdminLayoutController {
 
     public void handleMenuExit(MouseEvent event) {
         Button btn = (Button) event.getSource();
-        // Vérifier si c'est le bouton Dashboard (avec effet actif)
         if (btn.getId() != null && btn.getId().equals("dashboardBtn")) {
             btn.setStyle("-fx-background-color: rgba(52, 152, 219, 0.15); " +
                     "-fx-background-radius: 10; " +
@@ -102,7 +172,6 @@ public class MainAdminLayoutController {
         }
     }
 
-    // Effet hover pour les sous-menus
     public void handleSubmenuHover(MouseEvent event) {
         Button btn = (Button) event.getSource();
         btn.setStyle("-fx-background-color: rgba(52, 152, 219, 0.15); " +
@@ -127,7 +196,6 @@ public class MainAdminLayoutController {
                 "-fx-cursor: hand;");
     }
 
-    // Effet hover pour le bouton logout
     public void handleLogoutHover(MouseEvent event) {
         Button btn = (Button) event.getSource();
         btn.setStyle("-fx-background-color: linear-gradient(to right, #c0392b, #e74c3c); " +
@@ -152,13 +220,11 @@ public class MainAdminLayoutController {
                 "-fx-effect: dropshadow(gaussian, rgba(231, 76, 60, 0.4), 10, 0.3, 0, 2);");
     }
 
-    // Méthode générique pour charger une vue
     private void loadView(String fxmlPath) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
             Parent view = loader.load();
 
-            // Animation de transition
             FadeTransition fadeTransition = new FadeTransition(Duration.millis(300), view);
             fadeTransition.setFromValue(0.0);
             fadeTransition.setToValue(1.0);
@@ -172,19 +238,18 @@ public class MainAdminLayoutController {
             fadeTransition.play();
         } catch (Exception e) {
             e.printStackTrace();
+            showAlert("Erreur", "Erreur de chargement",
+                    "Impossible de charger la vue: " + e.getMessage());
         }
     }
 
-    // Toggle sous-menu avec animation
     @FXML
     private void togglePredictionsSubmenu() {
         boolean isVisible = predictionsSubmenu.isVisible();
 
-        // Animation de rotation de l'indicateur
         RotateTransition rotateTransition = new RotateTransition(Duration.millis(300), submenuIndicator);
         rotateTransition.setToAngle(isVisible ? 0 : 90);
 
-        // Animation de fade pour le sous-menu
         FadeTransition fadeTransition = new FadeTransition(Duration.millis(300), predictionsSubmenu);
 
         if (!isVisible) {
@@ -201,12 +266,10 @@ public class MainAdminLayoutController {
             });
         }
 
-        // Jouer les animations en parallèle
         ParallelTransition parallelTransition = new ParallelTransition(rotateTransition, fadeTransition);
         parallelTransition.play();
     }
 
-    // Liens entre le menu et les vues dynamiques
     @FXML
     private void loadAdminDashboardView() {
         loadView("/fxml/admin_dashboard.fxml");
@@ -239,7 +302,12 @@ public class MainAdminLayoutController {
 
     @FXML
     private void showSystemSettings() {
-        loadView("/fxml/SystemSettingView.fxml");
+        loadView("/fxml/SystemSettingsView.fxml");
+    }
+
+    @FXML
+    private void showAdminProfile() {
+        loadProfileView();
     }
 
     @FXML
@@ -286,7 +354,6 @@ public class MainAdminLayoutController {
             if (response == javafx.scene.control.ButtonType.OK) {
                 Stage stage = (Stage) usernameLabel.getScene().getWindow();
 
-                // Animation de fermeture
                 FadeTransition fadeOut = new FadeTransition(Duration.millis(300), stage.getScene().getRoot());
                 fadeOut.setFromValue(1.0);
                 fadeOut.setToValue(0.0);
@@ -308,7 +375,6 @@ public class MainAdminLayoutController {
             loginStage.setTitle("Connexion - QoE System");
             loginStage.setScene(new Scene(root));
 
-            // Animation d'ouverture
             FadeTransition fadeIn = new FadeTransition(Duration.millis(300), root);
             fadeIn.setFromValue(0.0);
             fadeIn.setToValue(1.0);
@@ -329,16 +395,5 @@ public class MainAdminLayoutController {
         alert.setHeaderText(header);
         alert.setContentText(content);
         alert.showAndWait();
-    }
-
-    public User getCurrentUser() {
-        return currentUser;
-    }
-
-    public void setCurrentUser(User currentUser) {
-        this.currentUser = currentUser;
-        if (usernameLabel != null && currentUser != null) {
-            usernameLabel.setText(currentUser.getUsername());
-        }
     }
 }

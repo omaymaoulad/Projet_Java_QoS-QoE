@@ -227,17 +227,21 @@
 
             <!-- Séparateur avant user section -->
             <Region prefHeight="2" style="-fx-background-color: linear-gradient(to right, transparent, rgba(255,255,255,0.1), transparent);"/>
-
             <!-- User section avec design moderne (toujours visible) -->
             <VBox spacing="15" style="-fx-padding: 25 15 25 15; -fx-background-color: rgba(0,0,0,0.2);">
+                <!-- Card utilisateur cliquable -->
                 <HBox spacing="15" alignment="CENTER_LEFT"
-                      style="-fx-background-color: rgba(255,255,255,0.05); -fx-background-radius: 12; -fx-padding: 12;">
+                      onMouseClicked="#showAdminProfile"
+                      style="-fx-background-color: rgba(255,255,255,0.05);
+                 -fx-background-radius: 12;
+                 -fx-padding: 12;
+                 -fx-cursor: hand;">
                     <StackPane>
                         <Circle radius="22" fill="linear-gradient(to bottom right, #3498db, #2980b9)"
                                 style="-fx-effect: dropshadow(gaussian, rgba(52, 152, 219, 0.5), 10, 0.5, 0, 0);"/>
                         <Label text="A" style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 18;"/>
                     </StackPane>
-                    <VBox spacing="2">
+                    <VBox spacing="2" HBox.hgrow="ALWAYS">
                         <Label fx:id="usernameLabel" text="Administrator"
                                style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14;"/>
                         <HBox spacing="6" alignment="CENTER_LEFT">
@@ -246,19 +250,21 @@
                                    style="-fx-text-fill: #95a5a6; -fx-font-size: 11; -fx-font-weight: 500;"/>
                         </HBox>
                     </VBox>
+                    <!-- Icône pour indiquer que c'est cliquable -->
+                    <Label text="👤" style="-fx-font-size: 16; -fx-text-fill: #95a5a6;"/>
                 </HBox>
 
                 <Button text="🚪  Logout"
                         onMouseEntered="#handleLogoutHover"
                         onMouseExited="#handleLogoutExit"
                         style="-fx-background-color: linear-gradient(to right, #e74c3c, #c0392b);
-                               -fx-text-fill: white;
-                               -fx-background-radius: 10;
-                               -fx-font-weight: bold;
-                               -fx-font-size: 13;
-                               -fx-padding: 12;
-                               -fx-cursor: hand;
-                               -fx-effect: dropshadow(gaussian, rgba(231, 76, 60, 0.4), 10, 0.3, 0, 2);"
+                   -fx-text-fill: white;
+                   -fx-background-radius: 10;
+                   -fx-font-weight: bold;
+                   -fx-font-size: 13;
+                   -fx-padding: 12;
+                   -fx-cursor: hand;
+                   -fx-effect: dropshadow(gaussian, rgba(231, 76, 60, 0.4), 10, 0.3, 0, 2);"
                         onAction="#handleLogout">
                     <cursor><Cursor fx:constant="HAND"/></cursor>
                 </Button>

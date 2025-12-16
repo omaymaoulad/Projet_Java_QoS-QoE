@@ -169,7 +169,6 @@ public class LoginController implements Initializable {
             }
         }).start();
     }
-
     private User authenticateUser(String username, String password) {
         Connection conn = null;
         PreparedStatement pstmt = null;
@@ -177,88 +176,91 @@ public class LoginController implements Initializable {
 
         try {
             conn = DBConnection.getConnection();
+
+            // 🔥 IMPORTANT : Récupérer TOUTES les colonnes nécessaires, y compris date_creation
             String sql =
-                    "SELECT id_user, username, email, role " +
+                    "SELECT id_user, username, email, role, password, date_creation " +
                             "FROM utilisateurs " +
                             "WHERE username = ? AND TRIM(password) = ?";
+
             pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, username);
             pstmt.setString(2, password);
-            System.out.println("Connected as Oracle user: " + conn.getMetaData().getUserName());
-            System.out.println("Executing query: username=" + username + ", password=" + password);
-            System.out.println("---- DEBUG USERNAME ----");
-            System.out.println("username raw = [" + username + "]");
-            System.out.println("username length = " + username.length());
-            for (int i = 0; i < username.length(); i++) {
-                System.out.println("char[" + i + "] = '" + username.charAt(i) +
-                        "' (code=" + (int) username.charAt(i) + ")");
-            }
-            System.out.println("-------------------------");
+
+            System.out.println("🔍 Executing query: username=" + username);
+
             rs = pstmt.executeQuery();
 
             if (rs.next()) {
                 User user = new User();
-                user.setId(rs.getInt("id_user"));
+                user.setIdUser(rs.getInt("id_user"));
                 user.setUsername(rs.getString("username"));
                 user.setEmail(rs.getString("email"));
                 user.setRole(rs.getString("role"));
-                System.out.println("User found: " + user);
+                user.setPassword(rs.getString("password")); // Nécessaire pour validatePasswordChange
+
+                // 🔥 CRUCIAL : Récupérer la date de création
+                String dateCreation = rs.getString("date_creation");
+                user.setDateCreation(dateCreation != null ? dateCreation : "");
+
+                System.out.println("✅ User found: " + user);
+                System.out.println("   - ID: " + user.getIdUser());
+                System.out.println("   - Username: " + user.getUsername());
+                System.out.println("   - Email: " + user.getEmail());
+                System.out.println("   - Role: " + user.getRole());
+                System.out.println("   - Date création: " + user.getDateCreation());
+
                 return user;
             } else {
-                System.out.println("No user found with username=" + username);
+                System.out.println("❌ No user found with username=" + username);
             }
 
             return null;
 
         } catch (Exception e) {
             e.printStackTrace();
+            System.err.println("❌ Error during authentication: " + e.getMessage());
             return null;
         } finally {
             try {
                 if (rs != null) rs.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            try {
                 if (pstmt != null) pstmt.close();
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
     }
-
     private void redirectToDashboard(User user) {
         try {
             String fxmlFile;
             String title;
 
             if ("admin".equalsIgnoreCase(user.getRole())) {
-                fxmlFile = "/fxml/main_layout_admin.fxml"; // le layout principal admin
+                fxmlFile = "/fxml/main_layout_admin.fxml";
                 title = "QOS/QOE - Admin Panel (" + user.getUsername() + ")";
             } else {
-                fxmlFile = "/fxml/client_dashboard.fxml"; // Chemin corrigé
+                fxmlFile = "/fxml/client_dashboard.fxml";
                 title = "QOS/QOE Client Dashboard - Welcome " + user.getUsername();
             }
 
             System.out.println("🔄 Chargement du FXML: " + fxmlFile);
 
-            // Vérifier si le fichier existe
             URL fxmlUrl = getClass().getResource(fxmlFile);
             if (fxmlUrl == null) {
                 throw new IOException("Fichier FXML non trouvé: " + fxmlFile);
             }
 
-            // Load the appropriate dashboard
             FXMLLoader loader = new FXMLLoader(fxmlUrl);
             Parent dashboard = loader.load();
 
             System.out.println("✅ FXML chargé avec succès");
 
-            // Pass user data to the dashboard controller
+            // 🔥 IMPORTANT : Passer l'utilisateur au contrôleur
             Object controller = loader.getController();
-            if (controller instanceof AdminDashboardController) {
-                ((AdminDashboardController) controller).setUserData(user);
-                System.out.println("✅ Données passées à AdminDashboardController");
+            if (controller instanceof MainAdminLayoutController) {
+                MainAdminLayoutController mainController = (MainAdminLayoutController) controller;
+                mainController.setCurrentUser(user);
+                System.out.println("✅ User passé au MainAdminLayoutController: " + user.getUsername());
             } else if (controller instanceof ClientDashboardController) {
                 ((ClientDashboardController) controller).setUserData(user);
                 System.out.println("✅ Données passées à ClientDashboardController");
@@ -268,7 +270,6 @@ public class LoginController implements Initializable {
             Stage stage = (Stage) loginButton.getScene().getWindow();
             Scene scene = new Scene(dashboard, 1366, 700);
 
-            // Optionnel: ajouter CSS si disponible
             try {
                 URL cssUrl = getClass().getResource("/css/style.css");
                 if (cssUrl != null) {

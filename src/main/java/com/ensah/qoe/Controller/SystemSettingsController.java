@@ -369,7 +369,7 @@ public class SystemSettingsController implements Initializable {
         frequency.getItems().addAll("Daily", "Weekly", "Monthly");
         frequency.setValue("Daily");
 
-        TextField backupPath = new TextField("/var/backups/qoe");
+        TextField backupPath = new TextField("");
 
         Spinner<Integer> retention = new Spinner<>(1, 365, 30);
 
