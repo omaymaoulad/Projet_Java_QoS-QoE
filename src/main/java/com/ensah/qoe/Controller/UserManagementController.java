@@ -5,10 +5,12 @@ import com.ensah.qoe.Models.UserDAO;
 import com.ensah.qoe.Models.DBConnection; // Votre classe de connexion
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -144,8 +146,8 @@ public class UserManagementController implements Initializable {
 
         // Colonne Actions avec boutons
         actionsColumn.setCellFactory(column -> new TableCell<User, Void>() {
-            private final Button editBtn = new Button("✏️");
-            private final Button deleteBtn = new Button("🗑️");
+            private final Button editBtn = new Button("Edit ");
+            private final Button deleteBtn = new Button("Delete");
 
             {
                 editBtn.setStyle("-fx-background-color: #3b82f6; -fx-text-fill: white; -fx-font-size: 12; -fx-padding: 4 8;");
@@ -372,31 +374,150 @@ public class UserManagementController implements Initializable {
     private void editUser(User user) {
         Dialog<Boolean> dialog = new Dialog<>();
         dialog.setTitle("Edit User");
-        dialog.setHeaderText("Edit user: " + user.getUsername());
 
-        VBox content = new VBox(10);
-        content.setStyle("-fx-padding: 20;");
+        // Style du dialog
+        DialogPane dialogPane = dialog.getDialogPane();
+        dialogPane.getStylesheets().add(getClass().getResource("/css/dialog-style.css").toExternalForm());
+        dialogPane.getStyleClass().add("modern-dialog");
 
+        // Contenu principal
+        VBox content = new VBox(20);
+        content.setStyle("-fx-padding: 30; -fx-background-color: #f8f9fa;");
+
+        // Header moderne
+        VBox header = new VBox(8);
+        header.setStyle("-fx-alignment: center;");
+
+        Label titleLabel = new Label("Modifier l'utilisateur");
+        titleLabel.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
+
+        Label subtitleLabel = new Label(user.getUsername());
+        subtitleLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #7f8c8d;");
+
+        Separator separator = new Separator();
+        separator.setStyle("-fx-padding: 10 0 0 0;");
+
+        header.getChildren().addAll(titleLabel, subtitleLabel, separator);
+
+        // Grid pour les champs
+        GridPane grid = new GridPane();
+        grid.setHgap(15);
+        grid.setVgap(20);
+        grid.setStyle("-fx-padding: 20 0;");
+
+        // Champ Username avec icône
+        VBox usernameBox = createStyledField("👤", "Nom d'utilisateur");
         TextField usernameField = new TextField(user.getUsername());
-        TextField emailField = new TextField(user.getEmail());
+        usernameField.setPromptText("Entrez le nom d'utilisateur");
+        styleTextField(usernameField);
+        usernameBox.getChildren().add(usernameField);
 
+        // Champ Email avec icône
+        VBox emailBox = createStyledField("✉", "Adresse email");
+        TextField emailField = new TextField(user.getEmail());
+        emailField.setPromptText("exemple@email.com");
+        styleTextField(emailField);
+
+        // Validation email en temps réel
+        Label emailError = new Label();
+        emailError.setStyle("-fx-text-fill: #e74c3c; -fx-font-size: 11px;");
+        emailError.setVisible(false);
+
+        emailField.textProperty().addListener((obs, old, newVal) -> {
+            if (!newVal.isEmpty() && !newVal.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
+                emailField.setStyle(getTextFieldStyle() + "-fx-border-color: #e74c3c;");
+                emailError.setText("⚠ Email invalide");
+                emailError.setVisible(true);
+            } else {
+                emailField.setStyle(getTextFieldStyle());
+                emailError.setVisible(false);
+            }
+        });
+
+        emailBox.getChildren().addAll(emailField, emailError);
+
+        // Champ Role avec style moderne
+        VBox roleBox = createStyledField("🔑", "Rôle");
         ComboBox<String> roleCombo = new ComboBox<>();
         roleCombo.getItems().addAll("admin", "client");
         roleCombo.setValue(user.getRole() != null ? user.getRole() : "client");
+        styleComboBox(roleCombo);
+        roleBox.getChildren().add(roleCombo);
 
-        content.getChildren().addAll(
-                new Label("Username:"), usernameField,
-                new Label("Email:"), emailField,
-                new Label("Role:"), roleCombo
+        // Ajouter au grid
+        grid.add(usernameBox, 0, 0);
+        grid.add(emailBox, 0, 1);
+        grid.add(roleBox, 0, 2);
+
+        // Info box
+        HBox infoBox = new HBox(10);
+        infoBox.setStyle(
+                "-fx-background-color: #e8f4f8; " +
+                        "-fx-padding: 15; " +
+                        "-fx-background-radius: 8; " +
+                        "-fx-border-color: #3498db; " +
+                        "-fx-border-width: 1; " +
+                        "-fx-border-radius: 8;"
         );
 
-        dialog.getDialogPane().setContent(content);
-        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+        Label infoIcon = new Label("ℹ");
+        infoIcon.setStyle("-fx-font-size: 18px;");
+
+        Label infoText = new Label("Les modifications seront sauvegardées immédiatement dans la base de données.");
+        infoText.setStyle("-fx-text-fill: #2980b9; -fx-font-size: 12px;");
+        infoText.setWrapText(true);
+
+        infoBox.getChildren().addAll(infoIcon, infoText);
+
+        content.getChildren().addAll(header, grid, infoBox);
+
+        dialogPane.setContent(content);
+
+        // Boutons personnalisés
+        ButtonType saveButton = new ButtonType("Enregistrer", ButtonBar.ButtonData.OK_DONE);
+        ButtonType cancelButton = new ButtonType("Annuler", ButtonBar.ButtonData.CANCEL_CLOSE);
+        dialogPane.getButtonTypes().addAll(saveButton, cancelButton);
+
+        // Style des boutons
+        Button saveBtn = (Button) dialogPane.lookupButton(saveButton);
+        Button cancelBtn = (Button) dialogPane.lookupButton(cancelButton);
+
+        saveBtn.setStyle(
+                "-fx-background-color: #3498db; " +
+                        "-fx-text-fill: white; " +
+                        "-fx-font-weight: bold; " +
+                        "-fx-padding: 10 30; " +
+                        "-fx-background-radius: 6; " +
+                        "-fx-cursor: hand;"
+        );
+
+        saveBtn.setOnMouseEntered(e -> saveBtn.setStyle(
+                saveBtn.getStyle() + "-fx-background-color: #2980b9;"
+        ));
+
+        cancelBtn.setStyle(
+                "-fx-background-color: #ecf0f1; " +
+                        "-fx-text-fill: #2c3e50; " +
+                        "-fx-padding: 10 30; " +
+                        "-fx-background-radius: 6; " +
+                        "-fx-cursor: hand;"
+        );
+
+        // Validation avant sauvegarde
+        saveBtn.addEventFilter(ActionEvent.ACTION, event -> {
+            if (usernameField.getText().trim().isEmpty()) {
+                showAlert("Validation", "Le nom d'utilisateur est requis", Alert.AlertType.WARNING);
+                event.consume();
+            } else if (emailField.getText().trim().isEmpty() || !emailField.getText().matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
+                showAlert("Validation", "Une adresse email valide est requise", Alert.AlertType.WARNING);
+                event.consume();
+            }
+        });
 
         dialog.setResultConverter(buttonType -> {
-            if (buttonType == ButtonType.OK) {
-                user.setUsername(usernameField.getText());
-                user.setEmail(emailField.getText());
+            if (buttonType == saveButton) {
+                user.setUsername(usernameField.getText().trim());
+                user.setEmail(emailField.getText().trim());
                 user.setRole(roleCombo.getValue());
                 return true;
             }
@@ -407,23 +528,24 @@ public class UserManagementController implements Initializable {
             if (updated) {
                 try {
                     if (userDAO == null) {
-                        showAlert("Error", "Database connection not available", Alert.AlertType.ERROR);
+                        showAlert("Erreur", "Connexion à la base de données non disponible", Alert.AlertType.ERROR);
                         return;
                     }
 
                     if (userDAO.updateUser(user)) {
                         usersTable.refresh();
                         updateStatistics();
-                        showAlert("Success", "User updated successfully!", Alert.AlertType.INFORMATION);
+                        showSuccessNotification("Utilisateur mis à jour avec succès!");
                     } else {
-                        showAlert("Error", "Failed to update user", Alert.AlertType.ERROR);
+                        showAlert("Erreur", "Échec de la mise à jour de l'utilisateur", Alert.AlertType.ERROR);
                     }
                 } catch (SQLException e) {
-                    showAlert("Database Error", "Failed to update user: " + e.getMessage(), Alert.AlertType.ERROR);
+                    showAlert("Erreur Base de Données", "Échec de la mise à jour: " + e.getMessage(), Alert.AlertType.ERROR);
                 }
             }
         });
     }
+
 
     private void deleteUser(User user) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
@@ -539,6 +661,73 @@ public class UserManagementController implements Initializable {
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(content);
+        alert.showAndWait();
+    }
+    // Méthodes utilitaires pour le style
+    private VBox createStyledField(String icon, String labelText) {
+        VBox box = new VBox(8);
+
+        HBox labelBox = new HBox(8);
+        labelBox.setStyle("-fx-alignment: center-left;");
+
+        Label iconLabel = new Label(icon);
+        iconLabel.setStyle("-fx-font-size: 16px;");
+
+        Label label = new Label(labelText);
+        label.setStyle("-fx-font-weight: bold; -fx-text-fill: #34495e; -fx-font-size: 13px;");
+
+        labelBox.getChildren().addAll(iconLabel, label);
+        box.getChildren().add(labelBox);
+
+        return box;
+    }
+
+    private void styleTextField(TextField field) {
+        field.setStyle(getTextFieldStyle());
+        field.setPrefHeight(40);
+
+        // Effet focus
+        field.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
+            if (isNowFocused) {
+                field.setStyle(getTextFieldStyle() + "-fx-border-color: #3498db; -fx-border-width: 2;");
+            } else {
+                field.setStyle(getTextFieldStyle());
+            }
+        });
+    }
+
+    private void styleComboBox(ComboBox<String> combo) {
+        combo.setStyle(
+                "-fx-background-color: white; " +
+                        "-fx-border-color: #bdc3c7; " +
+                        "-fx-border-radius: 6; " +
+                        "-fx-background-radius: 6; " +
+                        "-fx-padding: 8; " +
+                        "-fx-font-size: 13px;"
+        );
+        combo.setPrefHeight(40);
+        combo.setPrefWidth(300);
+    }
+
+    private String getTextFieldStyle() {
+        return "-fx-background-color: white; " +
+                "-fx-border-color: #bdc3c7; " +
+                "-fx-border-radius: 6; " +
+                "-fx-background-radius: 6; " +
+                "-fx-padding: 10; " +
+                "-fx-font-size: 13px; " +
+                "-fx-min-width: 300;";
+    }
+
+    private void showSuccessNotification(String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Succès");
+        alert.setHeaderText(null);
+        alert.setContentText("✓ " + message);
+
+        DialogPane dialogPane = alert.getDialogPane();
+        dialogPane.setStyle("-fx-background-color: #f8f9fa;");
+
         alert.showAndWait();
     }
 }

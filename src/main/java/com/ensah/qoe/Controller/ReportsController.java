@@ -120,11 +120,11 @@ public class ReportsController implements Initializable {
         zoneCombo.getItems().add(0, "Toutes les zones");
 
         // Formats d'export
-        formatCombo.getItems().addAll("PDF", "Excel", "CSV", "HTML", "TXT");
+        formatCombo.getItems().addAll( "CSV", "HTML", "TXT");
 
         reportTypeCombo.getSelectionModel().selectFirst();
         zoneCombo.getSelectionModel().selectFirst();
-        formatCombo.getSelectionModel().select("PDF");
+        formatCombo.getSelectionModel().select("CSV");
     }
 
     private void setupTable() {
@@ -342,10 +342,6 @@ public class ReportsController implements Initializable {
         String downloadsDir = System.getProperty("user.home") + "/Downloads/";
 
         switch (format.toUpperCase()) {
-            case "PDF":
-                return generatePDFReport(downloadsDir + fileName + ".pdf", reportType, zone, data);
-            case "EXCEL":
-                return generateExcelReport(downloadsDir + fileName + ".xlsx", reportType, zone, data);
             case "CSV":
                 return generateCSVReport(downloadsDir + fileName + ".csv", data);
             case "HTML":
@@ -553,15 +549,6 @@ public class ReportsController implements Initializable {
         return filePath;
     }
 
-    private String generateExcelReport(String filePath, String reportType, String zone, List<Qos> data) throws Exception {
-        // Simple CSV si pas de POI installé
-        return generateCSVReport(filePath, data);
-    }
-
-    private String generatePDFReport(String filePath, String reportType, String zone, List<Qos> data) throws Exception {
-        // Simple texte si pas de PDFBox installé
-        return generateTextReport(filePath, reportType, zone, data);
-    }
 
     @FXML
     private void refreshData() {

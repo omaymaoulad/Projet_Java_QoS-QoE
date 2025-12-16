@@ -33,7 +33,6 @@ public class NetworkMonitorController implements Initializable {
     @FXML private Label bandePassanteLabel;
     @FXML private Label signalLabel;
     @FXML private Label mosLabel;
-    @FXML private Label trancheLabel;
     @FXML private Label villeLabel;
     @FXML private Label paysLabel;
     @FXML private Label countLabel;
@@ -44,61 +43,19 @@ public class NetworkMonitorController implements Initializable {
     @FXML private ComboBox<String> zoneCombo;
     @FXML private TextField searchField;
 
-    @FXML private TableView<NetworkDevice> devicesTable;
-    @FXML private TableColumn<NetworkDevice, String> deviceNameColumn;
-    @FXML private TableColumn<NetworkDevice, String> ipAddressColumn;
-    @FXML private TableColumn<NetworkDevice, String> macAddressColumn;
-    @FXML private TableColumn<NetworkDevice, String> statusColumn;
-    @FXML private TableColumn<NetworkDevice, String> bandwidthColumn;
-    @FXML private TableColumn<NetworkDevice, String> latencyColumn;
-    @FXML private TableColumn<NetworkDevice, String> uptimeColumn;
-    @FXML private TableColumn<NetworkDevice, Void> actionsColumn;
-
-    private ObservableList<NetworkDevice> devicesList;
     private Timeline updateTimeline;
     private final QosZoneService zoneService = new QosZoneService();
     private List<String> zones = new ArrayList<>();
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        setupTableColumns();
         setupZoneCombo();
-        loadDevicesData();
         setupCharts();
-        setupSearch();
         startAutoRefresh();
         updateNetworkStatus();
     }
 
-    private void setupTableColumns() {
-        deviceNameColumn.setCellValueFactory(new PropertyValueFactory<>("deviceName"));
-        ipAddressColumn.setCellValueFactory(new PropertyValueFactory<>("ipAddress"));
-        macAddressColumn.setCellValueFactory(new PropertyValueFactory<>("macAddress"));
-        statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
-        bandwidthColumn.setCellValueFactory(new PropertyValueFactory<>("bandwidth"));
-        latencyColumn.setCellValueFactory(new PropertyValueFactory<>("latency"));
-        uptimeColumn.setCellValueFactory(new PropertyValueFactory<>("uptime"));
 
-        statusColumn.setCellFactory(column -> new TableCell<NetworkDevice, String>() {
-            @Override
-            protected void updateItem(String status, boolean empty) {
-                super.updateItem(status, empty);
-                if (empty || status == null) {
-                    setText(null);
-                    setStyle("");
-                } else {
-                    setText(status);
-                    if (status.equals("Active")) {
-                        setStyle("-fx-text-fill: #10b981; -fx-font-weight: bold;");
-                    } else if (status.equals("Inactive")) {
-                        setStyle("-fx-text-fill: #ef4444; -fx-font-weight: bold;");
-                    } else {
-                        setStyle("-fx-text-fill: #f59e0b; -fx-font-weight: bold;");
-                    }
-                }
-            }
-        });
-    }
 
     private void setupZoneCombo() {
         try {
@@ -132,13 +89,7 @@ public class NetworkMonitorController implements Initializable {
                 bandePassanteLabel.setText(String.format("%.2f Mbps", latest.getBandePassante()));
                 signalLabel.setText(String.format("%.2f", latest.getSignalScore()));
                 mosLabel.setText(String.format("%.2f / 5", latest.getMos()));
-                trancheLabel.setText(latest.getTranche12h());
-
                 String[] zoneParts = latest.getZone().split(",");
-                villeLabel.setText(zoneParts.length > 0 ? zoneParts[0].trim() : "");
-                paysLabel.setText(zoneParts.length > 1 ? zoneParts[1].trim() : "");
-                countLabel.setText(qosList.size() + " measurements");
-
                 updateQoSChart(qosList);
             }
         } catch (Exception e) {
@@ -161,15 +112,7 @@ public class NetworkMonitorController implements Initializable {
         qosLineChart.getData().add(mosSeries);
     }
 
-    private void loadDevicesData() {
-        devicesList = FXCollections.observableArrayList(
-                new NetworkDevice("Router-Main", "192.168.1.1", "00:1A:2B:3C:4D:5E", "Active", "125 Mbps", "2ms", "15d 6h"),
-                new NetworkDevice("Switch-Floor1", "192.168.1.10", "00:1A:2B:3C:4D:5F", "Active", "89 Mbps", "1ms", "10d 2h"),
-                new NetworkDevice("AP-Office", "192.168.1.20", "00:1A:2B:3C:4D:60", "Active", "234 Mbps", "5ms", "8d 14h")
-        );
 
-        devicesTable.setItems(devicesList);
-    }
 
     private void setupCharts() {
         // Setup latency chart
@@ -187,31 +130,6 @@ public class NetworkMonitorController implements Initializable {
             latencyChart.getData().add(latencySeries);
         }
     }
-
-    private void setupSearch() {
-        if (searchField != null) {
-            searchField.textProperty().addListener((observable, oldValue, newValue) -> {
-                filterDevices(newValue);
-            });
-        }
-    }
-
-    private void filterDevices(String searchText) {
-        if (searchText == null || searchText.isEmpty()) {
-            devicesTable.setItems(devicesList);
-        } else {
-            ObservableList<NetworkDevice> filtered = FXCollections.observableArrayList();
-            for (NetworkDevice device : devicesList) {
-                if (device.getDeviceName().toLowerCase().contains(searchText.toLowerCase()) ||
-                        device.getIpAddress().contains(searchText) ||
-                        device.getMacAddress().toLowerCase().contains(searchText.toLowerCase())) {
-                    filtered.add(device);
-                }
-            }
-            devicesTable.setItems(filtered);
-        }
-    }
-
     private void startAutoRefresh() {
         updateTimeline = new Timeline(new KeyFrame(Duration.seconds(5), event -> {
             updateNetworkStatus();
@@ -254,32 +172,4 @@ public class NetworkMonitorController implements Initializable {
         alert.showAndWait();
     }
 
-    public static class NetworkDevice {
-        private String deviceName;
-        private String ipAddress;
-        private String macAddress;
-        private String status;
-        private String bandwidth;
-        private String latency;
-        private String uptime;
-
-        public NetworkDevice(String deviceName, String ipAddress, String macAddress,
-                             String status, String bandwidth, String latency, String uptime) {
-            this.deviceName = deviceName;
-            this.ipAddress = ipAddress;
-            this.macAddress = macAddress;
-            this.status = status;
-            this.bandwidth = bandwidth;
-            this.latency = latency;
-            this.uptime = uptime;
-        }
-
-        public String getDeviceName() { return deviceName; }
-        public String getIpAddress() { return ipAddress; }
-        public String getMacAddress() { return macAddress; }
-        public String getStatus() { return status; }
-        public String getBandwidth() { return bandwidth; }
-        public String getLatency() { return latency; }
-        public String getUptime() { return uptime; }
-    }
 }
