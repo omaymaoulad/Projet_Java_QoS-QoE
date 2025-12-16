@@ -355,7 +355,7 @@ public class MapGeographiqueController implements Initializable {
             
             var popup = `
                 <div class="popup-header">
-                    ${genreIcon} ${nomClient}
+                     ${nomClient}
                 </div>
                 <div class="popup-body">
                     <div class="metric-row">
@@ -565,11 +565,25 @@ public class MapGeographiqueController implements Initializable {
 
     private String echapperJS(String str) {
         if (str == null) return "";
-        return str.replace("\\", "\\\\")
+
+        // Échapper les caractères spéciaux JavaScript
+        String escaped = str.replace("\\", "\\\\")
                 .replace("'", "\\'")
                 .replace("\"", "\\\"")
                 .replace("\n", "\\n")
                 .replace("\r", "\\r");
+
+        // Encoder les caractères non-ASCII en Unicode
+        StringBuilder sb = new StringBuilder();
+        for (char c : escaped.toCharArray()) {
+            if (c < 128) {
+                sb.append(c);
+            } else {
+                // Encoder en format Unicode
+                sb.append(String.format("\\u%04x", (int) c));
+            }
+        }
+        return sb.toString();
     }
 
     private static class ClientGeo {
