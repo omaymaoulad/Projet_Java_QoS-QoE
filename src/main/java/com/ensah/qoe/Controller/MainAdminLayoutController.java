@@ -302,9 +302,19 @@ public class MainAdminLayoutController {
 
     @FXML
     private void showSystemSettings() {
-        loadView("/fxml/SystemSettingsView.fxml");
-    }
+        System.out.println("🔄 showSystemSettings() called");
+        System.out.println("   - Loading: /fxml/SystemSettingsView.fxml");
 
+        try {
+            loadView("/fxml/SystemSettingsView.fxml");
+            System.out.println("✅ SystemSettingsView loaded successfully");
+        } catch (Exception e) {
+            System.err.println("❌ ERROR loading SystemSettingsView:");
+            e.printStackTrace();
+            showAlert("Erreur", "Erreur de chargement",
+                    "Impossible de charger les paramètres système: " + e.getMessage());
+        }
+    }
     @FXML
     private void showAdminProfile() {
         loadProfileView();
