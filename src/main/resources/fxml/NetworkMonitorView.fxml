@@ -98,24 +98,7 @@
                 <Label fx:id="mosLabel" text="0.00 / 5" GridPane.columnIndex="1" GridPane.rowIndex="5"/>
             </GridPane>
 
-            <VBox spacing="10" style="-fx-background-color: white; -fx-padding: 20; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);" HBox.hgrow="ALWAYS">
-                <HBox alignment="CENTER_LEFT" spacing="15">
-                    <VBox>
-                        <Label text="Current Time:" style="-fx-font-weight: bold; -fx-font-size: 12; -fx-text-fill: #64748b;"/>
-                        <Label fx:id="trancheLabel" text="N/A" style="-fx-font-weight: bold;"/>
-                    </VBox>
-                    <VBox>
-                        <Label text="City:" style="-fx-font-weight: bold; -fx-font-size: 12; -fx-text-fill: #64748b;"/>
-                        <Label fx:id="villeLabel" text="N/A" style="-fx-font-weight: bold;"/>
-                    </VBox>
-                    <VBox>
-                        <Label text="Country:" style="-fx-font-weight: bold; -fx-font-size: 12; -fx-text-fill: #64748b;"/>
-                        <Label fx:id="paysLabel" text="N/A" style="-fx-font-weight: bold;"/>
-                    </VBox>
-                    <Region HBox.hgrow="ALWAYS"/>
-                    <Label fx:id="countLabel" text="0 measurements" style="-fx-text-fill: #64748b;"/>
-                </HBox>
-            </VBox>
+
         </HBox>
 
         <!-- Charts Section -->
@@ -138,28 +121,5 @@
                 </BarChart>
             </VBox>
         </HBox>
-
-        <!-- Active Devices Table -->
-        <VBox spacing="15" style="-fx-background-color: white; -fx-padding: 20; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);">
-            <HBox alignment="CENTER_LEFT" spacing="15">
-                <Label text="Active Network Devices" style="-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #1e293b;"/>
-                <Region HBox.hgrow="ALWAYS"/>
-                <TextField fx:id="searchField" promptText="Search devices..." prefWidth="250"
-                           style="-fx-background-radius: 6; -fx-padding: 8;"/>
-            </HBox>
-
-            <TableView fx:id="devicesTable" prefHeight="300">
-                <columns>
-                    <TableColumn text="Device Name" prefWidth="200" fx:id="deviceNameColumn"/>
-                    <TableColumn text="IP Address" prefWidth="150" fx:id="ipAddressColumn"/>
-                    <TableColumn text="MAC Address" prefWidth="150" fx:id="macAddressColumn"/>
-                    <TableColumn text="Status" prefWidth="100" fx:id="statusColumn"/>
-                    <TableColumn text="Bandwidth" prefWidth="120" fx:id="bandwidthColumn"/>
-                    <TableColumn text="Latency" prefWidth="100" fx:id="latencyColumn"/>
-                    <TableColumn text="Uptime" prefWidth="120" fx:id="uptimeColumn"/>
-                    <TableColumn text="Actions" prefWidth="150" fx:id="actionsColumn"/>
-                </columns>
-            </TableView>
-        </VBox>
     </VBox>
 </ScrollPane>
