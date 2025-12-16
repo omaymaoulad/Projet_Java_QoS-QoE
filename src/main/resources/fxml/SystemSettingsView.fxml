@@ -2,7 +2,8 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-
+<?import java.lang.String?>
+<?import javafx.collections.FXCollections?>
 <VBox xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.ensah.qoe.Controller.SystemSettingsController"
@@ -94,9 +95,11 @@
                                style="-fx-font-weight: bold; -fx-text-fill: #64748b;"/>
                         <ComboBox fx:id="timezoneCombo" GridPane.columnIndex="1" GridPane.rowIndex="3" prefWidth="400">
                             <items>
-                                <String fx:value="UTC+0 (GMT)"/>
-                                <String fx:value="UTC+1 (CET)"/>
-                                <String fx:value="UTC-5 (EST)"/>
+                                <FXCollections fx:factory="observableArrayList">
+                                    <String fx:value="UTC+0 (GMT)"/>
+                                    <String fx:value="UTC+1 (CET)"/>
+                                    <String fx:value="UTC-5 (EST)"/>
+                                </FXCollections>
                             </items>
                         </ComboBox>
 
@@ -104,9 +107,11 @@
                                style="-fx-font-weight: bold; -fx-text-fill: #64748b;"/>
                         <ComboBox fx:id="languageCombo" GridPane.columnIndex="1" GridPane.rowIndex="4" prefWidth="400">
                             <items>
-                                <String fx:value="English"/>
-                                <String fx:value="Français"/>
-                                <String fx:value="العربية"/>
+                                <FXCollections fx:factory="observableArrayList">
+                                    <String fx:value="English"/>
+                                    <String fx:value="Français"/>
+                                    <String fx:value="العربية"/>
+                                </FXCollections>
                             </items>
                         </ComboBox>
 
@@ -114,9 +119,11 @@
                                style="-fx-font-weight: bold; -fx-text-fill: #64748b;"/>
                         <ComboBox fx:id="dateFormatCombo" GridPane.columnIndex="1" GridPane.rowIndex="5" prefWidth="400">
                             <items>
-                                <String fx:value="DD/MM/YYYY"/>
-                                <String fx:value="MM/DD/YYYY"/>
-                                <String fx:value="YYYY-MM-DD"/>
+                                <FXCollections fx:factory="observableArrayList">
+                                    <String fx:value="DD/MM/YYYY"/>
+                                    <String fx:value="MM/DD/YYYY"/>
+                                    <String fx:value="YYYY-MM-DD"/>
+                                </FXCollections>
                             </items>
                         </ComboBox>
                     </GridPane>
