@@ -1,4 +1,5 @@
 package com.ensah.qoe.Controller;
+
 import com.ensah.qoe.Models.User;
 import com.ensah.qoe.Models.DBConnection;
 import javafx.fxml.FXML;
@@ -18,6 +19,7 @@ import java.util.ResourceBundle;
 import jakarta.mail.*;
 import jakarta.mail.internet.*;
 import java.util.Properties;
+
 public class LoginController implements Initializable {
 
     @FXML
@@ -40,6 +42,8 @@ public class LoginController implements Initializable {
     private Label connectionStatusLabel;
     @FXML
     private ProgressIndicator progressIndicator;
+    @FXML
+    private Hyperlink forgotPasswordLink; // Ajout du lien pour mot de passe oublié
 
     private boolean isPasswordVisible = false;
 
@@ -47,6 +51,8 @@ public class LoginController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         setupEventHandlers();
         initializeConnectionStatus();
+        setupPasswordToggle();
+        loadSavedCredentials();
     }
 
     private void setupEventHandlers() {
@@ -59,6 +65,11 @@ public class LoginController implements Initializable {
         usernameField.setOnAction(e -> handleLogin());
         passwordField.setOnAction(e -> handleLogin());
         passwordVisibleField.setOnAction(e -> handleLogin());
+
+        // Forgot password link
+        if (forgotPasswordLink != null) {
+            forgotPasswordLink.setOnAction(e -> handleForgotPassword());
+        }
     }
 
     private void initializeConnectionStatus() {
@@ -69,44 +80,66 @@ public class LoginController implements Initializable {
                 if (conn != null && !conn.isClosed()) {
                     javafx.application.Platform.runLater(() -> {
                         connectionStatusLabel.setText("🟢 Database Connected");
+                        connectionStatusLabel.setStyle("-fx-text-fill: green;");
                     });
                 } else {
                     javafx.application.Platform.runLater(() -> {
                         connectionStatusLabel.setText("🔴 Database Error");
+                        connectionStatusLabel.setStyle("-fx-text-fill: red;");
                     });
+                }
+                if (conn != null) {
+                    conn.close();
                 }
             } catch (Exception e) {
                 javafx.application.Platform.runLater(() -> {
                     connectionStatusLabel.setText("🔴 Connection Failed");
+                    connectionStatusLabel.setStyle("-fx-text-fill: red;");
                 });
             }
         }).start();
     }
 
-    private void sendResetEmail(String toEmail, String token) throws Exception {
-        String fromEmail = "salma.jaghoua@etu.uae.ac.ma"; // ton email
-        String password = "e6cbfb0af1";      // mot de passe ou app password Gmail
+    private void setupPasswordToggle() {
+        // Initial setup
+        passwordVisibleField.setVisible(false);
+        passwordVisibleField.setManaged(false);
+        togglePasswordButton.setText("👁️");
 
-        Properties props = new Properties();
-        props.put("mail.smtp.host", "smtp.gmail.com");
-        props.put("mail.smtp.port", "587");
-        props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.starttls.enable", "true");
+        togglePasswordButton.setOnAction(e -> togglePasswordVisibility());
+    }
 
-        Session session = Session.getInstance(props, new Authenticator() {
-            protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(fromEmail, password);
-            }
-        });
+    private void loadSavedCredentials() {
+        // Charger les identifiants sauvegardés si "Remember Me" était coché précédemment
+        // À implémenter selon votre système de préférences
+        // Exemple avec Preferences API:
+        /*
+        Preferences prefs = Preferences.userNodeForPackage(LoginController.class);
+        String savedUsername = prefs.get("savedUsername", "");
+        boolean rememberMe = prefs.getBoolean("rememberMe", false);
 
-        Message msg = new MimeMessage(session);
-        msg.setFrom(new InternetAddress(fromEmail));
-        msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
-        msg.setSubject("Réinitialisation de votre mot de passe");
-        msg.setText("Cliquez sur ce lien pour réinitialiser votre mot de passe : " +
-                "http://localhost:8080/resetPassword?token=" + token);
+        if (rememberMe && !savedUsername.isEmpty()) {
+            usernameField.setText(savedUsername);
+            rememberMeCheckbox.setSelected(true);
+        }
+        */
+    }
 
-        Transport.send(msg);
+    private void saveCredentials() {
+        // Sauvegarder les identifiants si "Remember Me" est coché
+        if (rememberMeCheckbox.isSelected()) {
+            /*
+            Preferences prefs = Preferences.userNodeForPackage(LoginController.class);
+            prefs.put("savedUsername", usernameField.getText().trim());
+            prefs.putBoolean("rememberMe", true);
+            */
+        } else {
+            /*
+            Preferences prefs = Preferences.userNodeForPackage(LoginController.class);
+            prefs.remove("savedUsername");
+            prefs.putBoolean("rememberMe", false);
+            */
+        }
     }
 
     @FXML
@@ -114,19 +147,29 @@ public class LoginController implements Initializable {
         isPasswordVisible = !isPasswordVisible;
 
         if (isPasswordVisible) {
+            // Montrer le mot de passe en clair
             passwordVisibleField.setText(passwordField.getText());
             passwordVisibleField.setVisible(true);
             passwordVisibleField.setManaged(true);
             passwordField.setVisible(false);
             passwordField.setManaged(false);
             togglePasswordButton.setText("🔒");
+
+            // Transférer le focus
+            passwordVisibleField.requestFocus();
+            passwordVisibleField.end();
         } else {
+            // Cacher le mot de passe
             passwordField.setText(passwordVisibleField.getText());
             passwordField.setVisible(true);
             passwordField.setManaged(true);
             passwordVisibleField.setVisible(false);
             passwordVisibleField.setManaged(false);
             togglePasswordButton.setText("👁️");
+
+            // Transférer le focus
+            passwordField.requestFocus();
+            passwordField.end();
         }
     }
 
@@ -140,8 +183,12 @@ public class LoginController implements Initializable {
             return;
         }
 
+        // Sauvegarder les identifiants
+        saveCredentials();
+
         // Disable button and show loader
         loginButton.setDisable(true);
+        togglePasswordButton.setDisable(true);
         progressIndicator.setVisible(true);
         hideMessages();
 
@@ -155,20 +202,25 @@ public class LoginController implements Initializable {
                         redirectToDashboard(authenticatedUser);
                     } else {
                         showError("Invalid username or password");
-                        loginButton.setDisable(false);
-                        progressIndicator.setVisible(false);
+                        resetLoginButton();
                     }
                 });
             } catch (Exception e) {
                 e.printStackTrace();
                 javafx.application.Platform.runLater(() -> {
-                    showError("Database error: " + e.getMessage());
-                    loginButton.setDisable(false);
-                    progressIndicator.setVisible(false);
+                    showError("Authentication error: " + e.getMessage());
+                    resetLoginButton();
                 });
             }
         }).start();
     }
+
+    private void resetLoginButton() {
+        loginButton.setDisable(false);
+        togglePasswordButton.setDisable(false);
+        progressIndicator.setVisible(false);
+    }
+
     private User authenticateUser(String username, String password) {
         Connection conn = null;
         PreparedStatement pstmt = null;
@@ -177,17 +229,16 @@ public class LoginController implements Initializable {
         try {
             conn = DBConnection.getConnection();
 
-            // 🔥 IMPORTANT : Récupérer TOUTES les colonnes nécessaires, y compris date_creation
-            String sql =
-                    "SELECT id_user, username, email, role, password, date_creation " +
-                            "FROM utilisateurs " +
-                            "WHERE username = ? AND TRIM(password) = ?";
+            // Récupérer TOUTES les colonnes nécessaires
+            String sql = "SELECT id_user, username, email, role, password, date_creation " +
+                    "FROM utilisateurs " +
+                    "WHERE username = ? AND TRIM(password) = ?";
 
             pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, username);
             pstmt.setString(2, password);
 
-            System.out.println("🔍 Executing query: username=" + username);
+            System.out.println("🔍 Executing query for username: " + username);
 
             rs = pstmt.executeQuery();
 
@@ -197,44 +248,41 @@ public class LoginController implements Initializable {
                 user.setUsername(rs.getString("username"));
                 user.setEmail(rs.getString("email"));
                 user.setRole(rs.getString("role"));
-                user.setPassword(rs.getString("password")); // Nécessaire pour validatePasswordChange
+                user.setPassword(rs.getString("password"));
 
-                // 🔥 CRUCIAL : Récupérer la date de création
+                // Récupérer la date de création
                 String dateCreation = rs.getString("date_creation");
                 user.setDateCreation(dateCreation != null ? dateCreation : "");
 
-                System.out.println("✅ User found: " + user);
-                System.out.println("   - ID: " + user.getIdUser());
-                System.out.println("   - Username: " + user.getUsername());
-                System.out.println("   - Email: " + user.getEmail());
-                System.out.println("   - Role: " + user.getRole());
-                System.out.println("   - Date création: " + user.getDateCreation());
-
+                System.out.println("✅ User authenticated: " + user.getUsername() +
+                        " (Role: " + user.getRole() + ")");
                 return user;
             } else {
-                System.out.println("❌ No user found with username=" + username);
+                System.out.println("❌ Authentication failed for username: " + username);
             }
 
             return null;
 
         } catch (Exception e) {
-            e.printStackTrace();
             System.err.println("❌ Error during authentication: " + e.getMessage());
             return null;
         } finally {
             try {
                 if (rs != null) rs.close();
                 if (pstmt != null) pstmt.close();
+                if (conn != null) conn.close();
             } catch (Exception e) {
-                e.printStackTrace();
+                System.err.println("❌ Error closing resources: " + e.getMessage());
             }
         }
     }
+
     private void redirectToDashboard(User user) {
         try {
             String fxmlFile;
             String title;
 
+            // Sélectionner le dashboard selon le rôle
             if ("admin".equalsIgnoreCase(user.getRole())) {
                 fxmlFile = "/fxml/main_layout_admin.fxml";
                 title = "QOS/QOE - Admin Panel (" + user.getUsername() + ")";
@@ -243,54 +291,138 @@ public class LoginController implements Initializable {
                 title = "QOS/QOE Client Dashboard - Welcome " + user.getUsername();
             }
 
-            System.out.println("🔄 Chargement du FXML: " + fxmlFile);
+            System.out.println("🔄 Loading FXML: " + fxmlFile);
 
             URL fxmlUrl = getClass().getResource(fxmlFile);
             if (fxmlUrl == null) {
-                throw new IOException("Fichier FXML non trouvé: " + fxmlFile);
+                throw new IOException("FXML file not found: " + fxmlFile);
             }
 
             FXMLLoader loader = new FXMLLoader(fxmlUrl);
             Parent dashboard = loader.load();
 
-            System.out.println("✅ FXML chargé avec succès");
+            System.out.println("✅ FXML loaded successfully");
 
-            // 🔥 IMPORTANT : Passer l'utilisateur au contrôleur
+            // Passer l'utilisateur au contrôleur approprié
             Object controller = loader.getController();
             if (controller instanceof MainAdminLayoutController) {
                 MainAdminLayoutController mainController = (MainAdminLayoutController) controller;
                 mainController.setCurrentUser(user);
-                System.out.println("✅ User passé au MainAdminLayoutController: " + user.getUsername());
+                System.out.println("✅ User passed to MainAdminLayoutController: " + user.getUsername());
             } else if (controller instanceof ClientDashboardController) {
                 ((ClientDashboardController) controller).setUserData(user);
-                System.out.println("✅ Données passées à ClientDashboardController");
+                System.out.println("✅ User data passed to ClientDashboardController");
             }
 
-            // Switch scene
+            // Créer une nouvelle scène
             Stage stage = (Stage) loginButton.getScene().getWindow();
             Scene scene = new Scene(dashboard, 1366, 700);
 
+            // Appliquer le CSS si disponible
             try {
                 URL cssUrl = getClass().getResource("/css/style.css");
                 if (cssUrl != null) {
                     scene.getStylesheets().add(cssUrl.toExternalForm());
                 }
             } catch (Exception e) {
-                System.out.println("ℹ️ CSS non trouvé, continuation sans style");
+                System.out.println("ℹ️ CSS not found, continuing without styles");
             }
 
+            // Configurer et afficher la nouvelle scène
             stage.setScene(scene);
             stage.setTitle(title);
             stage.centerOnScreen();
+            stage.show();
 
-            System.out.println("✅ Dashboard affiché avec succès");
+            System.out.println("✅ Dashboard displayed successfully");
 
         } catch (Exception e) {
             e.printStackTrace();
             showError("Error loading dashboard: " + e.getMessage());
-            loginButton.setDisable(false);
-            progressIndicator.setVisible(false);
+            resetLoginButton();
         }
+    }
+
+    @FXML
+    private void handleForgotPassword() {
+        try {
+            // Charger le fichier FXML depuis le bon chemin
+            FXMLLoader loader = new FXMLLoader();
+
+            // Option 1: Chemin relatif depuis la racine de resources
+            URL fxmlUrl = getClass().getResource("/com/ensah/qoe/fxml/forgotPassword.fxml");
+
+            // Option 2: Si le fichier est dans resources/fxml/
+            if (fxmlUrl == null) {
+                fxmlUrl = getClass().getResource("/fxml/forgotPassword.fxml");
+            }
+
+            // Option 3: Si le fichier est dans le même package
+            if (fxmlUrl == null) {
+                fxmlUrl = getClass().getResource("forgotPassword.fxml");
+            }
+
+            if (fxmlUrl == null) {
+                throw new IOException("Fichier FXML non trouvé : forgotPassword.fxml");
+            }
+
+            loader.setLocation(fxmlUrl);
+            Parent root = loader.load();
+
+            Stage forgotStage = new Stage();
+            forgotStage.setTitle("Mot de passe oublié - QoE System");
+            forgotStage.setScene(new Scene(root, 500, 600));
+            forgotStage.setResizable(false);
+
+            // Optionnel : fermer la fenêtre de login
+            // Stage currentStage = (Stage) loginButton.getScene().getWindow();
+            // currentStage.close();
+
+            forgotStage.show();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Erreur");
+            alert.setHeaderText(null);
+            alert.setContentText("Erreur lors de l'ouverture de la fenêtre : " + e.getMessage());
+            alert.showAndWait();
+        }
+    }
+    private void sendResetEmail(String toEmail, String token) throws Exception {
+        String fromEmail = "salma.jaghoua@etu.uae.ac.ma";
+        String password = "e6cbfb0af1";
+
+        Properties props = new Properties();
+        props.put("mail.smtp.host", "smtp.gmail.com");
+        props.put("mail.smtp.port", "587");
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.smtp.ssl.trust", "smtp.gmail.com");
+
+        Session session = Session.getInstance(props, new Authenticator() {
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(fromEmail, password);
+            }
+        });
+
+        Message msg = new MimeMessage(session);
+        msg.setFrom(new InternetAddress(fromEmail));
+        msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
+        msg.setSubject("Réinitialisation de votre mot de passe - QoE System");
+
+        // Message HTML plus professionnel
+        String htmlContent = "<html><body>"
+                + "<h3>Réinitialisation de mot de passe</h3>"
+                + "<p>Cliquez sur le lien suivant pour réinitialiser votre mot de passe :</p>"
+                + "<p><a href=\"http://localhost:8080/resetPassword?token=" + token + "\">"
+                + "Réinitialiser mon mot de passe</a></p>"
+                + "<p>Ce lien expirera dans 24 heures.</p>"
+                + "<br/><p>Cordialement,<br/>L'équipe QoE System</p>"
+                + "</body></html>";
+
+        msg.setContent(htmlContent, "text/html; charset=utf-8");
+        Transport.send(msg);
     }
 
     private void validateFields() {
@@ -313,58 +445,6 @@ public class LoginController implements Initializable {
         successLabel.setManaged(false);
     }
 
-    @FXML
-    private void handleForgotPassword() {
-        // Demander l'email à l'utilisateur
-        TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("Mot de passe oublié");
-        dialog.setHeaderText("Entrez votre email pour réinitialiser le mot de passe");
-        dialog.setContentText("Email : ");
-        String email = dialog.showAndWait().orElse(null);
-
-        if (email == null || email.isEmpty()) return;
-
-        // Vérifier si l'email existe dans la DB et générer le token
-        try (Connection conn = DBConnection.getConnection()) {
-            PreparedStatement pst = conn.prepareStatement("SELECT * FROM utilisateurs WHERE email = ?");
-            pst.setString(1, email);
-            ResultSet rs = pst.executeQuery();
-
-            if (rs.next()) {
-                // Générer un token unique
-                String token = java.util.UUID.randomUUID().toString();
-
-                // Mettre à jour la base avec le token
-                PreparedStatement update = conn.prepareStatement(
-                        "UPDATE utilisateurs SET reset_token = ? WHERE email = ?");
-                update.setString(1, token);
-                update.setString(2, email);
-                update.executeUpdate();
-
-                // Ouvrir la fenêtre ResetPassword et passer le token
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/resetPassword.fxml"));
-                Parent root = loader.load();
-                ResetPasswordController controller = loader.getController();
-                controller.setToken(token); // maintenant le token est valide
-
-                Stage stage = new Stage();
-                stage.setTitle("Réinitialiser le mot de passe");
-                stage.setScene(new Scene(root));
-                stage.show();
-
-            } else {
-                Alert alert = new Alert(Alert.AlertType.ERROR, "Email non trouvé !");
-                alert.showAndWait();
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            Alert alert = new Alert(Alert.AlertType.ERROR, "Erreur lors de la vérification de l'email.");
-            alert.showAndWait();
-        }
-    }
-
-
     private void showSuccess(String message) {
         successLabel.setText(message);
         successLabel.setVisible(true);
@@ -379,5 +459,4 @@ public class LoginController implements Initializable {
         successLabel.setVisible(false);
         successLabel.setManaged(false);
     }
-
 }

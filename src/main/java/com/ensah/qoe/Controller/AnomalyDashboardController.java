@@ -45,18 +45,150 @@ public class AnomalyDashboardController {
     @FXML private ProgressIndicator loadingIndicator;
     @FXML private ScrollPane accueilScroll;
     @FXML private ScrollPane predictionScroll;
+
     @FXML
     public void initialize() {
-        // Configuration du tableau
-        if (zoneTable != null) {
+        // Initialiser les cellValueFactory TOUJOURS
+        initTableColumns();
+
+        // Configurer les cellFactory
+        setupTableCellFactories();
+
+        // NE PAS charger de données d'exemple - la table sera vide
+        clearTableData();
+
+        showAccueil();
+    }
+
+    private void initTableColumns() {
+        if (colZone != null) {
             colZone.setCellValueFactory(new PropertyValueFactory<>("zoneName"));
+        }
+        if (colNormal != null) {
             colNormal.setCellValueFactory(new PropertyValueFactory<>("normalCount"));
+        }
+        if (colAnomaly != null) {
             colAnomaly.setCellValueFactory(new PropertyValueFactory<>("anomalyCount"));
+        }
+        if (colTotal != null) {
             colTotal.setCellValueFactory(new PropertyValueFactory<>("total"));
+        }
+        if (colStatus != null) {
             colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
         }
 
-        showAccueil();
+        // ✅ SOLUTION : Désactiver la colonne vide
+        if (zoneTable != null) {
+            zoneTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+            System.out.println("✅ Politique de redimensionnement appliquée");
+        }
+    }
+
+    // Méthode pour vider le tableau
+    private void clearTableData() {
+        if (zoneTable != null) {
+            zoneTable.setItems(FXCollections.emptyObservableList());
+            System.out.println("📊 Tableau vidé - en attente d'entraînement");
+        }
+    }
+
+
+    private void setupTableCellFactories() {
+        // Colonne Zone - Texte en gras
+        colZone.setCellFactory(col -> new TableCell<ZoneTableData, String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setStyle("");
+                } else {
+                    setText(item);
+                    setStyle("-fx-font-weight: 600; -fx-text-fill: #0f172a;");
+                }
+            }
+        });
+
+        // Colonne Normal - Badge vert centré
+        colNormal.setCellFactory(col -> new TableCell<ZoneTableData, Integer>() {
+            @Override
+            protected void updateItem(Integer item, boolean empty) {
+                super.updateItem(item, empty);
+                getStyleClass().removeAll("badge-normal", "centered");
+
+                if (empty || item == null) {
+                    setText(null);
+                    setGraphic(null);
+                    setStyle("");
+                } else {
+                    setText(String.valueOf(item));
+                    getStyleClass().addAll("badge-normal", "centered");
+                }
+            }
+        });
+
+        // Colonne Anomalies - Badge rouge centré
+        colAnomaly.setCellFactory(col -> new TableCell<ZoneTableData, Integer>() {
+            @Override
+            protected void updateItem(Integer item, boolean empty) {
+                super.updateItem(item, empty);
+                getStyleClass().removeAll("badge-anomaly", "centered");
+
+                if (empty || item == null) {
+                    setText(null);
+                    setGraphic(null);
+                    setStyle("");
+                } else {
+                    setText(String.valueOf(item));
+                    getStyleClass().addAll("badge-anomaly", "centered");
+                }
+            }
+        });
+
+        // Colonne Total - Badge bleu centré
+        colTotal.setCellFactory(col -> new TableCell<ZoneTableData, Integer>() {
+            @Override
+            protected void updateItem(Integer item, boolean empty) {
+                super.updateItem(item, empty);
+                getStyleClass().removeAll("badge-total", "centered");
+
+                if (empty || item == null) {
+                    setText(null);
+                    setGraphic(null);
+                    setStyle("");
+                } else {
+                    setText(String.valueOf(item));
+                    getStyleClass().addAll("badge-total", "centered");
+                }
+            }
+        });
+
+        // Colonne Statut - Badge dynamique selon le statut
+        colStatus.setCellFactory(col -> new TableCell<ZoneTableData, String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                getStyleClass().removeAll("status-critical", "status-warning", "status-normal", "centered");
+
+                if (empty || item == null) {
+                    setText(null);
+                    setGraphic(null);
+                    setStyle("");
+                } else {
+                    setText(item);
+                    getStyleClass().add("centered");
+
+                    // Appliquer le style selon le statut
+                    if (item.contains("Critique") || item.contains("🔴")) {
+                        getStyleClass().add("status-critical");
+                    } else if (item.contains("surveiller") || item.contains("⚠️")) {
+                        getStyleClass().add("status-warning");
+                    } else {
+                        getStyleClass().add("status-normal");
+                    }
+                }
+            }
+        });
     }
 
     // ================= NAVIGATION =================
@@ -88,7 +220,6 @@ public class AnomalyDashboardController {
     }
 
     // ================= ENTRAÎNEMENT =================
-
     @FXML
     private void handleTrain() {
         System.out.println("✅ BOUTON ENTRAÎNEMENT CLIQUÉ");
@@ -104,6 +235,7 @@ public class AnomalyDashboardController {
 
                 Platform.runLater(() -> {
                     alert.close();
+                    // Mettre à jour TOUT le dashboard (y compris le tableau)
                     updateDashboard();
 
                     Alert success = new Alert(Alert.AlertType.INFORMATION);

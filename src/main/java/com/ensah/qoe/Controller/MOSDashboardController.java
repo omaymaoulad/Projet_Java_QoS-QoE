@@ -90,6 +90,8 @@ public class MOSDashboardController {
             System.out.println("⚠️ Tableau qualité non trouvé");
         }
 
+        // ✅ SOLUTION : Désactiver la colonne vide
+        qualityTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         // Configuration des sliders
         setupSliders();
         System.out.println("✅ Sliders configurés");

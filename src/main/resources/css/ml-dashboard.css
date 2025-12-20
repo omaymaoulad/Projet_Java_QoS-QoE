@@ -10,7 +10,18 @@
     -fx-padding: 15 30;
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 10, 0, 0, 3);
 }
+/* Masquer la colonne vide de JavaFX */
+.data-table .filler {
+    -fx-max-width: 0;
+    -fx-pref-width: 0;
+    -fx-min-width: 0;
+}
 
+.data-table .column-header.filler {
+    -fx-max-width: 0;
+    -fx-pref-width: 0;
+    -fx-min-width: 0;
+}
 .header-content {
     -fx-alignment: center-left;
 }
