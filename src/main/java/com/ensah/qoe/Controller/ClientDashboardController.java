@@ -52,7 +52,7 @@ public class ClientDashboardController implements Initializable {
     @FXML private ComboBox<String> serviceTypeCombo;
     @FXML private ToggleGroup ratingGroup;
     @FXML private TextArea commentField;
-
+    @FXML private Label charCountLabel;
     // Table historique
     @FXML private TableView<Feedback> feedbackHistoryTable;
     @FXML private TableColumn<Feedback, String> colDate;
@@ -99,13 +99,18 @@ public class ClientDashboardController implements Initializable {
 
     private void setupCommentField() {
         commentField.textProperty().addListener((obs, old, neu) -> {
-            if (neu.length() > 500) commentField.setText(old);
+            if (neu.length() > 500) {
+                commentField.setText(old);
+            } else {
+                charCountLabel.setText(neu.length() + "");
+            }
         });
     }
 
     // -------------------- HISTORIQUE -------------------------
     private void setupHistoryTable() {
-
+        // ✅ SOLUTION : Désactiver la colonne vide
+        feedbackHistoryTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         colDate.setCellValueFactory(cell ->
                 new SimpleStringProperty(
                         cell.getValue().getDate() != null ?
@@ -310,7 +315,7 @@ public class ClientDashboardController implements Initializable {
 
             Stage loginStage = new Stage();
             loginStage.setTitle("Connexion - QoE System");
-            loginStage.setScene(new Scene(root));
+            loginStage.setScene(new Scene(root,1366,700));
             loginStage.show();
 
         } catch (IOException e) {
