@@ -45,7 +45,7 @@
                 <VBox spacing="4" style="-fx-padding: 25 15 25 15;">
 
                     <!-- Dashboard -->
-                    <Button text="📊  Dashboard"
+                    <Button text="📊  Acceuil"
                             fx:id="dashboardBtn"
                             onMouseEntered="#handleMenuHover"
                             onMouseExited="#handleMenuExit"
@@ -65,23 +65,7 @@
                     </Button>
 
                     <!-- QoE Analysis -->
-                    <Button text="📈  QoE Analysis"
-                            onMouseEntered="#handleMenuHover"
-                            onMouseExited="#handleMenuExit"
-                            style="-fx-background-color: transparent;
-                                   -fx-background-radius: 10;
-                                   -fx-text-fill: #ecf0f1;
-                                   -fx-font-size: 14;
-                                   -fx-font-weight: 500;
-                                   -fx-alignment: center-left;
-                                   -fx-padding: 15 20;
-                                   -fx-cursor: hand;"
-                            onAction="#loadQoEView">
-                        <cursor><Cursor fx:constant="HAND"/></cursor>
-                    </Button>
-
-                    <!-- QoS Metrics -->
-                    <Button text="⚡  QoS Metrics"
+                    <Button text="⚡ Metriques QoS"
                             onMouseEntered="#handleMenuHover"
                             onMouseExited="#handleMenuExit"
                             style="-fx-background-color: transparent;
@@ -96,8 +80,8 @@
                         <cursor><Cursor fx:constant="HAND"/></cursor>
                     </Button>
 
-                    <!-- Network Monitor -->
-                    <Button text="🌐  Network Monitor"
+                    <!-- QoS Metrics -->
+                    <Button text="📈 Analyse QoE "
                             onMouseEntered="#handleMenuHover"
                             onMouseExited="#handleMenuExit"
                             style="-fx-background-color: transparent;
@@ -108,42 +92,9 @@
                                    -fx-alignment: center-left;
                                    -fx-padding: 15 20;
                                    -fx-cursor: hand;"
-                            onAction="#showNetworkMonitor">
+                            onAction="#loadQoEView">
                         <cursor><Cursor fx:constant="HAND"/></cursor>
                     </Button>
-
-                    <!-- User Management -->
-                    <Button text="👥  User Management"
-                            onMouseEntered="#handleMenuHover"
-                            onMouseExited="#handleMenuExit"
-                            style="-fx-background-color: transparent;
-                                   -fx-background-radius: 10;
-                                   -fx-text-fill: #ecf0f1;
-                                   -fx-font-size: 14;
-                                   -fx-font-weight: 500;
-                                   -fx-alignment: center-left;
-                                   -fx-padding: 15 20;
-                                   -fx-cursor: hand;"
-                            onAction="#showUserManagement">
-                        <cursor><Cursor fx:constant="HAND"/></cursor>
-                    </Button>
-
-                    <!-- Reports -->
-                    <Button text="📋  Reports"
-                            onMouseEntered="#handleMenuHover"
-                            onMouseExited="#handleMenuExit"
-                            style="-fx-background-color: transparent;
-                                   -fx-background-radius: 10;
-                                   -fx-text-fill: #ecf0f1;
-                                   -fx-font-size: 14;
-                                   -fx-font-weight: 500;
-                                   -fx-alignment: center-left;
-                                   -fx-padding: 15 20;
-                                   -fx-cursor: hand;"
-                            onAction="#showReports">
-                        <cursor><Cursor fx:constant="HAND"/></cursor>
-                    </Button>
-
                     <!-- ML Predictions avec sous-menu -->
                     <VBox spacing="4">
                         <!-- Bouton parent avec indicateur -->
@@ -206,9 +157,58 @@
                             </Button>
                         </VBox>
                     </VBox>
+                    <!-- Network Monitor -->
+                    <Button text="🌐  Moniteur réseau"
+                            onMouseEntered="#handleMenuHover"
+                            onMouseExited="#handleMenuExit"
+                            style="-fx-background-color: transparent;
+                                   -fx-background-radius: 10;
+                                   -fx-text-fill: #ecf0f1;
+                                   -fx-font-size: 14;
+                                   -fx-font-weight: 500;
+                                   -fx-alignment: center-left;
+                                   -fx-padding: 15 20;
+                                   -fx-cursor: hand;"
+                            onAction="#showNetworkMonitor">
+                        <cursor><Cursor fx:constant="HAND"/></cursor>
+                    </Button>
+
+                    <!-- User Management -->
+                    <Button text="👥 Gestion Utilisateur"
+                            onMouseEntered="#handleMenuHover"
+                            onMouseExited="#handleMenuExit"
+                            style="-fx-background-color: transparent;
+                                   -fx-background-radius: 10;
+                                   -fx-text-fill: #ecf0f1;
+                                   -fx-font-size: 14;
+                                   -fx-font-weight: 500;
+                                   -fx-alignment: center-left;
+                                   -fx-padding: 15 20;
+                                   -fx-cursor: hand;"
+                            onAction="#showUserManagement">
+                        <cursor><Cursor fx:constant="HAND"/></cursor>
+                    </Button>
+
+                    <!-- Reports -->
+                    <Button text="📋Rapports"
+                            onMouseEntered="#handleMenuHover"
+                            onMouseExited="#handleMenuExit"
+                            style="-fx-background-color: transparent;
+                                   -fx-background-radius: 10;
+                                   -fx-text-fill: #ecf0f1;
+                                   -fx-font-size: 14;
+                                   -fx-font-weight: 500;
+                                   -fx-alignment: center-left;
+                                   -fx-padding: 15 20;
+                                   -fx-cursor: hand;"
+                            onAction="#showReports">
+                        <cursor><Cursor fx:constant="HAND"/></cursor>
+                    </Button>
+
+
 
                     <!-- Settings -->
-                    <Button text="⚙ Settings"
+                    <Button text="⚙ Parametres"
                             onMouseEntered="#handleMenuHover"
                             onMouseExited="#handleMenuExit"
                             style="-fx-background-color: transparent;
@@ -254,7 +254,7 @@
                     <Label text="👤" style="-fx-font-size: 16; -fx-text-fill: #95a5a6;"/>
                 </HBox>
 
-                <Button text="🚪  Logout"
+                <Button text="🚪  Déconnexion"
                         onMouseEntered="#handleLogoutHover"
                         onMouseExited="#handleLogoutExit"
                         style="-fx-background-color: linear-gradient(to right, #e74c3c, #c0392b);

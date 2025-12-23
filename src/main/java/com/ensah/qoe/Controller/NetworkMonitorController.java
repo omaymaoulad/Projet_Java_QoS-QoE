@@ -42,7 +42,7 @@ public class NetworkMonitorController implements Initializable {
 
     @FXML private ComboBox<String> zoneCombo;
     @FXML private TextField searchField;
-
+    @FXML private PieChart qosPieChart;
     private Timeline updateTimeline;
     private final QosZoneService zoneService = new QosZoneService();
     private List<String> zones = new ArrayList<>();
@@ -54,8 +54,6 @@ public class NetworkMonitorController implements Initializable {
         startAutoRefresh();
         updateNetworkStatus();
     }
-
-
 
     private void setupZoneCombo() {
         try {
@@ -83,14 +81,10 @@ public class NetworkMonitorController implements Initializable {
             if (!qosList.isEmpty()) {
                 Qos latest = qosList.get(qosList.size() - 1);
 
-                latenceLabel.setText(String.format("%.2f ms", latest.getLatence()));
-                jitterLabel.setText(String.format("%.2f ms", latest.getJitter()));
-                perteLabel.setText(String.format("%.2f %%", latest.getPerte()));
-                bandePassanteLabel.setText(String.format("%.2f Mbps", latest.getBandePassante()));
-                signalLabel.setText(String.format("%.2f", latest.getSignalScore()));
-                mosLabel.setText(String.format("%.2f / 5", latest.getMos()));
-                String[] zoneParts = latest.getZone().split(",");
-                updateQoSChart(qosList);
+                // 🔁 graphique circulaire
+                updateQoSPieChart(latest);
+
+                updateQoSChart(qosList); // chart existant
             }
         } catch (Exception e) {
             System.err.println("Error updating zone info: " + e.getMessage());
@@ -170,6 +164,27 @@ public class NetworkMonitorController implements Initializable {
         alert.setHeaderText(null);
         alert.setContentText("Network data refreshed successfully!");
         alert.showAndWait();
+    }
+    private void updateQoSPieChart(Qos qos) {
+
+        // ⚠ Normalisation (important pour un PieChart)
+        double latency = Math.min(qos.getLatence() / 200.0, 1.0);      // max 200 ms
+        double jitter  = Math.min(qos.getJitter() / 100.0, 1.0);       // max 100 ms
+        double loss    = Math.min(qos.getPerte() / 5.0, 1.0);          // max 5 %
+        double mos     = qos.getMos() / 5.0;                            // sur 5
+        double signal  = Math.min((qos.getSignalScore() + 5) / 10.0, 1.0);
+        double bw      = Math.min(qos.getBandePassante() / 3000.0, 1.0);
+
+        ObservableList<PieChart.Data> data = FXCollections.observableArrayList(
+                new PieChart.Data("Latency", latency),
+                new PieChart.Data("Jitter", jitter),
+                new PieChart.Data("Packet Loss", loss),
+                new PieChart.Data("Bandwidth", bw),
+                new PieChart.Data("Signal", signal),
+                new PieChart.Data("MOS", mos)
+        );
+
+        qosPieChart.setData(data);
     }
 
 }

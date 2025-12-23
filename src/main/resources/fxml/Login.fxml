@@ -246,7 +246,7 @@
                         </HBox>
 
                         <Button fx:id="togglePasswordButton"
-                                text="👁️"
+                                text="👁"
                                 onAction="#togglePasswordVisibility"
                                 styleClass="password-toggle-btn"
                                 StackPane.alignment="CENTER_RIGHT">

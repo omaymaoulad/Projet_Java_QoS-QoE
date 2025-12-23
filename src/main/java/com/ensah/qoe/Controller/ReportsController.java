@@ -128,6 +128,8 @@ public class ReportsController implements Initializable {
     }
 
     private void setupTable() {
+        // ✅ SOLUTION : Désactiver la colonne vide
+        qosDataTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         zoneColumn.setCellValueFactory(new PropertyValueFactory<>("zone"));
         latencyColumn.setCellValueFactory(new PropertyValueFactory<>("latency"));
         jitterColumn.setCellValueFactory(new PropertyValueFactory<>("jitter"));

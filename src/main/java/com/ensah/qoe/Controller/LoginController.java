@@ -104,7 +104,7 @@ public class LoginController implements Initializable {
         // Initial setup
         passwordVisibleField.setVisible(false);
         passwordVisibleField.setManaged(false);
-        togglePasswordButton.setText("👁️");
+        togglePasswordButton.setText("👁");
 
         togglePasswordButton.setOnAction(e -> togglePasswordVisibility());
     }

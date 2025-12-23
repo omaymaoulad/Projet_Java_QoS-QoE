@@ -151,6 +151,9 @@ public class QoEController implements Initializable {
 
         // Afficher le mode par défaut (métriques pleine page)
         showMetricsFullScreen();
+        if (QoeAnalyzer.isCsvCharge()) {
+            afficherQoeGlobal();
+        }
     }
 
     private void setupToggleButtonStyles() {
@@ -337,6 +340,7 @@ public class QoEController implements Initializable {
 
         File f = chooser.showOpenDialog(importCsvButton.getScene().getWindow());
         if (f == null) return;
+        QoeAnalyzer.reset();
 
         boolean ok = QoeAnalyzer.analyserFichierCsv(f.getAbsolutePath());
 
@@ -1187,4 +1191,5 @@ public class QoEController implements Initializable {
             );
         }
     }
+
 }

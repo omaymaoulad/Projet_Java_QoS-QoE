@@ -98,26 +98,7 @@ public class ForgotPasswordController implements Initializable {
             // Fermer la fenêtre actuelle
             Stage currentStage = (Stage) backLink.getScene().getWindow();
             currentStage.close();
-
-            // Réouvrir la fenêtre de login
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/login.fxml"));
-
-            // Essayer différents chemins
-            if (loader.getLocation() == null) {
-                loader = new FXMLLoader(getClass().getResource("login.fxml"));
-            }
-            if (loader.getLocation() == null) {
-                loader = new FXMLLoader(getClass().getResource("/com/ensah/qoe/fxml/login.fxml"));
-            }
-
-            Parent root = loader.load();
-
-            Stage loginStage = new Stage();
-            loginStage.setTitle("Connexion - QoE System");
-            loginStage.setScene(new Scene(root, 800, 600));
-            loginStage.show();
-
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Erreur");
