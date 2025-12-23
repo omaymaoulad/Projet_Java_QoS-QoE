@@ -241,7 +241,9 @@
                         <HBox alignment="CENTER_LEFT" pickOnBounds="false" StackPane.alignment="CENTER_LEFT">
                             <padding><Insets left="16"/></padding>
                             <Label text="🔒" styleClass="input-icon">
-                                <font><Font size="20"/></font>
+                                <font>
+                                    <Font size="20"/>
+                                </font>
                             </Label>
                         </HBox>
 
