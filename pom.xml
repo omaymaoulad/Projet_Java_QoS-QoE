@@ -15,6 +15,7 @@
         <javafx.version>25.0.1</javafx.version>
         <spark.version>3.5.0</spark.version>
         <weka.version>3.8.6</weka.version>
+        <main.class>com.ensah.qoe.Main</main.class>
     </properties>
 
     <dependencies>
@@ -42,24 +43,24 @@
             <version>21.11.0.0</version>
         </dependency>
 
-        <!-- Email (garder UNE SEULE version) -->
-        <dependency>
-            <groupId>com.sun.mail</groupId>
-            <artifactId>javax.mail</artifactId>
-            <version>1.6.2</version>
-        </dependency>
-        <!-- REMPLACEZ les deux dépendances mail par : -->
-        <dependency>
-            <groupId>com.sun.mail</groupId>
-            <artifactId>javax.mail</artifactId>
-            <version>1.6.2</version>
-        </dependency>
+<!--        &lt;!&ndash; Email (garder UNE SEULE version) &ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>com.sun.mail</groupId>-->
+<!--            <artifactId>javax.mail</artifactId>-->
+<!--            <version>1.6.2</version>-->
+<!--        </dependency>-->
+<!--        &lt;!&ndash; REMPLACEZ les deux dépendances mail par : &ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>com.sun.mail</groupId>-->
+<!--            <artifactId>javax.mail</artifactId>-->
+<!--            <version>1.6.2</version>-->
+<!--        </dependency>-->
         <!-- REMPLACEZ javax.mail par jakarta.mail -->
-        <dependency>
-            <groupId>com.sun.mail</groupId>
-            <artifactId>jakarta.mail</artifactId>
-            <version>2.0.1</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.sun.mail</groupId>-->
+<!--            <artifactId>jakarta.mail</artifactId>-->
+<!--            <version>2.0.1</version>-->
+<!--        </dependency>-->
         <!-- iText PDF -->
         <dependency>
             <groupId>com.itextpdf</groupId>
@@ -183,7 +184,7 @@
                 <artifactId>javafx-maven-plugin</artifactId>
                 <version>0.0.8</version>
                 <configuration>
-                    <mainClass>com.ensah.qoe.Main</mainClass>
+                    <mainClass>${main.class}</mainClass>
                     <launcher>javafx</launcher>
                 </configuration>
             </plugin>
@@ -219,7 +220,7 @@
                         <configuration>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>com.ensah.qoe.Main</mainClass>
+                                    <mainClass>${main.class}</mainClass>
                                 </transformer>
                             </transformers>
                             <filters>
@@ -236,6 +237,147 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <!-- Plugin JPackage pour créer l'exécutable -->
+            <plugin>
+                <groupId>org.panteleyev</groupId>
+                <artifactId>jpackage-maven-plugin</artifactId>
+                <version>1.6.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jpackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <name>QoS_QoE_Analyzer</name>
+                    <appVersion>${project.version}</appVersion>
+                    <vendor>ENSAH</vendor>
+                    <destination>${project.build.directory}/dist</destination>
+                    <mainClass>${main.class}</mainClass>
+                    <type>exe</type>
+
+                    <!-- Options Windows -->
+                    <winShortcut>true</winShortcut>
+                    <winMenu>true</winMenu>
+                    <winMenuGroup>ENSAH Applications</winMenuGroup>
+
+                    <!-- Options Java pour non-modular -->
+                    <javaOptions>
+                        <option>-Xmx1024m</option>
+                        <option>-Dfile.encoding=UTF-8</option>
+                        <option>--add-opens</option>
+                        <option>java.base/java.lang=ALL-UNNAMED</option>
+                        <option>--add-opens</option>
+                        <option>java.base/java.util=ALL-UNNAMED</option>
+                        <option>--add-opens</option>
+                        <option>java.desktop/java.awt=ALL-UNNAMED</option>
+                        <option>--add-exports</option>
+                        <option>javafx.base/com.sun.javafx.runtime=ALL-UNNAMED</option>
+                        <option>--add-exports</option>
+                        <option>javafx.controls/com.sun.javafx.scene.control=ALL-UNNAMED</option>
+                    </javaOptions>
+
+                    <!-- Runtime image personnalisé -->
+                    <runtimeImage>${project.build.directory}/jre</runtimeImage>
+                </configuration>
+            </plugin>
+
+            <!-- Plugin pour copier les ressources -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.3.1</version>
+                <executions>
+                    <execution>
+                        <id>copy-resources</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/resources</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${project.basedir}</directory>
+                                    <includes>
+                                        <include>*.csv</include>
+                                        <include>*.arff</include>
+                                        <include>Guide_Project.md</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Plugin pour nettoyer avant build -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>3.3.2</version>
+                <configuration>
+                    <filesets>
+                        <fileset>
+                            <directory>${project.build.directory}/dist</directory>
+                            <includes>
+                                <include>**/*</include>
+                            </includes>
+                            <followSymlinks>false</followSymlinks>
+                        </fileset>
+                    </filesets>
+                </configuration>
+            </plugin>
         </plugins>
+
+        <!-- Configuration des ressources -->
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>**/*</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>${project.basedir}</directory>
+                <includes>
+                    <include>*.csv</include>
+                    <include>*.arff</include>
+                </includes>
+                <targetPath>.</targetPath>
+            </resource>
+        </resources>
     </build>
+
+    <profiles>
+        <profile>
+            <id>build-exe</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <version>3.1.0</version>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                                <configuration>
+                                    <target>
+                                        <echo message="Fichier exécutable créé dans: ${project.build.directory}/dist"/>
+                                        <echo message="Nom: QoS_QoE_Analyzer.exe"/>
+                                    </target>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

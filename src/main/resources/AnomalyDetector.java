@@ -117,7 +117,7 @@ public class AnomalyDetector implements Serializable {
         System.out.println("═══════════════════════════════════");
 
         Instances centroids = kmeansModel.getClusterCentroids();
-        int[] clusterSizes = kmeansModel.getClusterSizes();
+        double[] clusterSizes = kmeansModel.getClusterSizes();
 
         for (int i = 0; i < centroids.numInstances(); i++) {
             System.out.println("Cluster " + i + " (" + clusterSizes[i] + " instances):");

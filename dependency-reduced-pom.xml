@@ -2,16 +2,32 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.ensah.qoe</groupId>
-  <artifactId>Java_Project</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <artifactId>QoS-QoE-System</artifactId>
+  <version>1.0.0</version>
   <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <includes>
+          <include>**/*</include>
+        </includes>
+      </resource>
+      <resource>
+        <targetPath>.</targetPath>
+        <directory>${project.basedir}</directory>
+        <includes>
+          <include>*.csv</include>
+          <include>*.arff</include>
+        </includes>
+      </resource>
+    </resources>
     <plugins>
       <plugin>
         <groupId>org.openjfx</groupId>
         <artifactId>javafx-maven-plugin</artifactId>
         <version>0.0.8</version>
         <configuration>
-          <mainClass>com.ensah.qoe.Main</mainClass>
+          <mainClass>${main.class}</mainClass>
           <launcher>javafx</launcher>
         </configuration>
       </plugin>
@@ -20,6 +36,12 @@
         <version>3.11.0</version>
         <configuration>
           <release>17</release>
+          <compilerArgs>
+            <arg>--add-exports</arg>
+            <arg>javafx.base/com.sun.javafx.runtime=ALL-UNNAMED</arg>
+            <arg>--add-exports</arg>
+            <arg>javafx.controls/com.sun.javafx.scene.control=ALL-UNNAMED</arg>
+          </compilerArgs>
         </configuration>
       </plugin>
       <plugin>
@@ -34,25 +56,153 @@
             <configuration>
               <transformers>
                 <transformer>
-                  <mainClass>com.ensah.qoe.Main</mainClass>
+                  <mainClass>${main.class}</mainClass>
                 </transformer>
               </transformers>
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                  </excludes>
+                </filter>
+              </filters>
             </configuration>
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>org.panteleyev</groupId>
+        <artifactId>jpackage-maven-plugin</artifactId>
+        <version>1.6.0</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>jpackage</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <name>QoS_QoE_Analyzer</name>
+          <appVersion>${project.version}</appVersion>
+          <vendor>ENSAH</vendor>
+          <destination>${project.build.directory}/dist</destination>
+          <mainClass>${main.class}</mainClass>
+          <type>exe</type>
+          <winShortcut>true</winShortcut>
+          <winMenu>true</winMenu>
+          <winMenuGroup>ENSAH Applications</winMenuGroup>
+          <javaOptions>
+            <option>-Xmx1024m</option>
+            <option>-Dfile.encoding=UTF-8</option>
+            <option>--add-opens</option>
+            <option>java.base/java.lang=ALL-UNNAMED</option>
+            <option>--add-opens</option>
+            <option>java.base/java.util=ALL-UNNAMED</option>
+            <option>--add-opens</option>
+            <option>java.desktop/java.awt=ALL-UNNAMED</option>
+            <option>--add-exports</option>
+            <option>javafx.base/com.sun.javafx.runtime=ALL-UNNAMED</option>
+            <option>--add-exports</option>
+            <option>javafx.controls/com.sun.javafx.scene.control=ALL-UNNAMED</option>
+          </javaOptions>
+          <runtimeImage>${project.build.directory}/jre</runtimeImage>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>3.3.1</version>
+        <executions>
+          <execution>
+            <id>copy-resources</id>
+            <phase>package</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/resources</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${project.basedir}</directory>
+                  <includes>
+                    <include>*.csv</include>
+                    <include>*.arff</include>
+                    <include>Guide_Project.md</include>
+                  </includes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-clean-plugin</artifactId>
+        <version>3.3.2</version>
+        <configuration>
+          <filesets>
+            <fileset>
+              <directory>${project.build.directory}/dist</directory>
+              <includes>
+                <include>**/*</include>
+              </includes>
+              <followSymlinks>false</followSymlinks>
+            </fileset>
+          </filesets>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
+  <profiles>
+    <profile>
+      <id>build-exe</id>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <version>3.1.0</version>
+            <executions>
+              <execution>
+                <phase>package</phase>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+                <configuration>
+                  <target>
+                    <echo />
+                    <echo />
+                  </target>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
   <repositories>
     <repository>
       <id>central</id>
-      <url>https://repo.maven.apache.org/maven2/</url>
+      <url>https://repo.maven.apache.org/maven2</url>
     </repository>
   </repositories>
+  <dependencies>
+    <dependency>
+      <groupId>com.itextpdf</groupId>
+      <artifactId>itext7-core</artifactId>
+      <version>7.2.5</version>
+      <type>pom</type>
+      <scope>compile</scope>
+    </dependency>
+  </dependencies>
   <properties>
     <maven.compiler.release>17</maven.compiler.release>
+    <spark.version>3.5.0</spark.version>
+    <main.class>com.ensah.qoe.Main</main.class>
+    <weka.version>3.8.6</weka.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <javafx.version>25.0.1</javafx.version>
-    <spark.version>3.5.0</spark.version>
   </properties>
 </project>

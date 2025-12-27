@@ -16,8 +16,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ResourceBundle;
-import jakarta.mail.*;
-import jakarta.mail.internet.*;
 import java.util.Properties;
 
 public class LoginController implements Initializable {
@@ -400,16 +398,16 @@ public class LoginController implements Initializable {
         props.put("mail.smtp.starttls.enable", "true");
         props.put("mail.smtp.ssl.trust", "smtp.gmail.com");
 
-        Session session = Session.getInstance(props, new Authenticator() {
-            protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(fromEmail, password);
-            }
-        });
-
-        Message msg = new MimeMessage(session);
-        msg.setFrom(new InternetAddress(fromEmail));
-        msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
-        msg.setSubject("Réinitialisation de votre mot de passe - QoE System");
+//        Session session = Session.getInstance(props, new Authenticator() {
+//            protected PasswordAuthentication getPasswordAuthentication() {
+//                return new PasswordAuthentication(fromEmail, password);
+//            }
+//        });
+//
+//        Message msg = new MimeMessage(session);
+//        msg.setFrom(new InternetAddress(fromEmail));
+//        msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
+//        msg.setSubject("Réinitialisation de votre mot de passe - QoE System");
 
         // Message HTML plus professionnel
         String htmlContent = "<html><body>"
@@ -420,9 +418,9 @@ public class LoginController implements Initializable {
                 + "<p>Ce lien expirera dans 24 heures.</p>"
                 + "<br/><p>Cordialement,<br/>L'équipe QoE System</p>"
                 + "</body></html>";
-
-        msg.setContent(htmlContent, "text/html; charset=utf-8");
-        Transport.send(msg);
+//
+//        msg.setContent(htmlContent, "text/html; charset=utf-8");
+//        Transport.send(msg);
     }
 
     private void validateFields() {
