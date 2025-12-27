@@ -17,7 +17,7 @@
     <VBox spacing="25" style="-fx-padding: 25;">
         <!-- Header avec dégradé orange/bleu -->
         <HBox alignment="CENTER_LEFT" spacing="20" style="-fx-background-color: linear-gradient(to right, #ff6b35, #1e88e5); -fx-background-radius: 12; -fx-padding: 25; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 15, 0, 0, 5);">
-            <Label text="⚙️" style="-fx-font-size: 36; -fx-text-fill: white;"/>
+            <Label text="⚙" style="-fx-font-size: 36; -fx-text-fill: white;"/>
             <VBox spacing="3">
                 <Label text="Paramètres du Système" style="-fx-font-size: 26; -fx-font-weight: bold; -fx-text-fill: white; -fx-font-family: 'Segoe UI Semibold';"/>
                 <Label text="Configuration des paramètres système et des préférences" style="-fx-text-fill: rgba(255,255,255,0.9); -fx-font-size: 14;"/>

@@ -22,6 +22,10 @@ public class QoeAnalyzer {
     // 1) IMPORT CSV + INSERTION AUTOMATIQUE
     // =========================================================================
     public static boolean analyserFichierCsv(String csvPath) {
+        if (csvCharge) {
+            System.out.println("✔ CSV déjà chargé en mémoire — aucune réimportation");
+            return true;
+        }
         String nomFichier = new java.io.File(csvPath).getName().trim();
         System.out.println("=== [QoeAnalyzer] Fichier détecté : " + nomFichier + " ===");
         // -------------------------------------------------------
@@ -30,7 +34,7 @@ public class QoeAnalyzer {
         if (FichierService.fichierExiste(nomFichier)) {
             System.out.println("⚠ Le fichier est déjà importé. Chargement depuis la base...");
 
-            csvCharge = false; // empêche l'analyse par CSV
+            csvCharge = true; // empêche l'analyse par CSV
             chargerDepuisBase(nomFichier);
             return true;
         }
@@ -804,4 +808,15 @@ public class QoeAnalyzer {
         }
         return null;
     }
+    public static void reset() {
+        csvCharge = false;
+        subjectifParClient.clear();
+        feedbackTemp = null;
+
+        System.out.println("🔄 QoeAnalyzer réinitialisé — prêt pour un nouveau CSV");
+    }
+    public static boolean isCsvCharge() {
+        return csvCharge;
+    }
+
 }

@@ -237,7 +237,7 @@
                                           prefRowCount="5" wrapText="true"
                                           styleClass="modern-textarea"/>
                                 <HBox spacing="5" alignment="CENTER_RIGHT">
-                                    <Label text="0" styleClass="char-count"/>
+                                    <Label fx:id="charCountLabel" text="0" styleClass="char-count"/>
                                     <Label text="/ 500 caractères" styleClass="char-limit"/>
                                 </HBox>
                             </VBox>

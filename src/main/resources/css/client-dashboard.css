@@ -425,7 +425,10 @@ BorderPane {
     -fx-padding: 10;
     -fx-cursor: hand;
     -fx-background-radius: 10;
-    -fx-transition: all 0.3s;
+
+    /* 🔑 IMPORTANT */
+    -fx-min-width: 140px;
+    -fx-alignment: center;
 }
 
 .star-wrapper:hover {
@@ -439,17 +442,26 @@ BorderPane {
 }
 
 .star-radio {
-    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-padding: 5;
 }
 
 .star-radio .radio {
     -fx-opacity: 0;
+    -fx-pref-width: 0;
+    -fx-pref-height: 0;
 }
 
 .star-icon {
-    -fx-font-size: 32px;
+    -fx-font-size: 28px;
     -fx-text-fill: #ffd700;
+
+    /* 🔑 CORRECTION CLÉ */
+    -fx-min-width: 140px;
+    -fx-alignment: center;
+    -fx-wrap-text: false;
 }
+
 
 .star-number {
     -fx-text-fill: -fx-text-dark;

@@ -361,7 +361,8 @@ public class MainAdminLayoutController {
 
             Stage loginStage = new Stage();
             loginStage.setTitle("Connexion - QoE System");
-            loginStage.setScene(new Scene(root));
+            loginStage.setScene(new Scene(root,1366,700));
+            // 👉 Plein écran
 
             FadeTransition fadeIn = new FadeTransition(Duration.millis(300), root);
             fadeIn.setFromValue(0.0);
